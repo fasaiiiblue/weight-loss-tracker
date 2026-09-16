@@ -4,55 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบดูแลการฉีดยา</title>
-  <!-- โหลด LINE LIFF SDK ล่าสุด -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Sarabun", Roboto, sans-serif; background: #f1f5f9; padding: 16px; margin: 0; color: #1e293b; }
-    .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); max-width: 420px; margin: 0 auto; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Sarabun", Roboto, sans-serif; background: #f8fafc; padding: 16px; margin: 0; color: #1e293b; }
+    .card { background: white; border-radius: 14px; padding: 22px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 420px; margin: 0 auto; }
     h2 { margin-top: 0; color: #0f172a; font-size: 1.25rem; }
-    .label { font-size: 0.88rem; color: #475569; margin-bottom: 6px; display: block; font-weight: 500; }
-    input, select, button { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; margin-bottom: 14px; }
-    button { background: #06c755; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .label { font-size: 0.88rem; color: #475569; margin-bottom: 6px; display: block; font-weight: 600; }
+    .helper-text { font-size: 0.8rem; color: #64748b; margin-top: -4px; margin-bottom: 10px; display: block; }
+    input, select, button { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; margin-bottom: 14px; }
+    select { background-color: #fff; }
+    button { background: #06c755; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; padding: 14px; transition: 0.2s; }
     button:active { background: #05a847; }
     button:disabled { background: #94a3b8; }
-    .pill { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; }
-    .loading-box { background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 8px; padding: 16px; font-size: 0.9rem; color: #475569; line-height: 1.8; }
+    .med-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 10px 14px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; margin-bottom: 14px; line-height: 1.6; }
+    .loading-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; font-size: 0.9rem; color: #475569; text-align: center; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <!-- หน้าจอแสดงสถานะการโหลดแบบละเอียด -->
+    <!-- หน้าต่างโหลดสถานะ -->
     <div id="sectionLoading">
-      <h3 style="margin-top:0; font-size:1.1rem;">กำลังเชื่อมต่อระบบ...</h3>
       <div class="loading-box" id="debugLog">
-        ⏳ 1. เริ่มต้นระบบ...
+        ⏳ กำลังเชื่อมต่อระบบ...
       </div>
     </div>
 
-    <!-- หน้า 1: ลงทะเบียนครั้งแรก -->
+    <!-- ฟอร์ม 1: ลงทะเบียนเริ่มต้น (เฉพาะ Wegovy & Mounjaro) -->
     <div id="sectionRegister" style="display: none;">
-      <h2>ลงทะเบียนผู้รับบริการ</h2>
-      <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">
-        กรุณากรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ที่เคยให้ไว้กับคลินิก/โรงพยาบาลค่ะ
+      <h2>ลงทะเบียนเริ่มต้นใช้งาน</h2>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">
+        กรุณากรอกข้อมูลและเลือกปากกาที่ได้รับ เพื่อบันทึกประวัติและจัดรอบฉีดสัปดาห์ละ 1 ครั้งค่ะ
       </p>
+      
       <form id="formRegister">
         <label class="label">ชื่อ - นามสกุล</label>
-        <input type="text" id="regName" placeholder="เช่น สมศรี รักสุขภาพ" required>
+        <input type="text" id="regName" placeholder="เช่น วิภาดา สุขสำราญ" required>
 
         <label class="label">เบอร์โทรศัพท์</label>
         <input type="tel" id="regPhone" placeholder="เช่น 0812345678" required>
 
-        <button type="submit" id="btnRegister">ยืนยันตัวตน</button>
+        <label class="label">ชนิดปากกาที่ได้รับ</label>
+        <select id="regMed" required onchange="handleMedChange()">
+          <option value="" disabled selected>-- เลือกชนิดปากกา --</option>
+          <option value="Wegovy (Semaglutide)">Wegovy (Semaglutide)</option>
+          <option value="Mounjaro (Tirzepatide)">Mounjaro (Tirzepatide)</option>
+        </select>
+
+        <label class="label">ขนาดยาเริ่มต้นที่คุณหมอสั่งให้ฉีด</label>
+        <select id="regDose" required>
+          <option value="" disabled selected>-- กรุณาเลือกชนิดปากกาก่อน --</option>
+        </select>
+
+        <label class="label">วันนัดฉีดประจำสัปดาห์</label>
+        <span class="helper-text">ยานี้ฉีดสัปดาห์ละ 1 ครั้ง เลือกวันที่คุณหมอกำหนดให้ฉีด</span>
+        <select id="regDay" required>
+          <option value="วันจันทร์">วันจันทร์</option>
+          <option value="วันอังคาร">วันอังคาร</option>
+          <option value="วันพุธ">วันพุธ</option>
+          <option value="วันพฤหัสบดี">วันพฤหัสบดี</option>
+          <option value="วันศุกร์">วันศุกร์</option>
+          <option value="วันเสาร์">วันเสาร์</option>
+          <option value="วันอาทิตย์">วันอาทิตย์</option>
+        </select>
+
+        <button type="submit" id="btnRegister">ยืนยันการลงทะเบียน</button>
       </form>
     </div>
 
-    <!-- หน้า 2: ฟอร์มบันทึกการฉีดยา -->
+    <!-- ฟอร์ม 2: บันทึกการฉีดยาประจำสัปดาห์ -->
     <div id="sectionRecord" style="display: none;">
       <h2 style="margin-bottom: 4px;" id="dispName">-</h2>
-      <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;">HN: <span id="dispHn">-</span></div>
+      <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;">
+        รอบฉีดของคุณ: <strong>สัปดาห์ละครั้ง (<span id="dispDay">-</span>)</strong>
+      </div>
       
-      <div class="pill" id="dispMed">-</div>
+      <div class="med-badge" id="dispMedBox">-</div>
 
       <form id="formRecord">
         <label class="label">ขนาดยาที่ฉีดจริงรอบนี้</label>
@@ -65,13 +92,14 @@
           <option value="ต้นแขน">ต้นแขน</option>
         </select>
 
-        <label class="label">อาการข้างเคียง</label>
+        <label class="label">อาการข้างเคียง (ถ้ามี)</label>
         <select id="recSideEffect">
           <option value="ไม่มี / สบายดี">ไม่มี / สบายดี</option>
-          <option value="คลื่นไส้เล็กน้อย">คลื่นไส้เล็กน้อย</option>
-          <option value="แน่นท้อง / อิ่มเร็ว">แน่นท้อง / อิ่มเร็ว</option>
+          <option value="คลื่นไส้ / พะอืดพะอม">คลื่นไส้ / พะอืดพะอม</option>
+          <option value="แน่นท้อง / อิ่มเร็ว / ท้องอืด">แน่นท้อง / อิ่มเร็ว / ท้องอืด</option>
           <option value="ท้องผูก / ถ่ายยาก">ท้องผูก / ถ่ายยาก</option>
-          <option value="เวียนศีรษะ">เวียนศีรษะ</option>
+          <option value="ท้องเสีย / ถ่ายเหลว">ท้องเสีย / ถ่ายเหลว</option>
+          <option value="เวียนศีรษะ / อ่อนเพลีย">เวียนศีรษะ / อ่อนเพลีย</option>
         </select>
 
         <button type="submit" id="btnRecord">บันทึกการฉีดยา</button>
@@ -83,54 +111,61 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
     const LIFF_ID = "2011178370-3Kbd4Giq";
 
-    const logBox = document.getElementById("debugLog");
-    function appendLog(msg) {
-      logBox.innerHTML += "<br>" + msg;
-    }
-
     let lineProfile = { userId: "" };
     let patientData = {};
 
+    // ฐานข้อมูล Dose เฉพาะ Wegovy และ Mounjaro
+    const doseOptions = {
+      "Wegovy (Semaglutide)": [
+        "0.25 mg (เริ่มต้น)",
+        "0.5 mg",
+        "1.0 mg",
+        "1.7 mg",
+        "2.4 mg (ขนาดคงที่)"
+      ],
+      "Mounjaro (Tirzepatide)": [
+        "2.5 mg (เริ่มต้น)",
+        "5.0 mg",
+        "7.5 mg",
+        "10.0 mg",
+        "12.5 mg",
+        "15.0 mg (ขนาดสูงสุด)"
+      ]
+    };
+
+    function handleMedChange() {
+      const med = document.getElementById("regMed").value;
+      const doseSelect = document.getElementById("regDose");
+
+      doseSelect.innerHTML = "";
+      const doses = doseOptions[med] || [];
+      doses.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.text = d;
+        doseSelect.appendChild(opt);
+      });
+    }
+
     async function initApp() {
       try {
-        appendLog("⏳ 2. กำลังเริ่ม LIFF SDK...");
         await liff.init({ liffId: LIFF_ID });
-        appendLog("✅ 3. LIFF SDK พร้อมทำงาน");
-
         if (!liff.isLoggedIn()) {
-          appendLog("⚠️ ยังไม่ Login -> กำลังพาไปหน้า Login...");
           liff.login();
           return;
         }
-
-        appendLog("⏳ 4. กำลังดึงโปรไฟล์ LINE...");
         lineProfile = await liff.getProfile();
-        appendLog(`✅ 5. ดึง LINE สำเร็จ (UID: ${lineProfile.userId.substring(0, 6)}...)`);
-
         await checkUserStatus();
-
       } catch (err) {
-        appendLog(`<span style="color:red; font-weight:bold;">❌ ผิดพลาด: ${err.message || err}</span>`);
+        document.getElementById("debugLog").innerHTML = `<span style="color:red;">โหลดไม่สำเร็จ: ${err.message}</span>`;
       }
     }
 
     async function checkUserStatus() {
       try {
-        appendLog("⏳ 6. กำลังตรวจสอบข้อมูลใน Google Sheets...");
         const targetUrl = `${GAS_URL}?action=getPatientInfo&lineUid=${encodeURIComponent(lineProfile.userId)}`;
-
-        const res = await fetch(targetUrl, {
-          method: "GET",
-          mode: "cors",
-          redirect: "follow"
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP Status ${res.status}`);
-        }
-
+        const res = await fetch(targetUrl, { method: "GET", redirect: "follow" });
         const data = await res.json();
-        appendLog("✅ 7. ได้รับคำตอบจาก Google Sheets");
 
         document.getElementById("sectionLoading").style.display = "none";
 
@@ -138,15 +173,14 @@
           patientData = data;
           document.getElementById("sectionRecord").style.display = "block";
           document.getElementById("dispName").innerText = data.name;
-          document.getElementById("dispHn").innerText = data.hn;
-          document.getElementById("dispMed").innerText = `ยา: ${data.medication} (${data.currentDose})`;
+          document.getElementById("dispDay").innerText = data.injectionDay || "ตามแพทย์นัด";
+          document.getElementById("dispMedBox").innerHTML = `💉 <strong>${data.medication}</strong><br>ขนาดยาปัจจุบัน: <strong>${data.currentDose}</strong>`;
           document.getElementById("recDose").value = data.currentDose;
         } else {
           document.getElementById("sectionRegister").style.display = "block";
         }
-
       } catch (err) {
-        appendLog(`<span style="color:red; font-weight:bold;">❌ ไม่สามารถติดต่อ Google Sheets ได้: ${err.message}</span>`);
+        document.getElementById("debugLog").innerHTML = `<span style="color:red;">เกิดข้อผิดพลาด: ${err.message}</span>`;
       }
     }
 
@@ -155,7 +189,10 @@
       e.preventDefault();
       const btn = document.getElementById("btnRegister");
       btn.disabled = true;
-      btn.innerText = "กำลังตรวจสอบ...";
+      btn.innerText = "กำลังบันทึกข้อมูล...";
+
+      const med = document.getElementById("regMed").value;
+      const day = document.getElementById("regDay").value;
 
       try {
         const res = await fetch(GAS_URL, {
@@ -165,31 +202,34 @@
             action: "register",
             lineUid: lineProfile.userId,
             name: document.getElementById("regName").value.trim(),
-            phone: document.getElementById("regPhone").value.trim()
+            phone: document.getElementById("regPhone").value.trim(),
+            medication: med,
+            dose: document.getElementById("regDose").value,
+            frequency: "สัปดาห์ละครั้ง",
+            injectionDay: day
           }),
           redirect: "follow"
         });
 
         const result = await res.json();
         if (result.status === "success") {
-          alert("ยืนยันตัวตนสำเร็จแล้วค่ะ");
+          alert("ลงทะเบียนเรียบร้อยแล้วค่ะ เริ่มบันทึกการฉีดยาได้ทันที");
           document.getElementById("sectionRegister").style.display = "none";
           document.getElementById("sectionLoading").style.display = "block";
-          logBox.innerHTML = "⏳ กำลังรีเฟรชข้อมูลยา...";
           await checkUserStatus();
         } else {
           alert(result.message || "เกิดข้อผิดพลาด");
           btn.disabled = false;
-          btn.innerText = "ยืนยันตัวตน";
+          btn.innerText = "ยืนยันการลงทะเบียน";
         }
       } catch (err) {
         alert("ข้อผิดพลาด: " + err.message);
         btn.disabled = false;
-        btn.innerText = "ยืนยันตัวตน";
+        btn.innerText = "ยืนยันการลงทะเบียน";
       }
     });
 
-    // Submit บันทึกยา
+    // Submit บันทึกการฉีด
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRecord");
@@ -203,7 +243,7 @@
           body: JSON.stringify({
             action: "recordInjection",
             lineUid: lineProfile.userId,
-            hn: patientData.hn,
+            hn: patientData.hn || "-",
             name: patientData.name,
             medication: patientData.medication,
             dose: document.getElementById("recDose").value,
@@ -213,7 +253,7 @@
           redirect: "follow"
         });
 
-        alert("บันทึกการฉีดยาเรียบร้อยแล้วค่ะ");
+        alert("บันทึกการฉีดยาประจำสัปดาห์เรียบร้อยแล้วค่ะ");
         liff.closeWindow();
       } catch (err) {
         alert("ข้อผิดพลาดในการบันทึก: " + err.message);
@@ -222,7 +262,6 @@
       }
     });
 
-    // เริ่มทำงานเมื่อโหลดเสร็จ
     window.addEventListener("DOMContentLoaded", () => {
       initApp();
     });
