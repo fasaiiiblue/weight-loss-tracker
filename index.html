@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบดูแลการฉีดยา</title>
-  <!-- โหลด LINE Front-end Framework (LIFF) SDK -->
+  <!-- โหลด LINE LIFF SDK ล่าสุด -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Sarabun", Roboto, sans-serif; background: #f1f5f9; padding: 16px; margin: 0; color: #1e293b; }
@@ -16,16 +16,21 @@
     button:active { background: #05a847; }
     button:disabled { background: #94a3b8; }
     .pill { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; }
-    .loading-text { text-align: center; color: #64748b; padding: 20px; line-height: 1.6; }
+    .loading-box { background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 8px; padding: 16px; font-size: 0.9rem; color: #475569; line-height: 1.8; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <!-- หน้าสถานะโหลด -->
-    <div id="sectionLoading" class="loading-text">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</div>
+    <!-- หน้าจอแสดงสถานะการโหลดแบบละเอียด -->
+    <div id="sectionLoading">
+      <h3 style="margin-top:0; font-size:1.1rem;">กำลังเชื่อมต่อระบบ...</h3>
+      <div class="loading-box" id="debugLog">
+        ⏳ 1. เริ่มต้นระบบ...
+      </div>
+    </div>
 
-    <!-- หน้า 1: สำหรับลงทะเบียนครั้งแรกด้วย ชื่อ-สกุล และ เบอร์โทร -->
+    <!-- หน้า 1: ลงทะเบียนครั้งแรก -->
     <div id="sectionRegister" style="display: none;">
       <h2>ลงทะเบียนผู้รับบริการ</h2>
       <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">
@@ -78,43 +83,58 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
     const LIFF_ID = "2011178370-3Kbd4Giq";
 
-    let lineProfile = {};
+    const logBox = document.getElementById("debugLog");
+    function appendLog(msg) {
+      logBox.innerHTML += "<br>" + msg;
+    }
+
+    let lineProfile = { userId: "" };
     let patientData = {};
 
-    async function main() {
+    async function initApp() {
       try {
+        appendLog("⏳ 2. กำลังเริ่ม LIFF SDK...");
         await liff.init({ liffId: LIFF_ID });
+        appendLog("✅ 3. LIFF SDK พร้อมทำงาน");
+
         if (!liff.isLoggedIn()) {
+          appendLog("⚠️ ยังไม่ Login -> กำลังพาไปหน้า Login...");
           liff.login();
           return;
         }
+
+        appendLog("⏳ 4. กำลังดึงโปรไฟล์ LINE...");
         lineProfile = await liff.getProfile();
-        checkUserStatus();
+        appendLog(`✅ 5. ดึง LINE สำเร็จ (UID: ${lineProfile.userId.substring(0, 6)}...)`);
+
+        await checkUserStatus();
+
       } catch (err) {
-        document.getElementById("sectionLoading").innerHTML = 
-          `<span style="color:red;">โหลด LINE LIFF ไม่สำเร็จ:</span><br><small>${err.message}</small>`;
+        appendLog(`<span style="color:red; font-weight:bold;">❌ ผิดพลาด: ${err.message || err}</span>`);
       }
     }
 
-    // ตรวจสอบว่าคนไข้เคยลงทะเบียนหรือยัง
     async function checkUserStatus() {
       try {
+        appendLog("⏳ 6. กำลังตรวจสอบข้อมูลใน Google Sheets...");
         const targetUrl = `${GAS_URL}?action=getPatientInfo&lineUid=${encodeURIComponent(lineProfile.userId)}`;
-        
+
         const res = await fetch(targetUrl, {
           method: "GET",
+          mode: "cors",
           redirect: "follow"
         });
 
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          throw new Error(`HTTP Status ${res.status}`);
         }
 
         const data = await res.json();
+        appendLog("✅ 7. ได้รับคำตอบจาก Google Sheets");
+
         document.getElementById("sectionLoading").style.display = "none";
 
         if (data.found) {
-          // ลงทะเบียนแล้ว -> แสดงฟอร์มบันทึกยา
           patientData = data;
           document.getElementById("sectionRecord").style.display = "block";
           document.getElementById("dispName").innerText = data.name;
@@ -122,16 +142,15 @@
           document.getElementById("dispMed").innerText = `ยา: ${data.medication} (${data.currentDose})`;
           document.getElementById("recDose").value = data.currentDose;
         } else {
-          // ยังไม่เคยลงทะเบียน -> แสดงหน้ากรอกชื่อ-เบอร์โทร
           document.getElementById("sectionRegister").style.display = "block";
         }
+
       } catch (err) {
-        document.getElementById("sectionLoading").innerHTML = 
-          `<span style="color:red;">เกิดข้อผิดพลาดในการเชื่อมต่อ:</span><br><small>${err.message}</small>`;
+        appendLog(`<span style="color:red; font-weight:bold;">❌ ไม่สามารถติดต่อ Google Sheets ได้: ${err.message}</span>`);
       }
     }
 
-    // ส่วนที่ 1: Event Submit สำหรับลงทะเบียนครั้งแรก
+    // Submit ลงทะเบียน
     document.getElementById("formRegister").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRegister");
@@ -141,9 +160,7 @@
       try {
         const res = await fetch(GAS_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             action: "register",
             lineUid: lineProfile.userId,
@@ -158,33 +175,31 @@
           alert("ยืนยันตัวตนสำเร็จแล้วค่ะ");
           document.getElementById("sectionRegister").style.display = "none";
           document.getElementById("sectionLoading").style.display = "block";
-          document.getElementById("sectionLoading").innerText = "กำลังดึงข้อมูลยา...";
-          checkUserStatus();
+          logBox.innerHTML = "⏳ กำลังรีเฟรชข้อมูลยา...";
+          await checkUserStatus();
         } else {
           alert(result.message || "เกิดข้อผิดพลาด");
           btn.disabled = false;
           btn.innerText = "ยืนยันตัวตน";
         }
       } catch (err) {
-        alert("เกิดข้อผิดพลาดในการส่งข้อมูล: " + err.message);
+        alert("ข้อผิดพลาด: " + err.message);
         btn.disabled = false;
         btn.innerText = "ยืนยันตัวตน";
       }
     });
 
-    // ส่วนที่ 2: Event Submit สำหรับบันทึกการฉีดยา
+    // Submit บันทึกยา
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRecord");
       btn.disabled = true;
-      btn.innerText = "กำลังบันทึกข้อมูล...";
+      btn.innerText = "กำลังบันทึก...";
 
       try {
         await fetch(GAS_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             action: "recordInjection",
             lineUid: lineProfile.userId,
@@ -201,13 +216,16 @@
         alert("บันทึกการฉีดยาเรียบร้อยแล้วค่ะ");
         liff.closeWindow();
       } catch (err) {
-        alert("เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+        alert("ข้อผิดพลาดในการบันทึก: " + err.message);
         btn.disabled = false;
         btn.innerText = "บันทึกการฉีดยา";
       }
     });
 
-    main();
+    // เริ่มทำงานเมื่อโหลดเสร็จ
+    window.addEventListener("DOMContentLoaded", () => {
+      initApp();
+    });
   </script>
 </body>
 </html>
