@@ -142,13 +142,19 @@
     .due-banner.today { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
     .due-banner.overdue { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
 
-    /* ข้อ 1 & 2: ลำดับครั้งที่ฉีด (ย้ายขึ้นบนสุด) */
+    /* การเลือกครั้งที่ฉีด (Sequential Logic) */
     .dose-num-card {
-      background: rgba(241, 245, 249, 0.75);
+      background: rgba(241, 245, 249, 0.85);
       border: 1px solid #cbd5e1;
       border-radius: 14px;
       padding: 12px;
       margin-bottom: 14px;
+    }
+    .pen-status-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #0369a1;
+      margin-bottom: 4px;
     }
     .dose-num-grid {
       display: grid;
@@ -175,6 +181,13 @@
       font-weight: 600;
       box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
     }
+    .dose-num-btn:disabled {
+      background: #f1f5f9;
+      color: #94a3b8;
+      border-color: #e2e8f0;
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
     .dose-num-btn.special {
       border-color: #f59e0b;
       color: #b45309;
@@ -196,7 +209,6 @@
       font-size: 0.74rem;
       cursor: pointer;
       font-family: inherit;
-      margin-top: 2px;
     }
 
     .dose-5-warning {
@@ -211,7 +223,7 @@
       margin-top: 8px;
     }
 
-    /* ข้อ 2: วันที่ฉีด (วันนี้ / วันอื่น) */
+    /* วันที่ฉีด (บันทึกย้อนหลังได้) */
     .date-toggle-group {
       display: flex;
       gap: 8px;
@@ -239,7 +251,7 @@
       font-weight: 600;
     }
 
-    /* ข้อ 4: ขนาดปากกาและการแบ่งฉีด */
+    /* ขนาดปากกาและแบ่งฉีด */
     .pen-calc-box {
       background: white;
       border: 1px solid #cbd5e1;
@@ -259,7 +271,7 @@
       margin-top: 4px;
     }
 
-    /* ข้อ 5: รูปผังหน้าท้องสมมาตร 4 Quadrant สวยงาม */
+    /* ผังหน้าท้อง 4 ส่วน */
     .abdomen-card {
       background: white;
       border: 1px solid #cbd5e1;
@@ -277,9 +289,7 @@
       cursor: pointer;
       transition: all 0.25s ease;
     }
-    .quad-box:hover {
-      fill: #f1f5f9;
-    }
+    .quad-box:hover { fill: #f1f5f9; }
     .quad-box.active {
       fill: #e0f2fe;
       stroke: var(--primary);
@@ -300,11 +310,54 @@
       pointer-events: none;
       font-family: inherit;
     }
-    .quad-box.active ~ text {
-      fill: var(--primary-dark);
+
+    /* หน้าประวัติแบบ Accordion แบ่งตามด้ามปากกา */
+    .pen-group-card {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .pen-group-header {
+      padding: 12px 14px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .pen-group-header:hover {
+      background: #f1f5f9;
+    }
+    .pen-group-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pen-group-content {
+      padding: 10px 12px;
+      display: none;
+    }
+    .pen-group-content.open {
+      display: block;
+    }
+    .history-dose-item {
+      border-left: 3px solid var(--primary);
+      padding-left: 10px;
+      margin-bottom: 10px;
+      background: #fafafa;
+      border-radius: 0 10px 10px 0;
+      padding: 8px 10px;
     }
 
-    /* Modal ป้องกันชื่อเว็บ */
+    /* Modal */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -330,24 +383,16 @@
       0% { transform: scale(0.9); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
-
-    .history-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 8px;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Custom In-App Modal (ไม่มีชื่อเว็บ Github ขึ้นเด็ดขาด) -->
+  <!-- Custom In-App Modal -->
   <div id="customModal" class="modal-backdrop">
     <div class="modal-box">
       <div id="modalIcon" style="font-size: 2.2rem; margin-bottom: 8px;">✅</div>
       <div id="modalTitle" style="font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 6px;">บันทึกสำเร็จ</div>
-      <div id="modalDesc" style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 16px;">ข้อความแจ้งเตือน</div>
+      <div id="modalDesc" style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 16px;">ข้อความ</div>
       <button type="button" class="btn-primary" onclick="closeModal()">ตกลง</button>
     </div>
   </div>
@@ -355,10 +400,10 @@
   <div class="glass-card">
     <div id="sectionLoading" style="text-align: center; padding: 30px 0;">
       <div style="font-size: 2rem; margin-bottom: 8px;">💉</div>
-      <div style="color: #64748b; font-size: 0.9rem;">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</div>
+      <div style="color: #64748b; font-size: 0.9rem;">กำลังโหลดข้อมูลของคุณ...</div>
     </div>
 
-    <!-- 1. หน้าลงทะเบียนครั้งแรก -->
+    <!-- 1. หน้าลงทะเบียน -->
     <div id="sectionRegister" style="display: none;">
       <h2>ลงทะเบียนผู้รับบริการ</h2>
       <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
@@ -402,7 +447,7 @@
 
     <!-- 2. หน้าใช้งานหลัก -->
     <div id="sectionMain" style="display: none;">
-      <!-- หัวการ์ดคนไข้ + HN + แพทย์ -->
+      <!-- หัวการ์ดคนไข้ -->
       <div class="patient-header">
         <div style="display: flex; justify-content: space-between; align-items: baseline;">
           <h2 style="margin: 0; font-size: 1.15rem;" id="dispName">-</h2>
@@ -419,29 +464,29 @@
         </div>
       </div>
 
-      <!-- แถบเตือนนัด / เลยกำหนด -->
+      <!-- แถบเตือนนัด -->
       <div id="dueBanner" class="due-banner normal">
         <span id="dueIcon">📅</span>
         <div id="dueText">กำลังคำนวณรอบฉีด...</div>
       </div>
 
-      <!-- เมนูแท็บ -->
+      <!-- แท็บสลับหน้า -->
       <div class="tab-bar">
         <button type="button" class="tab-btn active" id="tabRecordBtn" onclick="switchTab('record')">💉 บันทึกการฉีดยา</button>
         <button type="button" class="tab-btn" id="tabHistoryBtn" onclick="switchTab('history')">📜 ประวัติการฉีด</button>
       </div>
 
-      <!-- แท็บบันทึกการฉีด -->
+      <!-- แท็บที่ 1: บันทึกการฉีด -->
       <div id="tabRecordContent">
         <form id="formRecord">
 
-          <!-- ข้อ 1 & 2: ลำดับครั้งที่ฉีด ย้ายมาอยู่บนสุดก่อนวันที่ -->
+          <!-- ส่วนบังคับลำดับครั้ง (Sequential Logic) -->
           <div class="dose-num-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="label" style="margin-bottom: 0;">ด้ามนี้ฉีดเป็นครั้งที่เท่าไหร่?</label>
-              <button type="button" class="btn-new-pen" onclick="resetToNewPen()">🔄 เริ่มด้ามใหม่</button>
+              <div class="pen-status-title" id="dispPenStatusTitle">🖋️ ปากกาด้ามที่ 1</div>
+              <button type="button" class="btn-new-pen" onclick="startNewPen()">🔄 เริ่มด้ามใหม่</button>
             </div>
-            <span class="hint" style="margin-top: 2px;">ระบบนับครั้งถัดไปให้อัตโนมัติ (1 ด้าม = 4 สัปดาห์)</span>
+            <span class="hint" id="penLogicHint" style="margin-top: 2px;">กรุณาบันทึกตามลำดับครั้งในด้าม</span>
 
             <div class="dose-num-grid">
               <button type="button" class="dose-num-btn" id="btnDose1" onclick="selectDoseNum(1, this)">ครั้งที่ 1</button>
@@ -450,16 +495,16 @@
               <button type="button" class="dose-num-btn" id="btnDose4" onclick="selectDoseNum(4, this)">ครั้งที่ 4</button>
               <button type="button" class="dose-num-btn special" id="btnDose5" onclick="selectDoseNum(5, this)">ครั้งที่ 5 ⭐</button>
             </div>
-            <input type="hidden" id="selectedDoseNum" value="ครั้งที่ 1">
+            <input type="hidden" id="selectedDoseNum" value="1">
+            <input type="hidden" id="selectedPenNum" value="1">
 
-            <!-- เตือนเข็ม 5 -->
             <div id="dose5WarningBox" class="dose-5-warning">
               <strong>⚠️ ข้อมูลสำหรับครั้งที่ 5 (ยาคงเหลือพิเศษ):</strong><br>
-              ครั้งที่ 5 เป็นยาคงเหลือในหลอดพิเศษ ต้องได้รับคำแนะนำจากแพทย์ และ<strong>กรุณานำปากกามาให้พยาบาลเป็นผู้ฉีดที่โรงพยาบาลเท่านั้น</strong> เพื่อความแม่นยำและปลอดภัยค่ะ
+              ครั้งที่ 5 เป็นยาคงเหลือในหลอดพิเศษ ต้องได้รับคำแนะนำจากแพทย์ และ<strong>กรุณานำปากกามาให้พยาบาลเป็นผู้ฉีดที่โรงพยาบาลเท่านั้น</strong> เพื่อความปลอดภัยค่ะ
             </div>
           </div>
 
-          <!-- วันที่ฉีดจริง (เน้น "วันนี้" + ตัวเลือก "วันอื่น") -->
+          <!-- วันที่ฉีด (บันทึกย้อนหลังได้) -->
           <label class="label">วันที่ฉีดยาจริงรอบนี้</label>
           <div class="date-toggle-group">
             <button type="button" class="date-toggle-btn active" id="btnDateToday" onclick="setDateMode('today')">
@@ -473,62 +518,54 @@
             <input type="date" id="recDate" required>
           </div>
 
-          <!-- ข้อ 4: ขนาดปากกาจริง + ขนาดยาแบ่งฉีดพร้อมจำนวนคลิก -->
+          <!-- ขนาดปากกาและแบ่งฉีด -->
           <div class="pen-calc-box">
             <label class="label">1. ขนาดปากกาที่ถืออยู่ในมือ (ตามหน้ากล่อง)</label>
             <select id="penStrengthSelect" onchange="renderSplitDoseOptions()">
-              <!-- Render อัตโนมัติตามยา -->
             </select>
 
-            <label class="label" style="margin-top: 8px;">2. ขนาดยาที่ฉีดรอบนี้ (พร้อมจำนวนคลิกหมุนยา)</label>
+            <label class="label" style="margin-top: 8px;">2. ขนาดยาที่ฉีดรอบนี้ (พร้อมจำนวนคลิก)</label>
             <select id="recDose" onchange="updateClickPill()">
-              <!-- Render โดสและคลิก -->
             </select>
 
             <div id="clickPillWrap" style="display: none;">
-              <span class="click-info-pill" id="clickInfoText">🔘 หมุนตั้งค่า 60 คลิก (เต็มโดส)</span>
+              <span class="click-info-pill" id="clickInfoText">🔘 คำแนะนำ</span>
             </div>
           </div>
 
-          <!-- ข้อ 5: รูปผังหน้าท้องสมมาตร 4 ส่วนเท่ากันเป๊ะ -->
-          <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้องเพื่อสลับเวียนจุด)</label>
+          <!-- ผังหน้าท้อง 4 ส่วน -->
+          <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้อง)</label>
           <span class="hint">แนะนำสลับตำแหน่ง 4 ส่วนรอบสะดือทุกสัปดาห์</span>
 
           <div class="abdomen-card">
             <svg viewBox="0 0 280 240" width="100%" height="auto" style="max-width: 270px; margin: 0 auto; display: block;">
-              <!-- โครงร่างขอบเอวและหน้าท้องสมมาตร -->
               <path d="M 30,30 C 65,20 215,20 250,30 C 265,90 265,150 250,210 C 215,225 65,225 30,210 C 15,150 15,90 30,30 Z" 
                     fill="#fafafa" stroke="#e2e8f0" stroke-width="2"/>
 
-              <!-- RUQ: บนขวาคนไข้ (ซ้ายบนของรูป) ขนาด 95x75 เท่ากันเป๊ะ -->
               <g onclick="selectQuadrant('หน้าท้องบนขวา (RUQ)', 'boxRUQ')">
                 <rect id="boxRUQ" class="quad-box active" x="38" y="32" width="96" height="74" />
                 <text x="86" y="68" text-anchor="middle" class="quad-label-title">บนขวา</text>
                 <text x="86" y="84" text-anchor="middle" class="quad-label-sub">(RUQ)</text>
               </g>
 
-              <!-- LUQ: บนซ้ายคนไข้ (ขวาบนของรูป) ขนาด 95x75 เท่ากันเป๊ะ -->
               <g onclick="selectQuadrant('หน้าท้องบนซ้าย (LUQ)', 'boxLUQ')">
                 <rect id="boxLUQ" class="quad-box" x="146" y="32" width="96" height="74" />
                 <text x="194" y="68" text-anchor="middle" class="quad-label-title">บนซ้าย</text>
                 <text x="194" y="84" text-anchor="middle" class="quad-label-sub">(LUQ)</text>
               </g>
 
-              <!-- RLQ: ล่างขวาคนไข้ (ซ้ายล่างของรูป) ขนาด 95x75 เท่ากันเป๊ะ -->
               <g onclick="selectQuadrant('หน้าท้องล่างขวา (RLQ)', 'boxRLQ')">
                 <rect id="boxRLQ" class="quad-box" x="38" y="118" width="96" height="74" />
                 <text x="86" y="154" text-anchor="middle" class="quad-label-title">ล่างขวา</text>
                 <text x="86" y="170" text-anchor="middle" class="quad-label-sub">(RLQ)</text>
               </g>
 
-              <!-- LLQ: ล่างซ้ายคนไข้ (ขวาล่างของรูป) ขนาด 95x75 เท่ากันเป๊ะ -->
               <g onclick="selectQuadrant('หน้าท้องล่างซ้าย (LLQ)', 'boxLLQ')">
                 <rect id="boxLLQ" class="quad-box" x="146" y="118" width="96" height="74" />
                 <text x="194" y="154" text-anchor="middle" class="quad-label-title">ล่างซ้าย</text>
                 <text x="194" y="170" text-anchor="middle" class="quad-label-sub">(LLQ)</text>
               </g>
 
-              <!-- กึ่งกลางสะดือ (Navel) กึ่งกลางสมบูรณ์ที่พิกัด (140, 112) -->
               <circle cx="140" cy="112" r="9" fill="#94a3b8" stroke="#ffffff" stroke-width="3"/>
               <circle cx="140" cy="112" r="3.5" fill="#475569"/>
             </svg>
@@ -555,7 +592,7 @@
         </form>
       </div>
 
-      <!-- แท็บประวัติ -->
+      <!-- แท็บที่ 2: ประวัติการฉีดแบบคลี่/หุบตามด้ามปากกา -->
       <div id="tabHistoryContent" style="display: none;">
         <div id="historyListContainer">
           <div style="text-align: center; color: #94a3b8; padding: 20px;">กำลังโหลดประวัติ...</div>
@@ -571,15 +608,11 @@
     let lineProfile = { userId: "" };
     let patientData = {};
 
-    // ตารางขนาดปากกาและสูตรคำนวณคลิก
     const penDatabase = {
       "มอนจาโร (Mounjaro)": {
         pens: ["2.5 mg", "5.0 mg", "7.5 mg", "10.0 mg", "12.5 mg", "15.0 mg"],
-        // โดสที่ฉีดได้ของแต่ละด้าม (โดสต่ำสุด 2.5 mg จะไม่ให้แบ่งฉีด)
         splitMap: {
-          "2.5 mg": [
-            { label: "ฉีดเต็มโดส 2.5 mg (60 คลิก)", value: "2.5 mg", clicks: "หมุน 60 คลิก (เต็มโดส - ไม่แบ่งฉีด)" }
-          ],
+          "2.5 mg": [{ label: "ฉีดเต็มโดส 2.5 mg (60 คลิก)", value: "2.5 mg", clicks: "หมุน 60 คลิก (เต็มโดส - ไม่แบ่งฉีด)" }],
           "5.0 mg": [
             { label: "ฉีดเต็มโดส 5.0 mg (60 คลิก)", value: "5.0 mg", clicks: "หมุน 60 คลิก (เต็มโดส)" },
             { label: "แบ่งฉีด 2.5 mg (30 คลิก)", value: "2.5 mg", clicks: "หมุนแบ่งฉีด 30 คลิก" }
@@ -612,9 +645,7 @@
       "วีโกวี (Wegovy)": {
         pens: ["0.25 mg", "0.5 mg", "1.0 mg", "1.7 mg", "2.4 mg"],
         splitMap: {
-          "0.25 mg": [
-            { label: "ฉีดเต็มโดส 0.25 mg (74 คลิก)", value: "0.25 mg", clicks: "หมุน 74 คลิก (เต็มโดส - ไม่แบ่งฉีด)" }
-          ],
+          "0.25 mg": [{ label: "ฉีดเต็มโดส 0.25 mg (74 คลิก)", value: "0.25 mg", clicks: "หมุน 74 คลิก (เต็มโดส - ไม่แบ่งฉีด)" }],
           "0.5 mg": [
             { label: "ฉีดเต็มโดส 0.5 mg (74 คลิก)", value: "0.5 mg", clicks: "หมุน 74 คลิก (เต็มโดส)" },
             { label: "แบ่งฉีด 0.25 mg (37 คลิก)", value: "0.25 mg", clicks: "หมุนแบ่งฉีด 37 คลิก" }
@@ -639,7 +670,6 @@
       }
     };
 
-    // Modal Control
     let modalCallback = null;
     function showModal(title, desc, icon = "✅", callback = null) {
       document.getElementById("modalIcon").innerText = icon;
@@ -657,27 +687,54 @@
       }
     }
 
-    // ข้อ 1: เลือกลำดับครั้ง (ครั้งที่ 1 - 5)
-    function selectDoseNum(num, btn) {
-      document.querySelectorAll('.dose-num-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+    // ================= ตรรกะบังคับเลือกครั้ง (Sequential Logic) =================
+    function applyDoseSelectionLogic(penNum, lastDose) {
+      document.getElementById("selectedPenNum").value = penNum;
+      document.getElementById("dispPenStatusTitle").innerText = `🖋️ ปากกาด้ามที่ ${penNum}`;
 
-      document.getElementById('selectedDoseNum').value = `ครั้งที่ ${num}`;
-      const warnBox = document.getElementById("dose5WarningBox");
-      if (num === 5) {
-        warnBox.style.display = "block";
+      let allowedDose = 1;
+      if (lastDose >= 1 && lastDose < 4) {
+        allowedDose = lastDose + 1; // ฉีด 1 แล้ว ครั้งต่อไปต้อง 2 เท่านั้น
+      } else if (lastDose === 4) {
+        allowedDose = 5; // ครั้งที่ 5 พิเศษ
       } else {
-        warnBox.style.display = "none";
+        allowedDose = 1; // เริ่มด้ามใหม่
       }
+
+      // ปิดใช้งานทุกปุ่ม ยกเว้นครั้งที่ระบบอนุญาต
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`btnDose${i}`);
+        if (i === allowedDose) {
+          btn.disabled = false;
+          btn.classList.add("active");
+          document.getElementById("selectedDoseNum").value = i;
+        } else {
+          btn.disabled = true;
+          btn.classList.remove("active");
+        }
+      }
+
+      document.getElementById("dose5WarningBox").style.display = (allowedDose === 5) ? "block" : "none";
+      document.getElementById("penLogicHint").innerText = `ในด้ามที่ ${penNum} ครั้งนี้ต้องบันทึก: 'ครั้งที่ ${allowedDose}' เท่านั้น`;
     }
 
-    // ปุ่มเริ่มด้ามใหม่
-    function resetToNewPen() {
-      selectDoseNum(1, document.getElementById("btnDose1"));
-      showModal("เริ่มด้ามใหม่", "ระบบตั้งค่าเริ่มต้นเป็น 'ครั้งที่ 1' สำหรับปากกาด้ามใหม่เรียบร้อยค่ะ", "🔄");
+    // เริ่มด้ามใหม่ (ปลดล็อกครั้งที่ 1 ของด้ามถัดไป)
+    function startNewPen() {
+      const currentPen = parseInt(document.getElementById("selectedPenNum").value, 10) || 1;
+      const nextPen = currentPen + 1;
+      applyDoseSelectionLogic(nextPen, 0);
+      showModal("เริ่มด้ามใหม่", `ระบบตั้งค่าเป็น ปากกาด้ามที่ ${nextPen} และปลดล็อก 'ครั้งที่ 1' ให้เรียบร้อยค่ะ`, "🔄");
     }
 
-    // สลับโหมดวันที่
+    function selectDoseNum(num, btn) {
+      // ฟังก์ชันสำหรับคลิกเลือก (จะถูกจำกัดด้วย disabled อยู่แล้ว)
+      document.querySelectorAll('.dose-num-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('selectedDoseNum').value = num;
+      document.getElementById("dose5WarningBox").style.display = (num === 5) ? "block" : "none";
+    }
+
+    // สลับโหมดวันที่ (บันทึกย้อนหลังได้)
     function setDateMode(mode) {
       const btnToday = document.getElementById("btnDateToday");
       const btnOther = document.getElementById("btnDateOther");
@@ -696,7 +753,6 @@
       }
     }
 
-    // ข้อ 4: แสดงขนาดปากกาจริง และตัวเลือกแบ่งฉีดพร้อมจำนวนคลิก
     function initPenStrengthOptions() {
       const med = patientData.medication || "มอนจาโร (Mounjaro)";
       const penSelect = document.getElementById("penStrengthSelect");
@@ -723,7 +779,7 @@
       const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
       const splitList = penData.splitMap[penStrength] || [];
 
-      splitList.forEach((item, idx) => {
+      splitList.forEach((item) => {
         const opt = document.createElement("option");
         opt.value = item.value;
         opt.text = item.label;
@@ -748,7 +804,6 @@
       }
     }
 
-    // ข้อ 5: เลือกตำแหน่งหน้าท้อง 4 Quadrant สมมาตร
     function selectQuadrant(siteName, boxId) {
       document.querySelectorAll('.quad-box').forEach(b => b.classList.remove('active'));
       const target = document.getElementById(boxId);
@@ -789,7 +844,7 @@
         historyBtn.classList.add('active');
         recordSec.style.display = 'none';
         historySec.style.display = 'block';
-        loadHistory();
+        loadGroupedHistory();
       }
     }
 
@@ -803,7 +858,7 @@
         lineProfile = await liff.getProfile();
         await checkUserStatus();
       } catch (err) {
-        document.getElementById("sectionLoading").innerHTML = `<span style="color:red;">โหลด LIFF ขัดข้อง: ${err.message}</span>`;
+        document.getElementById("sectionLoading").innerHTML = `<span style="color:red;">โหลดขัดข้อง: ${err.message}</span>`;
       }
     }
 
@@ -832,12 +887,11 @@
           updateDueStatus(data.lastInjectedDate);
           setDateMode('today');
 
-          // ข้อ 1: เซ็ตเลือกครั้งถัดไปอัตโนมัติจาก Backend
-          const nextIndex = data.suggestedDoseNum || 1;
-          const targetBtn = document.getElementById(`btnDose${nextIndex}`);
-          selectDoseNum(nextIndex, targetBtn);
+          // บังคับสเต็ปลำดับเข็มตามประวัติล่าสุด
+          const curPen = data.lastPenNumber || 1;
+          const curDose = data.lastDoseNumber || 0;
+          applyDoseSelectionLogic(curPen, curDose);
 
-          // ข้อ 4: แสดงปากกาจริงและโดสแบ่งฉีด
           initPenStrengthOptions();
 
         } else {
@@ -886,7 +940,8 @@
       }
     }
 
-    async function loadHistory() {
+    // ================= หน้าประวัติแบบแยกด้าม (Accordion) =================
+    async function loadGroupedHistory() {
       const container = document.getElementById("historyListContainer");
       container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">กำลังโหลดประวัติ...</div>`;
 
@@ -902,23 +957,67 @@
           return;
         }
 
-        container.innerHTML = list.map(item => `
-          <div class="history-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <strong style="color:#0284c7; font-size:0.88rem;">💉 ${item.dose}</strong>
-              <span style="font-size:0.75rem; color:#64748b;">${item.actualDate}</span>
+        // จัดกลุ่มตาม penNumber
+        const pensMap = {};
+        list.forEach(item => {
+          const p = item.penNumber || 1;
+          if (!pensMap[p]) pensMap[p] = [];
+          pensMap[p].push(item);
+        });
+
+        // เรียงด้ามล่าสุดขึ้นก่อน
+        const penKeys = Object.keys(pensMap).sort((a, b) => b - a);
+
+        let html = "";
+        penKeys.forEach((penKey, index) => {
+          const doseItems = pensMap[penKey].sort((a, b) => a.doseNumber - b.doseNumber);
+          const isLatest = (index === 0); // ด้ามล่าสุดคลี่ไว้ก่อน
+
+          html += `
+            <div class="pen-group-card">
+              <div class="pen-group-header" onclick="togglePenGroup('penGroup${penKey}')">
+                <div class="pen-group-title">
+                  🖋️ ปากกาด้ามที่ ${penKey} 
+                  <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(${doseItems.length} ครั้ง)</span>
+                </div>
+                <span id="arrow_penGroup${penKey}" style="font-size:0.85rem; color:#64748b;">${isLatest ? '▲' : '▼'}</span>
+              </div>
+              <div id="penGroup${penKey}" class="pen-group-content ${isLatest ? 'open' : ''}">
+                ${doseItems.map(d => `
+                  <div class="history-dose-item">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;">
+                      <strong style="color:#0284c7; font-size:0.92rem;">ครั้งที่ ${d.doseNumber}</strong>
+                      <span style="font-size:0.75rem; color:#64748b;">${d.actualDate}</span>
+                    </div>
+                    <div style="font-size:0.83rem; color:#1e293b; margin-bottom:2px;">
+                      💉 ขนาดยา: <strong>${d.dose}</strong>
+                    </div>
+                    <div style="font-size:0.78rem; color:#475569;">
+                      📍 ${d.site} | อาการ: ${d.sideEffects}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
             </div>
-            <div style="font-size:0.8rem; color:#334155; margin-bottom:2px;">
-              📍 ตำแหน่ง: <strong>${item.site}</strong>
-            </div>
-            <div style="font-size:0.76rem; color:#64748b;">
-              อาการข้างเคียง: ${item.sideEffects}
-            </div>
-          </div>
-        `).join("");
+          `;
+        });
+
+        container.innerHTML = html;
 
       } catch (err) {
         container.innerHTML = `<div style="color:red; text-align:center; font-size:0.8rem;">โหลดประวัติไม่สำเร็จ: ${err.message}</div>`;
+      }
+    }
+
+    function togglePenGroup(groupId) {
+      const el = document.getElementById(groupId);
+      const arrow = document.getElementById(`arrow_${groupId}`);
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        arrow.innerText = '▼';
+      } else {
+        el.classList.add('open');
+        arrow.innerText = '▲';
       }
     }
 
@@ -967,13 +1066,14 @@
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกประวัติ...";
 
+      const penNum = document.getElementById("selectedPenNum").value;
       const doseNum = document.getElementById("selectedDoseNum").value;
       const penStrength = document.getElementById("penStrengthSelect").value;
       const recDoseSelect = document.getElementById("recDose");
       const selectedOpt = recDoseSelect.options[recDoseSelect.selectedIndex];
       const doseLabel = selectedOpt ? selectedOpt.text : recDoseSelect.value;
       
-      const doseDisplay = `${doseLabel} [ด้าม ${penStrength}] (${doseNum})`;
+      const doseDisplay = `${doseLabel} [ด้าม ${penStrength}] (ด้ามที่ ${penNum} ครั้งที่ ${doseNum})`;
 
       try {
         const res = await fetch(GAS_URL, {
@@ -987,7 +1087,8 @@
             medication: patientData.medication,
             doseDisplay: doseDisplay,
             currentDoseValue: recDoseSelect.value,
-            doseNum: doseNum,
+            penNumber: penNum,
+            doseNumber: doseNum,
             actualDate: document.getElementById("recDate").value,
             site: document.getElementById("selectedSiteValue").value,
             sideEffects: document.getElementById("recSideEffect").value
@@ -998,7 +1099,7 @@
         const result = await res.json();
         showModal(
           "บันทึกเรียบร้อยค่ะ", 
-          `บันทึก ${doseNum} สำเร็จแล้วค่ะ\nรอบฉีดครั้งถัดไปของคุณคือ: ${result.nextDueDate}`, 
+          `บันทึกด้ามที่ ${penNum} ครั้งที่ ${doseNum} สำเร็จแล้วค่ะ\nรอบฉีดครั้งถัดไป: ${result.nextDueDate}`, 
           "💉", 
           () => {
             liff.closeWindow();
