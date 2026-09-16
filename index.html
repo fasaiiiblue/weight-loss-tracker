@@ -41,7 +41,6 @@
       margin: 0 auto;
     }
 
-    /* ข้อ 4: หัวข้อ Shape me up Record */
     .app-header-title {
       font-size: 1.3rem;
       font-weight: 700;
@@ -91,7 +90,6 @@
     }
     button.btn-primary:active { transform: scale(0.98); }
 
-    /* Tabs */
     .tab-bar {
       display: flex;
       background: rgba(226, 232, 240, 0.65);
@@ -120,7 +118,6 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
-    /* Patient Header */
     .patient-header {
       background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
       border: 1px solid rgba(2, 132, 199, 0.18);
@@ -139,7 +136,6 @@
     .badge-hn { background: #e0f2fe; color: #0369a1; }
     .badge-doc { background: #ecfdf5; color: #047857; }
 
-    /* Due Alert */
     .due-banner {
       border-radius: 12px;
       padding: 10px 14px;
@@ -154,7 +150,6 @@
     .due-banner.today { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
     .due-banner.overdue { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
 
-    /* ข้อ 3: บังคับเลือกครั้งที่ฉีดแบบล็อกปุ่มเด็ดขาด (No Clicking allowed) */
     .dose-num-card {
       background: rgba(241, 245, 249, 0.85);
       border: 1px solid #cbd5e1;
@@ -225,7 +220,6 @@
       margin-top: 8px;
     }
 
-    /* สลับโหมดวันที่ */
     .date-toggle-group {
       display: flex;
       gap: 8px;
@@ -253,7 +247,6 @@
       font-weight: 600;
     }
 
-    /* ข้อ 5: แจ้งเตือนฉีดซ้ำตำแหน่งเดิม */
     .site-repeat-warning {
       display: none;
       background: #fff7ed;
@@ -266,7 +259,6 @@
       margin-top: 8px;
     }
 
-    /* ผังหน้าท้องสมมาตร 4 ส่วนเท่ากัน */
     .abdomen-card {
       background: white;
       border: 1px solid #cbd5e1;
@@ -306,7 +298,6 @@
       font-family: inherit;
     }
 
-    /* ประวัติ Accordion */
     .pen-group-card {
       background: white;
       border: 1px solid #cbd5e1;
@@ -336,7 +327,6 @@
       padding: 8px 10px;
     }
 
-    /* Modal */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -452,7 +442,7 @@
       <div id="tabRecordContent">
         <form id="formRecord">
 
-          <!-- ข้อ 3: บังคับเลือกครั้งที่ฉีดแบบล็อกปุ่มเด็ดขาด -->
+          <!-- บังคับเลือกครั้งที่ฉีดแบบล็อกปุ่มเด็ดขาด -->
           <div class="dose-num-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div style="font-size: 0.88rem; font-weight: 600; color: #0369a1;" id="dispPenStatusTitle">🖋️ ปากกาด้ามที่ 1</div>
@@ -490,7 +480,7 @@
             <input type="date" id="recDate" required>
           </div>
 
-          <!-- ข้อ 2: ขนาดปากกา และ เปลี่ยนเป็น "หมุนที่เลข 1 (เต็มโดส)" -->
+          <!-- ขนาดปากกา และ "หมุนที่เลข 1 (เต็มโดส)" -->
           <div style="background: white; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; margin-bottom: 14px;">
             <label class="label">1. ขนาดปากกาที่ถืออยู่ในมือ (ตามหน้ากล่อง)</label>
             <select id="penStrengthSelect" onchange="renderSplitDoseOptions()"></select>
@@ -503,7 +493,7 @@
             </div>
           </div>
 
-          <!-- ผังหน้าท้อง 4 ส่วน + ข้อ 5: ระบบเตือนฉีดซ้ำตำแหน่งเดิม -->
+          <!-- ผังหน้าท้อง 4 ส่วน + ระบบเตือนฉีดซ้ำตำแหน่งเดิม -->
           <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้อง)</label>
           <span class="hint">แนะนำสลับตำแหน่ง 4 ส่วนรอบสะดือทุกสัปดาห์</span>
 
@@ -544,7 +534,6 @@
               จุดที่เลือก: หน้าท้องบนขวา (RUQ)
             </div>
 
-            <!-- กล่องแจ้งเตือนฉีดซ้ำตำแหน่งเดิม (ข้อ 5) -->
             <div id="repeatSiteWarning" class="site-repeat-warning">
               ⚠️ <strong>ข้อแนะนำ:</strong> คุณเพิ่งฉีดตำแหน่งนี้ในรอบที่แล้ว แนะนำสลับไปตำแหน่งอื่นเพื่อป้องกันเนื้อเยื่อไขมันใต้ผิวหนังหนาตัวค่ะ
             </div>
@@ -583,7 +572,6 @@
     let patientData = {};
     let cachedHistory = null;
 
-    // ข้อ 2: ฐานข้อมูลยาและ "หมุนที่เลข 1 (เต็มโดส)"
     const penDatabase = {
       "มอนจาโร (Mounjaro)": {
         pens: ["2.5 mg", "5.0 mg", "7.5 mg", "10.0 mg", "12.5 mg", "15.0 mg"],
@@ -663,7 +651,6 @@
       }
     }
 
-    // ข้อ 3: บังคับเลือกตามครั้งที่ฉีดแบบล็อกปุ่ม 100%
     function enforceStrictDoseNumber(penNum, lastDose) {
       document.getElementById("selectedPenNum").value = penNum;
       document.getElementById("dispPenStatusTitle").innerText = `🖋️ ปากกาด้ามที่ ${penNum}`;
@@ -768,7 +755,6 @@
       }
     }
 
-    // ข้อ 5: ตรวจจับและแจ้งเตือนการเลือกฉีดซ้ำตำแหน่งเดิม
     function selectQuadrant(siteName, boxId) {
       document.querySelectorAll('.quad-box').forEach(b => b.classList.remove('active'));
       const target = document.getElementById(boxId);
@@ -908,7 +894,6 @@
       }
     }
 
-    // โหลดประวัติความเร็วสูง (ข้อ 7)
     async function loadGroupedHistory() {
       const container = document.getElementById("historyListContainer");
       if (cachedHistory) {
@@ -996,7 +981,6 @@
       }
     }
 
-    // Submit ลงทะเบียน
     document.getElementById("formRegister").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRegister");
@@ -1034,7 +1018,6 @@
       }
     });
 
-    // บันทึกความเร็วสูง (ข้อ 8)
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRecord");
