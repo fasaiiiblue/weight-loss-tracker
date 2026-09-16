@@ -16,7 +16,7 @@
     button:active { background: #05a847; }
     button:disabled { background: #94a3b8; }
     .pill { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; }
-    .loading-text { text-align: center; color: #64748b; padding: 20px; }
+    .loading-text { text-align: center; color: #64748b; padding: 20px; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -74,10 +74,8 @@
     </div>
   </div>
 
-  <!-- โค้ด JavaScript ทั้งหมดจะอยู่ภายในแท็ก script ตรงนี้ -->
   <script>
-    // ** ใส่ Web App URL ที่ได้จาก Apps Script และ LIFF ID ที่นี่ **
-    const GAS_URL = "https://liff.line.me/2011178370-3Kbd4Giq";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
     const LIFF_ID = "2011178370-3Kbd4Giq";
 
     let lineProfile = {};
@@ -93,84 +91,120 @@
         lineProfile = await liff.getProfile();
         checkUserStatus();
       } catch (err) {
-        alert("เกิดข้อผิดพลาดในการโหลด LIFF: " + err.message);
+        document.getElementById("sectionLoading").innerHTML = 
+          `<span style="color:red;">โหลด LINE LIFF ไม่สำเร็จ:</span><br><small>${err.message}</small>`;
       }
     }
 
     // ตรวจสอบว่าคนไข้เคยลงทะเบียนหรือยัง
     async function checkUserStatus() {
-      const res = await fetch(`${GAS_URL}?action=getPatientInfo&lineUid=${lineProfile.userId}`);
-      const data = await res.json();
+      try {
+        const targetUrl = `${GAS_URL}?action=getPatientInfo&lineUid=${encodeURIComponent(lineProfile.userId)}`;
+        
+        const res = await fetch(targetUrl, {
+          method: "GET",
+          redirect: "follow"
+        });
 
-      document.getElementById("sectionLoading").style.display = "none";
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
-      if (data.found) {
-        // ลงทะเบียนแล้ว -> แสดงฟอร์มบันทึกยา
-        patientData = data;
-        document.getElementById("sectionRecord").style.display = "block";
-        document.getElementById("dispName").innerText = data.name;
-        document.getElementById("dispHn").innerText = data.hn;
-        document.getElementById("dispMed").innerText = `ยา: ${data.medication} (${data.currentDose})`;
-        document.getElementById("recDose").value = data.currentDose;
-      } else {
-        // ยังไม่เคยลงทะเบียน -> แสดงหน้ากรอกชื่อ-เบอร์โทร
-        document.getElementById("sectionRegister").style.display = "block";
+        const data = await res.json();
+        document.getElementById("sectionLoading").style.display = "none";
+
+        if (data.found) {
+          // ลงทะเบียนแล้ว -> แสดงฟอร์มบันทึกยา
+          patientData = data;
+          document.getElementById("sectionRecord").style.display = "block";
+          document.getElementById("dispName").innerText = data.name;
+          document.getElementById("dispHn").innerText = data.hn;
+          document.getElementById("dispMed").innerText = `ยา: ${data.medication} (${data.currentDose})`;
+          document.getElementById("recDose").value = data.currentDose;
+        } else {
+          // ยังไม่เคยลงทะเบียน -> แสดงหน้ากรอกชื่อ-เบอร์โทร
+          document.getElementById("sectionRegister").style.display = "block";
+        }
+      } catch (err) {
+        document.getElementById("sectionLoading").innerHTML = 
+          `<span style="color:red;">เกิดข้อผิดพลาดในการเชื่อมต่อ:</span><br><small>${err.message}</small>`;
       }
     }
 
-    // --- ส่วนที่ 1: Event Submit สำหรับลงทะเบียนครั้งแรก (ที่สอบถาม) ---
+    // ส่วนที่ 1: Event Submit สำหรับลงทะเบียนครั้งแรก
     document.getElementById("formRegister").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRegister");
       btn.disabled = true;
       btn.innerText = "กำลังตรวจสอบ...";
 
-      const res = await fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "register",
-          lineUid: lineProfile.userId,
-          name: document.getElementById("regName").value.trim(),
-          phone: document.getElementById("regPhone").value.trim()
-        })
-      });
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "register",
+            lineUid: lineProfile.userId,
+            name: document.getElementById("regName").value.trim(),
+            phone: document.getElementById("regPhone").value.trim()
+          }),
+          redirect: "follow"
+        });
 
-      const result = await res.json();
-      if (result.status === "success") {
-        alert("ยืนยันตัวตนสำเร็จแล้วค่ะ");
-        document.getElementById("sectionRegister").style.display = "none";
-        document.getElementById("sectionLoading").style.display = "block";
-        checkUserStatus(); // ตรวจสอบและดึงข้อมูลยามาแสดงทันที
-      } else {
-        alert(result.message || "เกิดข้อผิดพลาด");
+        const result = await res.json();
+        if (result.status === "success") {
+          alert("ยืนยันตัวตนสำเร็จแล้วค่ะ");
+          document.getElementById("sectionRegister").style.display = "none";
+          document.getElementById("sectionLoading").style.display = "block";
+          document.getElementById("sectionLoading").innerText = "กำลังดึงข้อมูลยา...";
+          checkUserStatus();
+        } else {
+          alert(result.message || "เกิดข้อผิดพลาด");
+          btn.disabled = false;
+          btn.innerText = "ยืนยันตัวตน";
+        }
+      } catch (err) {
+        alert("เกิดข้อผิดพลาดในการส่งข้อมูล: " + err.message);
         btn.disabled = false;
         btn.innerText = "ยืนยันตัวตน";
       }
     });
 
-    // --- ส่วนที่ 2: Event Submit สำหรับบันทึกการฉีดยา ---
+    // ส่วนที่ 2: Event Submit สำหรับบันทึกการฉีดยา
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRecord");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      await fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "recordInjection",
-          lineUid: lineProfile.userId,
-          hn: patientData.hn,
-          name: patientData.name,
-          medication: patientData.medication,
-          dose: document.getElementById("recDose").value,
-          site: document.getElementById("recSite").value,
-          sideEffects: document.getElementById("recSideEffect").value
-        })
-      });
+      try {
+        await fetch(GAS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action: "recordInjection",
+            lineUid: lineProfile.userId,
+            hn: patientData.hn,
+            name: patientData.name,
+            medication: patientData.medication,
+            dose: document.getElementById("recDose").value,
+            site: document.getElementById("recSite").value,
+            sideEffects: document.getElementById("recSideEffect").value
+          }),
+          redirect: "follow"
+        });
 
-      alert("บันทึกการฉีดยาเรียบร้อยแล้วค่ะ");
-      liff.closeWindow(); // ปิดหน้าต่าง LIFF อัตโนมัติ
+        alert("บันทึกการฉีดยาเรียบร้อยแล้วค่ะ");
+        liff.closeWindow();
+      } catch (err) {
+        alert("เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+        btn.disabled = false;
+        btn.innerText = "บันทึกการฉีดยา";
+      }
     });
 
     main();
