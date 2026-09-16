@@ -466,7 +466,7 @@
             </div>
           </div>
 
-          <!-- วันที่ฉีดจริง (บันทึกย้อนหลังได้) -->
+          <!-- วันที่ฉีดจริง -->
           <label class="label">วันที่ฉีดยาจริงรอบนี้</label>
           <div class="date-toggle-group">
             <button type="button" class="date-toggle-btn active" id="btnDateToday" onclick="setDateMode('today')">
@@ -480,20 +480,24 @@
             <input type="date" id="recDate" required>
           </div>
 
-          <!-- ขนาดปากกา และ หมุนที่เลข 1 (เต็มโดส) -->
+          <!-- ขนาดปากกา และ ขนาดยา (ไม่ default คนไข้ต้องเลือกเอง) -->
           <div style="background: white; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; margin-bottom: 14px;">
             <label class="label">1. ขนาดปากกาที่ถืออยู่ในมือ (ตามหน้ากล่อง)</label>
-            <select id="penStrengthSelect" onchange="renderSplitDoseOptions()"></select>
+            <select id="penStrengthSelect" required onchange="renderSplitDoseOptions()">
+              <option value="" disabled selected>-- กรุณาเลือกขนาดปากกา --</option>
+            </select>
 
             <label class="label" style="margin-top: 8px;">2. ขนาดยาที่ฉีดรอบนี้</label>
-            <select id="recDose" onchange="updateClickPill()"></select>
+            <select id="recDose" required onchange="updateClickPill()">
+              <option value="" disabled selected>-- กรุณาเลือกขนาดปากกาก่อน --</option>
+            </select>
 
             <div id="clickPillWrap" style="display: none; margin-top: 4px;">
               <span style="display: inline-block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 8px;" id="clickInfoText">🔘 คำแนะนำ</span>
             </div>
           </div>
 
-          <!-- ผังหน้าท้อง 4 ส่วน + ระบบเตือนฉีดซ้ำตำแหน่งเดิม -->
+          <!-- ผังหน้าท้อง 4 ส่วน -->
           <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้อง)</label>
           <span class="hint">แนะนำสลับตำแหน่ง 4 ส่วนรอบสะดือทุกสัปดาห์</span>
 
@@ -555,7 +559,7 @@
         </form>
       </div>
 
-      <!-- แท็บที่ 2: ประวัติการฉีด (แยกด้ามและคลี่ได้) -->
+      <!-- แท็บที่ 2: ประวัติการฉีด -->
       <div id="tabHistoryContent" style="display: none;">
         <div id="historyListContainer">
           <div style="text-align: center; color: #94a3b8; padding: 20px;">กำลังโหลดประวัติ...</div>
@@ -704,28 +708,32 @@
       }
     }
 
+    // ข้อ 1: ไม่ default ขนาดปากกา ให้เลือกเอง
     function initPenStrengthOptions() {
       const med = patientData.medication || "มอนจาโร (Mounjaro)";
       const penSelect = document.getElementById("penStrengthSelect");
-      penSelect.innerHTML = "";
+      penSelect.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกขนาดปากกา --</option>`;
 
       const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
       penData.pens.forEach(p => {
         const opt = document.createElement("option");
         opt.value = p;
         opt.text = `ด้าม ${p}`;
-        if (patientData.currentDose && patientData.currentDose.includes(p)) opt.selected = true;
         penSelect.appendChild(opt);
       });
 
-      renderSplitDoseOptions();
+      // รีเซ็ตช่องขนาดยาให้ว่างไว้
+      const recDose = document.getElementById("recDose");
+      recDose.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกขนาดปากกาก่อน --</option>`;
+      document.getElementById("clickPillWrap").style.display = "none";
     }
 
+    // ข้อ 1: เมื่อคนไข้เลือกขนาดปากกา จึงแสดงรายการขนาดยาแบบไม่ default
     function renderSplitDoseOptions() {
       const med = patientData.medication || "มอนจาโร (Mounjaro)";
       const penStrength = document.getElementById("penStrengthSelect").value;
       const recDose = document.getElementById("recDose");
-      recDose.innerHTML = "";
+      recDose.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกขนาดยาที่ฉีด --</option>`;
 
       const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
       const splitList = penData.splitMap[penStrength] || [];
@@ -916,6 +924,12 @@
       }
     }
 
+    // ข้อ 2: ตัดข้อความในวงเล็บ (ด้ามที่ X ครั้งที่ Y) ออกจากหน้ารายละเอียดย่อย
+    function cleanDoseHistoryText(rawDose) {
+      if (!rawDose) return "-";
+      return rawDose.replace(/\s*\(ด้ามที่\s*\d+\s*ครั้งที่\s*\d+\)\s*/g, "").trim();
+    }
+
     function renderHistoryUI(list) {
       const container = document.getElementById("historyListContainer");
       if (!list || list.length === 0) {
@@ -954,7 +968,7 @@
                     <span style="font-size:0.75rem; color:#64748b;">${d.actualDate}</span>
                   </div>
                   <div style="font-size:0.83rem; color:#1e293b; margin-bottom:2px;">
-                    💉 ขนาดยา: <strong>${d.dose}</strong>
+                    💉 ขนาดยา: <strong>${cleanDoseHistoryText(d.dose)}</strong>
                   </div>
                   <div style="font-size:0.78rem; color:#475569;">
                     📍 ${d.site} | อาการ: ${d.sideEffects}
@@ -1020,14 +1034,26 @@
 
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
+      
+      const penStrength = document.getElementById("penStrengthSelect").value;
+      const recDoseSelect = document.getElementById("recDose");
+
+      // ตรวจสอบความถูกต้องว่าเลือกครบหรือไม่
+      if (!penStrength) {
+        showModal("กรุณาเลือกข้อมูล", "กรุณาเลือกขนาดปากกาที่ถืออยู่ก่อนนะคะ", "⚠️");
+        return;
+      }
+      if (!recDoseSelect.value) {
+        showModal("กรุณาเลือกข้อมูล", "กรุณาเลือกขนาดยาที่ฉีดจริงรอบนี้ด้วยนะคะ", "⚠️");
+        return;
+      }
+
       const btn = document.getElementById("btnRecord");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกประวัติ...";
 
       const penNum = document.getElementById("selectedPenNum").value;
       const doseNum = document.getElementById("selectedDoseNum").value;
-      const penStrength = document.getElementById("penStrengthSelect").value;
-      const recDoseSelect = document.getElementById("recDose");
       const selectedOpt = recDoseSelect.options[recDoseSelect.selectedIndex];
       const doseLabel = selectedOpt ? selectedOpt.text : recDoseSelect.value;
       
