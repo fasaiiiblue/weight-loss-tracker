@@ -13,8 +13,8 @@
       --accent: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --glass-bg: rgba(255, 255, 255, 0.90);
-      --glass-border: rgba(255, 255, 255, 0.75);
+      --glass-bg: rgba(255, 255, 255, 0.92);
+      --glass-border: rgba(255, 255, 255, 0.8);
       --text-main: #0f172a;
       --text-muted: #64748b;
     }
@@ -41,8 +41,9 @@
       margin: 0 auto;
     }
 
+    /* ข้อ 4: หัวข้อ Shape me up Record */
     .app-header-title {
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #0369a1;
       margin: 0 0 14px 0;
@@ -67,7 +68,7 @@
       color: #1e293b;
       margin-bottom: 12px;
       outline: none;
-      transition: all 0.2s; 
+      transition: all 0.2s;
     }
     input:focus, select:focus {
       border-color: var(--primary);
@@ -153,7 +154,7 @@
     .due-banner.today { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
     .due-banner.overdue { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
 
-    /* บังคับครั้งที่ฉีด (ข้อ 3) */
+    /* ข้อ 3: บังคับเลือกครั้งที่ฉีดแบบล็อกปุ่มเด็ดขาด (No Clicking allowed) */
     .dose-num-card {
       background: rgba(241, 245, 249, 0.85);
       border: 1px solid #cbd5e1;
@@ -176,7 +177,7 @@
       font-family: inherit;
       font-size: 0.76rem;
       text-align: center;
-      transition: all 0.2s;
+      user-select: none;
     }
     .dose-num-btn.active {
       background: var(--primary) !important;
@@ -191,7 +192,7 @@
       border-color: #e2e8f0 !important;
       cursor: not-allowed !important;
       pointer-events: none !important;
-      opacity: 0.55;
+      opacity: 0.5;
     }
     .dose-num-btn.special.active {
       background: #f59e0b !important;
@@ -252,25 +253,20 @@
       font-weight: 600;
     }
 
-    /* เตือนฉีดซ้ำตำแหน่งเดิม (ข้อ 5) */
+    /* ข้อ 5: แจ้งเตือนฉีดซ้ำตำแหน่งเดิม */
     .site-repeat-warning {
       display: none;
       background: #fff7ed;
-      border: 1px solid #ffedd5;
+      border: 1px solid #fed7aa;
       color: #c2410c;
       border-radius: 12px;
       padding: 10px 12px;
       font-size: 0.8rem;
       line-height: 1.5;
       margin-top: 8px;
-      animation: fadeIn 0.2s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ผังหน้าท้องสมมาตร */
+    /* ผังหน้าท้องสมมาตร 4 ส่วนเท่ากัน */
     .abdomen-card {
       background: white;
       border: 1px solid #cbd5e1;
@@ -375,7 +371,6 @@
   </div>
 
   <div class="glass-card">
-    <!-- ข้อ 4: เปลี่ยนชื่อเป็น Shape me up Record -->
     <h1 class="app-header-title">💉 Shape me up Record</h1>
 
     <div id="sectionLoading" style="text-align: center; padding: 25px 0;">
@@ -588,7 +583,7 @@
     let patientData = {};
     let cachedHistory = null;
 
-    // ข้อ 2: โครงสร้างขนาดปากกาจริง และ "หมุนที่เลข 1 (เต็มโดส)"
+    // ข้อ 2: ฐานข้อมูลยาและ "หมุนที่เลข 1 (เต็มโดส)"
     const penDatabase = {
       "มอนจาโร (Mounjaro)": {
         pens: ["2.5 mg", "5.0 mg", "7.5 mg", "10.0 mg", "12.5 mg", "15.0 mg"],
@@ -839,7 +834,6 @@
       }
     }
 
-    // ปรับความเร็วในการดึงข้อมูลเริ่มต้น
     async function checkUserStatus() {
       try {
         const res = await fetch(`${GAS_URL}?action=getPatientInfo&lineUid=${encodeURIComponent(lineProfile.userId)}`, {
@@ -865,7 +859,6 @@
           updateDueStatus(data.lastInjectedDate);
           setDateMode('today');
 
-          // ล็อกครั้งที่ฉีดแบบเข้มงวด
           enforceStrictDoseNumber(data.lastPenNumber || 1, data.lastDoseNumber || 0);
           initPenStrengthOptions();
 
@@ -1079,7 +1072,7 @@
         });
 
         const result = await res.json();
-        cachedHistory = null; // ล้างแคชเพื่อให้โหลดข้อมูลใหม่รอบหน้า
+        cachedHistory = null;
 
         showModal(
           "บันทึกเรียบร้อยค่ะ", 
