@@ -442,7 +442,7 @@
       <div id="tabRecordContent">
         <form id="formRecord">
 
-          <!-- บังคับครั้งที่ฉีดแบบล็อกปุ่มเด็ดขาด -->
+          <!-- ล็อกครั้งที่ฉีดแบบ 100% -->
           <div class="dose-num-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div style="font-size: 0.88rem; font-weight: 600; color: #0369a1;" id="dispPenStatusTitle">🖋️ ปากกาด้ามที่ 1</div>
@@ -466,7 +466,7 @@
             </div>
           </div>
 
-          <!-- วันที่ฉีดจริง -->
+          <!-- วันที่ฉีดจริง พร้อมระบบป้องกันเลือกย้อนหลังกว่าครั้งก่อน -->
           <label class="label">วันที่ฉีดยาจริงรอบนี้</label>
           <div class="date-toggle-group">
             <button type="button" class="date-toggle-btn active" id="btnDateToday" onclick="setDateMode('today')">
@@ -477,27 +477,24 @@
             </button>
           </div>
           <div id="otherDateWrap" style="display: none; margin-bottom: 12px;">
-            <input type="date" id="recDate" required>
+            <input type="date" id="recDate" required onchange="validateInjectionDate()">
+            <span class="hint" id="dateValidationHint" style="color: #0369a1;"></span>
           </div>
 
-          <!-- ขนาดปากกา และ ขนาดยา (ไม่ default คนไข้ต้องเลือกเอง) -->
+          <!-- ขนาดปากกา และ หมุนที่เลข 1 (เต็มโดส) -->
           <div style="background: white; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; margin-bottom: 14px;">
             <label class="label">1. ขนาดปากกาที่ถืออยู่ในมือ (ตามหน้ากล่อง)</label>
-            <select id="penStrengthSelect" required onchange="renderSplitDoseOptions()">
-              <option value="" disabled selected>-- กรุณาเลือกขนาดปากกา --</option>
-            </select>
+            <select id="penStrengthSelect" onchange="renderSplitDoseOptions()"></select>
 
             <label class="label" style="margin-top: 8px;">2. ขนาดยาที่ฉีดรอบนี้</label>
-            <select id="recDose" required onchange="updateClickPill()">
-              <option value="" disabled selected>-- กรุณาเลือกขนาดปากกาก่อน --</option>
-            </select>
+            <select id="recDose" onchange="updateClickPill()"></select>
 
             <div id="clickPillWrap" style="display: none; margin-top: 4px;">
               <span style="display: inline-block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 8px;" id="clickInfoText">🔘 คำแนะนำ</span>
             </div>
           </div>
 
-          <!-- ผังหน้าท้อง 4 ส่วน -->
+          <!-- ผังหน้าท้อง 4 ส่วน + ระบบเตือนฉีดซ้ำตำแหน่งเดิม -->
           <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้อง)</label>
           <span class="hint">แนะนำสลับตำแหน่ง 4 ส่วนรอบสะดือทุกสัปดาห์</span>
 
@@ -687,7 +684,33 @@
       const currentPen = parseInt(document.getElementById("selectedPenNum").value, 10) || 1;
       const nextPen = currentPen + 1;
       enforceStrictDoseNumber(nextPen, 0);
+      setupDateConstraints(true);
       showModal("เริ่มด้ามใหม่", `ตั้งค่าเป็น ปากกาด้ามที่ ${nextPen} และกำหนดเป็น 'ครั้งที่ 1' เรียบร้อยค่ะ`, "🔄");
+    }
+
+    // ล็อกปฏิทินไม่ให้เลือกย้อนหลังกว่าครั้งก่อนหน้า
+    function setupDateConstraints(isNewPen = false) {
+      const recDate = document.getElementById("recDate");
+      const hint = document.getElementById("dateValidationHint");
+      const todayIso = new Date().toISOString().split('T')[0];
+
+      recDate.max = todayIso; // ไม่ให้เลือกวันในอนาคต
+
+      if (!isNewPen && patientData.lastInjectedDate) {
+        recDate.min = patientData.lastInjectedDate; // ห้ามเลือกก่อนวันฉีดครั้งล่าสุด
+        hint.innerText = `* สามารถเลือกวันได้ตั้งแต่ ${patientData.lastInjectedDate} ถึงวันนี้`;
+      } else {
+        recDate.removeAttribute("min");
+        hint.innerText = `* สามารถเลือกบันทึกย้อนหลังได้ถึงวันนี้`;
+      }
+    }
+
+    function validateInjectionDate() {
+      const recDate = document.getElementById("recDate");
+      if (recDate.min && recDate.value < recDate.min) {
+        showModal("วันที่ไม่ถูกต้อง", `ไม่สามารถเลือกวันก่อนหน้าเข็มก่อน (${recDate.min}) ได้ค่ะ กรุณาเลือกใหม่`, "⚠️");
+        recDate.value = new Date().toISOString().split('T')[0];
+      }
     }
 
     function setDateMode(mode) {
@@ -705,35 +728,36 @@
         btnOther.classList.add("active");
         btnToday.classList.remove("active");
         otherWrap.style.display = "block";
+        setupDateConstraints(false);
       }
     }
 
-    // ข้อ 1: ไม่ default ขนาดปากกา ให้เลือกเอง
+    // Exact Match สำหรับขนาดปากกา
     function initPenStrengthOptions() {
       const med = patientData.medication || "มอนจาโร (Mounjaro)";
       const penSelect = document.getElementById("penStrengthSelect");
-      penSelect.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกขนาดปากกา --</option>`;
+      penSelect.innerHTML = "";
 
       const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
       penData.pens.forEach(p => {
         const opt = document.createElement("option");
         opt.value = p;
         opt.text = `ด้าม ${p}`;
+        // Exact Match ป้องกัน 12.5 mg จับคู่กับ 2.5 mg
+        if (patientData.currentDose && patientData.currentDose.trim() === p.trim()) {
+          opt.selected = true;
+        }
         penSelect.appendChild(opt);
       });
 
-      // รีเซ็ตช่องขนาดยาให้ว่างไว้
-      const recDose = document.getElementById("recDose");
-      recDose.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกขนาดปากกาก่อน --</option>`;
-      document.getElementById("clickPillWrap").style.display = "none";
+      renderSplitDoseOptions();
     }
 
-    // ข้อ 1: เมื่อคนไข้เลือกขนาดปากกา จึงแสดงรายการขนาดยาแบบไม่ default
     function renderSplitDoseOptions() {
       const med = patientData.medication || "มอนจาโร (Mounjaro)";
       const penStrength = document.getElementById("penStrengthSelect").value;
       const recDose = document.getElementById("recDose");
-      recDose.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกขนาดยาที่ฉีด --</option>`;
+      recDose.innerHTML = "";
 
       const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
       const splitList = penData.splitMap[penStrength] || [];
@@ -772,7 +796,7 @@
       document.getElementById('dispSelectedQuadName').innerText = `จุดที่เลือก: ${siteName}`;
 
       const warnBox = document.getElementById("repeatSiteWarning");
-      if (patientData.lastInjectedSite && patientData.lastInjectedSite.includes(siteName)) {
+      if (patientData.lastInjectedSite && patientData.lastInjectedSite.trim() === siteName.trim()) {
         warnBox.style.display = "block";
       } else {
         warnBox.style.display = "none";
@@ -876,8 +900,9 @@
         return;
       }
 
-      const parts = lastDateStr.split("/");
-      const lastDate = new Date(parts[2], parts[1] - 1, parts[0]);
+      // lastDateStr เก็บเป็น YYYY-MM-DD
+      const parts = lastDateStr.split("-");
+      const lastDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
       const nextDue = new Date(lastDate);
       nextDue.setDate(nextDue.getDate() + 7);
 
@@ -924,12 +949,6 @@
       }
     }
 
-    // ข้อ 2: ตัดข้อความในวงเล็บ (ด้ามที่ X ครั้งที่ Y) ออกจากหน้ารายละเอียดย่อย
-    function cleanDoseHistoryText(rawDose) {
-      if (!rawDose) return "-";
-      return rawDose.replace(/\s*\(ด้ามที่\s*\d+\s*ครั้งที่\s*\d+\)\s*/g, "").trim();
-    }
-
     function renderHistoryUI(list) {
       const container = document.getElementById("historyListContainer");
       if (!list || list.length === 0) {
@@ -968,7 +987,7 @@
                     <span style="font-size:0.75rem; color:#64748b;">${d.actualDate}</span>
                   </div>
                   <div style="font-size:0.83rem; color:#1e293b; margin-bottom:2px;">
-                    💉 ขนาดยา: <strong>${cleanDoseHistoryText(d.dose)}</strong>
+                    💉 ขนาดยา: <strong>${d.dose}</strong>
                   </div>
                   <div style="font-size:0.78rem; color:#475569;">
                     📍 ${d.site} | อาการ: ${d.sideEffects}
@@ -1034,26 +1053,14 @@
 
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
-      
-      const penStrength = document.getElementById("penStrengthSelect").value;
-      const recDoseSelect = document.getElementById("recDose");
-
-      // ตรวจสอบความถูกต้องว่าเลือกครบหรือไม่
-      if (!penStrength) {
-        showModal("กรุณาเลือกข้อมูล", "กรุณาเลือกขนาดปากกาที่ถืออยู่ก่อนนะคะ", "⚠️");
-        return;
-      }
-      if (!recDoseSelect.value) {
-        showModal("กรุณาเลือกข้อมูล", "กรุณาเลือกขนาดยาที่ฉีดจริงรอบนี้ด้วยนะคะ", "⚠️");
-        return;
-      }
-
       const btn = document.getElementById("btnRecord");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกประวัติ...";
 
       const penNum = document.getElementById("selectedPenNum").value;
       const doseNum = document.getElementById("selectedDoseNum").value;
+      const penStrength = document.getElementById("penStrengthSelect").value;
+      const recDoseSelect = document.getElementById("recDose");
       const selectedOpt = recDoseSelect.options[recDoseSelect.selectedIndex];
       const doseLabel = selectedOpt ? selectedOpt.text : recDoseSelect.value;
       
