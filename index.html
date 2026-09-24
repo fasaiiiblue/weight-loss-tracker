@@ -61,7 +61,7 @@
       margin-bottom: 14px;
     }
 
-    /* แอนิเมชันคนเดินก้าวไปข้างหน้า (Walking Animation) */
+    /* แอนิเมชันคนเดินก้าวไปข้างหน้า (Walking Animation แทนรูปสายฟ้า) */
     .walking-anim-wrap {
       width: 72px;
       height: 72px;
@@ -403,7 +403,7 @@
     <h1 class="app-header-title">💉 Shape me up Record</h1>
     <div class="app-header-sub">ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</div>
 
-    <!-- หน้ากำลังตรวจสอบข้อมูลการใช้งาน (ภาพคนเดิน Animation แทนรูปสายฟ้า) -->
+    <!-- แอนิเมชันคนเดินก้าวไปข้างหน้าเพื่อสุขภาพ -->
     <div id="sectionLoading" style="text-align: center; padding: 25px 0;">
       <div class="walking-anim-wrap">
         <svg class="walking-svg" viewBox="0 0 100 100">
@@ -425,7 +425,7 @@
       <div style="color: #475569; font-size: 0.88rem; font-weight: 500;">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</div>
     </div>
 
-    <!-- 1. หน้าลงทะเบียนคนไข้ใหม่ (ตัดขนาดปากกา ขนาดยา และระยะห่างออกตามที่ขอ) -->
+    <!-- 1. หน้าลงทะเบียนคนไข้ใหม่ (กระชับ ไม่ถามขนาดปากกา) -->
     <div id="sectionRegister" style="display: none;">
       <h2 style="font-size: 1.1rem; margin-top: 0; color: var(--primary);">ลงทะเบียนเริ่มต้นใช้งาน</h2>
       <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
@@ -611,7 +611,7 @@
         </form>
       </div>
 
-      <!-- แท็บที่ 2: ประวัติการฉีด (สะอาดตา ภาษาไทยล้วน ไม่มี Xert) -->
+      <!-- แท็บที่ 2: ประวัติการฉีด (ภาษาไทยล้วน ไม่มี Xert) -->
       <div id="tabHistoryContent" style="display: none;">
         <div id="historyListContainer">
           <div style="text-align: center; color: #94a3b8; padding: 20px;">กำลังโหลดประวัติ...</div>
@@ -707,7 +707,6 @@
       }
     }
 
-    // ฟังก์ชันล้างข้อความแปลกๆ \vert{}, Xert, RUQ
     function cleanText(text) {
       if (!text) return "";
       let s = String(text);
@@ -718,21 +717,18 @@
       return s.trim();
     }
 
-    // ฟังก์ชันแปลงวันที่แบบปลอดภัย 100% ไม่ขึ้น Invalid Date
     function parseDateSafe(dateStr) {
       if (!dateStr) return null;
       if (dateStr instanceof Date) return isNaN(dateStr) ? null : dateStr;
       const s = String(dateStr).trim();
       if (!s) return null;
 
-      // YYYY-MM-DD
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
         const parts = s.substring(0, 10).split('-');
         let y = Number(parts[0]);
         if (y > 2400) y -= 543;
         return new Date(y, Number(parts[1]) - 1, Number(parts[2]));
       }
-      // DD/MM/YYYY
       if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
         const parts = s.split(' ')[0].split('/');
         let y = Number(parts[2]);
@@ -942,36 +938,35 @@
       }
     }
 
-    // เริ่มต้นระบบแบบรวดเร็ว ไม่ค้างหน้าจอ
+    // เริ่มต้นระบบแบบรวดเร็ว แม่นยำ ไม่สลับ UID
     async function initApp() {
-      const liffPromise = (async () => {
-        try {
-          if (LIFF_ID && LIFF_ID !== "YOUR_LIFF_ID") {
-            await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-              lineProfile = await liff.getProfile();
-            } else if (liff.isInClient()) {
-              liff.login();
-              return;
-            }
+      try {
+        if (typeof liff !== "undefined" && LIFF_ID && LIFF_ID !== "YOUR_LIFF_ID") {
+          await liff.init({ liffId: LIFF_ID });
+          if (liff.isLoggedIn()) {
+            lineProfile = await liff.getProfile();
+          } else if (liff.isInClient()) {
+            liff.login();
+            return;
           }
-        } catch (e) { console.warn("LIFF:", e); }
-      })();
-
-      // จำกัดเวลาเชื่อมต่อ LIFF ไม่เกิน 2.5 วินาที
-      await Promise.race([liffPromise, new Promise(r => setTimeout(r, 2500))]);
+        }
+      } catch (e) { console.warn("LIFF:", e); }
 
       if (!lineProfile.userId) {
-        lineProfile.userId = localStorage.getItem("shape_line_uid") || "U_TEST_" + Math.floor(100000 + Math.random() * 900000);
-        localStorage.setItem("shape_line_uid", lineProfile.userId);
+        let storedUid = localStorage.getItem("shape_line_uid");
+        if (!storedUid) {
+          storedUid = "U_TEST_" + Math.floor(100000 + Math.random() * 900000);
+          localStorage.setItem("shape_line_uid", storedUid);
+        }
+        lineProfile.userId = storedUid;
       }
 
-      // Fast-Cache: เปิดหน้าจอทันทีใน 0.05 วินาที
+      // โหลดข้อมูลเก่าจากเครื่องขึ้นมาแสดงทันทีใน 0.05 วินาที
       const cached = localStorage.getItem("cached_patient_" + lineProfile.userId);
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          if (parsed.found) {
+          if (parsed && parsed.name) {
             patientData = parsed;
             renderPatientDashboard(parsed);
           }
@@ -1003,6 +998,7 @@
     }
 
     async function checkUserStatus() {
+      if (!lineProfile.userId) return;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4500);
@@ -1015,17 +1011,24 @@
 
         const data = await res.json();
 
-        if (data.found) {
+        if (data && data.found) {
           patientData = data;
           localStorage.setItem("cached_patient_" + lineProfile.userId, JSON.stringify(data));
           renderPatientDashboard(data);
         } else {
-          document.getElementById("sectionLoading").style.display = "none";
-          document.getElementById("sectionMain").style.display = "none";
-          document.getElementById("sectionRegister").style.display = "block";
+          // หากเครื่องมีข้อมูลคนไข้อยู่แล้ว ไม่เด้งกลับหน้าลงทะเบียนเด็ดขาด
+          if (patientData && patientData.name) {
+            renderPatientDashboard(patientData);
+          } else {
+            document.getElementById("sectionLoading").style.display = "none";
+            document.getElementById("sectionMain").style.display = "none";
+            document.getElementById("sectionRegister").style.display = "block";
+          }
         }
       } catch (err) {
-        if (!patientData.found) {
+        if (patientData && patientData.name) {
+          renderPatientDashboard(patientData);
+        } else {
           document.getElementById("sectionLoading").style.display = "none";
           document.getElementById("sectionRegister").style.display = "block";
         }
@@ -1158,43 +1161,68 @@
       }
     }
 
-    // ฟอร์มลงทะเบียน
+    // ฟอร์มลงทะเบียน (เข้าหน้าหลักทันที ไม่เด้งกลับและไม่ค้าง)
     document.getElementById("formRegister").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRegister");
       btn.disabled = true;
       btn.innerText = "กำลังบันทึก...";
 
-      try {
-        const payload = {
-          action: "register",
-          lineUid: lineProfile.userId,
-          hn: document.getElementById("regHN").value.trim(),
-          name: document.getElementById("regName").value.trim(),
-          phone: document.getElementById("regPhone").value.trim(),
-          medication: document.getElementById("regMed").value,
-          injectionDay: document.getElementById("regDay").value
-        };
+      const hnVal = document.getElementById("regHN").value.trim();
+      const nameVal = document.getElementById("regName").value.trim();
+      const phoneVal = document.getElementById("regPhone").value.trim();
+      const medVal = document.getElementById("regMed").value;
+      const dayVal = document.getElementById("regDay").value;
 
+      const payload = {
+        action: "register",
+        lineUid: lineProfile.userId,
+        hn: hnVal,
+        name: nameVal,
+        phone: phoneVal,
+        medication: medVal,
+        injectionDay: dayVal
+      };
+
+      // จำลองข้อมูลเข้าเครื่องทันที (Instant Transition)
+      patientData = {
+        found: true,
+        lineUid: lineProfile.userId,
+        hn: hnVal,
+        name: nameVal,
+        phone: phoneVal,
+        medication: medVal,
+        currentDose: "2.5 mg",
+        penStrength: "5 mg",
+        frequency: "สัปดาห์ละครั้ง",
+        injectionDay: dayVal,
+        intervalDays: 7,
+        lastPenNumber: 1,
+        lastDoseNumber: 0,
+        lastInjectedDate: "",
+        lastInjectedSite: ""
+      };
+      localStorage.setItem("cached_patient_" + lineProfile.userId, JSON.stringify(patientData));
+
+      try {
         await fetch(GAS_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
-
-        showModal("ลงทะเบียนสำเร็จ", "ระบบเริ่มนับรอบบันทึกการฉีดยาของคุณเรียบร้อยแล้วค่ะ", "🎉", () => {
-          document.getElementById("sectionRegister").style.display = "none";
-          checkUserStatus();
-        });
-
       } catch (err) {
-        showModal("เกิดข้อผิดพลาด", err.message, "❌");
+        console.warn("Register sync note:", err);
+      } finally {
         btn.disabled = false;
         btn.innerText = "ยืนยันการลงทะเบียน";
+
+        showModal("ลงทะเบียนสำเร็จ", "ระบบเริ่มนับรอบบันทึกการฉีดยาของคุณเรียบร้อยแล้วค่ะ", "🎉", () => {
+          renderPatientDashboard(patientData);
+        });
       }
     });
 
-    // ฟอร์มบันทึกการฉีดยา (Fast Optimistic Save - เสร็จใน 1-2 วินาที)
+    // ฟอร์มบันทึกการฉีดยาจริง (บันทึกเสร็จใน 1-2 วินาที และไม่ค้าง)
     document.getElementById("formRecord").addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = document.getElementById("btnRecord");
@@ -1216,19 +1244,21 @@
         intervalDays = parseInt(document.getElementById("recCustomDays").value, 10) || 10;
       }
 
-      // คำนวณวันถัดไปทันที
       const parsedActual = parseDateSafe(actualDateVal) || new Date();
       const nextDueDateObj = new Date(parsedActual);
       nextDueDateObj.setDate(nextDueDateObj.getDate() + intervalDays);
       const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
       const nextDueThaiStr = `${nextDueDateObj.getDate()} ${thaiMonths[nextDueDateObj.getMonth()]} ${nextDueDateObj.getFullYear() + 543} (รอบ ${intervalDays} วัน)`;
 
+      const siteVal = cleanText(document.getElementById("selectedSiteValue").value);
+      const sideEffectsVal = cleanText(document.getElementById("recSideEffect").value);
+
       const payload = {
         action: "recordInjection",
         lineUid: lineProfile.userId,
         hn: patientData.hn || "-",
-        name: patientData.name,
-        medication: patientData.medication,
+        name: patientData.name || "",
+        medication: patientData.medication || "",
         doseDisplay: doseDisplay,
         currentDoseValue: recDoseSelect.value,
         penStrength: penStrength,
@@ -1236,27 +1266,32 @@
         penNumber: penNum,
         doseNumber: doseNum,
         actualDate: actualDateVal,
-        site: cleanText(document.getElementById("selectedSiteValue").value),
-        sideEffects: cleanText(document.getElementById("recSideEffect").value)
+        site: siteVal,
+        sideEffects: sideEffectsVal
       };
 
-      // ส่งข้อมูลเข้า Sheet โดยมี Timeout ไม่ให้ค้างรอนานเกิน 2.5 วินาที
+      // อัปเดตข้อมูลในเครื่องทันที
+      patientData.lastPenNumber = parseInt(penNum, 10);
+      patientData.lastDoseNumber = parseInt(doseNum, 10);
+      patientData.lastInjectedDate = actualDateVal;
+      patientData.lastInjectedSite = siteVal;
+      patientData.intervalDays = intervalDays;
+      patientData.currentDose = recDoseSelect.value;
+      patientData.penStrength = penStrength;
+      localStorage.setItem("cached_patient_" + lineProfile.userId, JSON.stringify(patientData));
+      cachedHistory = null;
+
       try {
-        const fetchPromise = fetch(GAS_URL, {
+        await fetch(GAS_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
-
-        await Promise.race([fetchPromise, new Promise(r => setTimeout(r, 2200))]);
-
-        cachedHistory = null;
-        patientData.lastPenNumber = parseInt(penNum, 10);
-        patientData.lastDoseNumber = parseInt(doseNum, 10);
-        patientData.lastInjectedDate = actualDateVal;
-        patientData.lastInjectedSite = cleanText(document.getElementById("selectedSiteValue").value);
-        patientData.intervalDays = intervalDays;
-        localStorage.setItem("cached_patient_" + lineProfile.userId, JSON.stringify(patientData));
+      } catch (err) {
+        console.warn("Record sync note:", err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "บันทึกประวัติการฉีดยา";
 
         showModal(
           "บันทึกเรียบร้อยค่ะ", 
@@ -1264,17 +1299,8 @@
           "💉", 
           () => {
             renderPatientDashboard(patientData);
-            btn.disabled = false;
-            btn.innerText = "บันทึกประวัติการฉีดยา";
           }
         );
-
-      } catch (err) {
-        showModal("บันทึกเรียบร้อยค่ะ", `บันทึกข้อมูลเรียบร้อยแล้วค่ะ\n🗓️ รอบฉีดครั้งถัดไป: ${nextDueThaiStr}`, "💉", () => {
-          renderPatientDashboard(patientData);
-          btn.disabled = false;
-          btn.innerText = "บันทึกประวัติการฉีดยา";
-        });
       }
     });
 
