@@ -1,1213 +1,344 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Shape me up Record - Samitivej Sriracha</title>
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #0b5c36;
-      --primary-dark: #074025;
-      --primary-light: #eef7f2;
-      --accent: #b58d3d;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --glass-bg: rgba(255, 255, 255, 0.95);
-      --glass-border: rgba(255, 255, 255, 0.85);
-      --text-main: #0f172a;
-      --text-muted: #64748b;
+/**
+ * Shape me up Record - Ultra-Fast Engine (Optimized & Clean)
+ * ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา
+ */
+
+function doGet(e) {
+  try {
+    const action = e && e.parameter ? e.parameter.action : "";
+    const lineUid = e && e.parameter ? e.parameter.lineUid : "";
+
+    if (action === "getPatientInfo") {
+      return createJsonResponse(getFastPatientData(lineUid));
     }
-
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Prompt', -apple-system, sans-serif;
-      background: radial-gradient(circle at 15% 15%, #e8f5ed 0%, #f0fdf4 45%, #f8fafc 90%);
-      min-height: 100vh;
-      padding: 16px 12px;
-      margin: 0;
-      color: var(--text-main);
+    if (action === "getInjectionHistory") {
+      return createJsonResponse(getFastInjectionHistory(lineUid));
     }
-
-    .glass-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 22px 18px;
-      box-shadow: 0 12px 36px rgba(11, 92, 54, 0.08);
-      max-width: 440px;
-      margin: 0 auto;
+    if (action === "ping") {
+      return createJsonResponse({ status: "ok", message: "Connected successfully" });
     }
-
-    .app-header-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin: 0 0 4px 0;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .app-header-sub {
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--accent);
-      font-weight: 600;
-      margin-bottom: 14px;
-    }
-
-    .label { font-size: 0.86rem; color: #334155; margin-bottom: 6px; display: block; font-weight: 600; }
-    .hint { font-size: 0.76rem; color: var(--text-muted); margin-top: -3px; margin-bottom: 8px; display: block; }
-
-    input, select {
-      width: 100%;
-      padding: 11px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: rgba(255, 255, 255, 0.95);
-      font-size: 0.92rem;
-      font-family: inherit;
-      color: #1e293b;
-      margin-bottom: 12px;
-      outline: none;
-      transition: all 0.2s;
-    }
-    input:focus, select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(11, 92, 54, 0.15);
-    }
-
-    button.btn-primary {
-      width: 100%;
-      background: linear-gradient(135deg, #0b5c36 0%, #15803d 100%);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      padding: 13px;
-      font-size: 1rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(11, 92, 54, 0.25);
-      transition: all 0.2s;
-    }
-    button.btn-primary:active { transform: scale(0.98); }
-
-    .tab-bar {
-      display: flex;
-      background: rgba(226, 232, 240, 0.65);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 16px;
-      gap: 4px;
-    }
-    .tab-btn {
-      flex: 1;
-      border: none;
-      background: transparent;
-      padding: 8px;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: #475569;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background: white;
-      color: var(--primary);
-      font-weight: 600;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-
-    .patient-header {
-      background: linear-gradient(135deg, rgba(11, 92, 54, 0.08) 0%, rgba(181, 141, 61, 0.08) 100%);
-      border: 1px solid rgba(11, 92, 54, 0.2);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-    .badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 20px;
-      font-weight: 600;
-      margin-right: 4px;
-    }
-    .badge-hn { background: #eef7f2; color: var(--primary); border: 1px solid #c0d8c9; }
-    .badge-doc { background: #fef8eb; color: var(--accent); border: 1px solid #f6d896; }
-
-    .due-banner {
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 0.82rem;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-    }
-    .due-banner.normal { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-    .due-banner.today { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
-    .due-banner.overdue { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-
-    .dose-num-card {
-      background: rgba(241, 245, 249, 0.85);
-      border: 1px solid #cbd5e1;
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 14px;
-    }
-    .dose-num-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
-      gap: 5px;
-      margin-top: 6px;
-      margin-bottom: 8px;
-    }
-    .dose-num-btn {
-      padding: 9px 4px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      background: white;
-      font-family: inherit;
-      font-size: 0.76rem;
-      text-align: center;
-      user-select: none;
-    }
-    .dose-num-btn.active {
-      background: var(--primary) !important;
-      color: white !important;
-      border-color: var(--primary) !important;
-      font-weight: 700;
-      box-shadow: 0 2px 6px rgba(11, 92, 54, 0.25);
-    }
-    .dose-num-btn.locked {
-      background: #f1f5f9 !important;
-      color: #94a3b8 !important;
-      border-color: #e2e8f0 !important;
-      cursor: not-allowed !important;
-      pointer-events: none !important;
-      opacity: 0.5;
-    }
-    .dose-num-btn.special.active {
-      background: #d97706 !important;
-      border-color: #d97706 !important;
-    }
-
-    .btn-new-pen {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: white;
-      border: 1px dashed var(--primary);
-      color: var(--primary-dark);
-      border-radius: 8px;
-      padding: 5px 10px;
-      font-size: 0.74rem;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .dose-5-warning {
-      display: none;
-      background: #fffbeb;
-      border: 1px solid #fef08a;
-      color: #92400e;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 0.78rem;
-      line-height: 1.5;
-      margin-top: 8px;
-    }
-
-    .date-toggle-group {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .date-toggle-btn {
-      flex: 1;
-      padding: 9px;
-      border: 1px solid #cbd5e1;
-      background: white;
-      border-radius: 10px;
-      font-size: 0.82rem;
-      font-family: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .date-toggle-btn.active {
-      border-color: var(--primary);
-      background: #eef7f2;
-      color: var(--primary-dark);
-      font-weight: 600;
-    }
-
-    .site-repeat-warning {
-      display: none;
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      color: #c2410c;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 0.8rem;
-      line-height: 1.5;
-      margin-top: 8px;
-    }
-
-    .abdomen-card {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 14px;
-      text-align: center;
-    }
-    .quad-box {
-      fill: #f8fafc;
-      stroke: #94a3b8;
-      stroke-width: 2;
-      stroke-dasharray: 4 3;
-      rx: 14px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-    }
-    .quad-box:hover { fill: #f1f5f9; }
-    .quad-box.active {
-      fill: #eef7f2;
-      stroke: var(--primary);
-      stroke-width: 2.5;
-      stroke-dasharray: none;
-      filter: drop-shadow(0 4px 8px rgba(11, 92, 54, 0.2));
-    }
-    .quad-label-title {
-      font-size: 12px;
-      fill: #334155;
-      font-weight: 600;
-      pointer-events: none;
-      font-family: inherit;
-    }
-
-    .pen-group-card {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 14px;
-      margin-bottom: 10px;
-      overflow: hidden;
-    }
-    .pen-group-header {
-      padding: 12px 14px;
-      background: #f8fafc;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-    .pen-group-content {
-      padding: 10px 12px;
-      display: none;
-    }
-    .pen-group-content.open { display: block; }
-    .history-dose-item {
-      border-left: 3px solid var(--primary);
-      margin-bottom: 10px;
-      background: #fafafa;
-      border-radius: 0 10px 10px 0;
-      padding: 8px 10px;
-    }
-
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(4px);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal-box {
-      background: white;
-      border-radius: 20px;
-      padding: 22px;
-      width: 100%;
-      max-width: 320px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    }
-  </style>
-</head>
-<body>
-
-  <div id="customModal" class="modal-backdrop">
-    <div class="modal-box">
-      <div id="modalIcon" style="font-size: 2.2rem; margin-bottom: 8px;">✅</div>
-      <div id="modalTitle" style="font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 6px;">บันทึกสำเร็จ</div>
-      <div id="modalDesc" style="font-size: 0.85rem; color: #475569; line-height: 1.5; margin-bottom: 16px;">ข้อความ</div>
-      <button type="button" class="btn-primary" onclick="closeModal()">ตกลง</button>
-    </div>
-  </div>
-
-  <div class="glass-card">
-    <h1 class="app-header-title">💉 Shape me up Record</h1>
-    <div class="app-header-sub">ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</div>
-
-    <div id="sectionLoading" style="text-align: center; padding: 25px 0;">
-      <div style="font-size: 1.8rem; margin-bottom: 8px;">⚡</div>
-      <div style="color: #64748b; font-size: 0.9rem;">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</div>
-    </div>
-
-    <!-- 1. หน้าลงทะเบียนคนไข้ใหม่ (ตัดขนาดปากกาออกตามที่ขอ) -->
-    <div id="sectionRegister" style="display: none;">
-      <h2 style="font-size: 1.1rem; margin-top: 0; color: var(--primary);">ลงทะเบียนเริ่มต้นใช้งาน</h2>
-      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
-        กรุณาระบุข้อมูลเพื่อจัดรอบการแจ้งเตือนและบันทึกประวัติการฉีดยาค่ะ
-      </p>
-
-      <form id="formRegister">
-        <label class="label">เลขประจำตัวผู้ป่วย (HN) *</label>
-        <input type="text" id="regHN" placeholder="เช่น 67-001234" required>
-
-        <label class="label">ชื่อ - นามสกุล *</label>
-        <input type="text" id="regName" placeholder="เช่น นายสมชาย ใจดี" required>
-
-        <label class="label">เบอร์โทรศัพท์ติดต่อ *</label>
-        <input type="tel" id="regPhone" placeholder="เช่น 0812345678" required>
-
-        <label class="label">ชนิดปากกาที่ได้รับ *</label>
-        <select id="regMed" required onchange="onRegisterMedChange()">
-          <option value="" disabled selected>-- เลือกชนิดปากกา --</option>
-          <option value="มอนจาโร (Mounjaro)">มอนจาโร (Mounjaro - Tirzepatide)</option>
-          <option value="วีโกวี (Wegovy)">วีโกวี (Wegovy - Semaglutide)</option>
-        </select>
-
-        <label class="label">ขนาดยาที่ต้องฉีดจริง (Dose) *</label>
-        <select id="regDose" required>
-          <option value="" disabled selected>-- กรุณาเลือกชนิดยาก่อน --</option>
-        </select>
-
-        <label class="label">ระยะห่างการฉีดยา *</label>
-        <select id="regInterval" required onchange="onRegisterIntervalChange()">
-          <option value="7">ทุก 7 วัน (ทุก 1 สัปดาห์)</option>
-          <option value="10">ทุก 10 วัน</option>
-          <option value="14">ทุก 14 วัน (ทุก 2 สัปดาห์)</option>
-          <option value="custom">กำหนดจำนวนวันเอง...</option>
-        </select>
-        <div id="regCustomIntervalWrap" style="display: none; margin-top: -6px; margin-bottom: 12px;">
-          <input type="number" id="regCustomDays" min="1" max="60" placeholder="ระบุจำนวนวัน เช่น 10">
-        </div>
-
-        <label class="label">วันนัดฉีดเริ่มต้น / วันนัดประจำ *</label>
-        <select id="regDay" required>
-          <option value="วันจันทร์">วันจันทร์</option>
-          <option value="วันอังคาร">วันอังคาร</option>
-          <option value="วันพุธ">วันพุธ</option>
-          <option value="วันพฤหัสบดี">วันพฤหัสบดี</option>
-          <option value="วันศุกร์">วันศุกร์</option>
-          <option value="วันเสาร์">วันเสาร์</option>
-          <option value="วันอาทิตย์">วันอาทิตย์</option>
-        </select>
-
-        <button type="submit" class="btn-primary" id="btnRegister">ยืนยันการลงทะเบียน</button>
-      </form>
-    </div>
-
-    <!-- 2. หน้าแดชบอร์ดหลัก -->
-    <div id="sectionMain" style="display: none;">
-      <div class="patient-header">
-        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-          <h2 style="margin: 0; font-size: 1.15rem; color: var(--primary);" id="dispName">-</h2>
-          <span class="badge badge-hn" id="dispHn">รอระบุ HN</span>
-        </div>
-        <div style="margin-top: 6px; font-size: 0.8rem; color: #475569;">
-          <span id="dispDoctorWrap" style="display: none;">
-            <span class="badge badge-doc" id="dispDoctor">แพทย์: -</span>
-          </span>
-          <span>รอบการฉีด: <strong id="dispDay">-</strong></span>
-        </div>
-        <div style="margin-top: 6px; font-size: 0.86rem; color: var(--primary); font-weight: 600;" id="dispMed">
-          💊 -
-        </div>
-      </div>
-
-      <div id="dueBanner" class="due-banner normal">
-        <span id="dueIcon">📅</span>
-        <div id="dueText">กำลังคำนวณรอบฉีด...</div>
-      </div>
-
-      <div class="tab-bar">
-        <button type="button" class="tab-btn active" id="tabRecordBtn" onclick="switchTab('record')">💉 บันทึกการฉีดยา</button>
-        <button type="button" class="tab-btn" id="tabHistoryBtn" onclick="switchTab('history')">📜 ประวัติการฉีด</button>
-      </div>
-
-      <!-- แท็บที่ 1: บันทึกการฉีด -->
-      <div id="tabRecordContent">
-        <form id="formRecord">
-
-          <!-- ล็อกครั้งที่ฉีดตามลำดับอย่างปลอดภัย -->
-          <div class="dose-num-card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="font-size: 0.88rem; font-weight: 600; color: var(--primary);" id="dispPenStatusTitle">🖋️ ปากกาด้ามที่ 1</div>
-              <button type="button" class="btn-new-pen" onclick="startNewPen()">🔄 เริ่มด้ามใหม่</button>
-            </div>
-            <span class="hint" id="penLogicHint" style="margin-top: 2px;">ระบบกำหนดครั้งที่ฉีดให้อัตโนมัติ</span>
-
-            <div class="dose-num-grid" id="doseNumGridContainer"></div>
-            <input type="hidden" id="selectedDoseNum" value="1">
-            <input type="hidden" id="selectedPenNum" value="1">
-
-            <div id="dose5WarningBox" class="dose-5-warning">
-              <strong>⚠️ ข้อมูลสำหรับครั้งพิเศษ (ยาคงเหลือในแท่ง):</strong><br>
-              เป็นยาคงเหลือพิเศษ ต้องได้รับคำแนะนำจากแพทย์ และ<strong>กรุณานำปากกามาให้พยาบาลเป็นผู้ฉีดที่โรงพยาบาลเท่านั้น</strong> เพื่อความปลอดภัยค่ะ
-            </div>
-          </div>
-
-          <!-- วันที่ฉีดจริง -->
-          <label class="label">วันที่ฉีดยาจริงรอบนี้</label>
-          <div class="date-toggle-group">
-            <button type="button" class="date-toggle-btn active" id="btnDateToday" onclick="setDateMode('today')">
-              🟢 ฉีดวันนี้
-            </button>
-            <button type="button" class="date-toggle-btn" id="btnDateOther" onclick="setDateMode('other')">
-              📅 ระบุวันอื่น / ย้อนหลัง
-            </button>
-          </div>
-          <div id="otherDateWrap" style="display: none; margin-bottom: 12px;">
-            <input type="date" id="recDate" required onchange="validateInjectionDate()">
-            <span class="hint" id="dateValidationHint" style="color: var(--primary);"></span>
-          </div>
-
-          <!-- ขนาดปากกา และการหมุนคลิก -->
-          <div style="background: white; border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; margin-bottom: 14px;">
-            <label class="label">1. ขนาดปากกาที่ถืออยู่ในมือ (ตามหน้ากล่อง)</label>
-            <select id="penStrengthSelect" onchange="renderSplitDoseOptions()"></select>
-
-            <label class="label" style="margin-top: 8px;">2. ขนาดยาที่ฉีดรอบนี้</label>
-            <select id="recDose" onchange="updateClickPill()"></select>
-
-            <div id="clickPillWrap" style="display: none; margin-top: 6px;">
-              <span style="display: inline-block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.85rem; font-weight: 700; padding: 5px 12px; border-radius: 8px;" id="clickInfoText">🔘 คำแนะนำ</span>
-            </div>
-          </div>
-
-          <!-- ผังหน้าท้อง 4 ส่วน (ภาษาไทยล้วน ไม่มี RUQ/LUQ) -->
-          <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้อง)</label>
-          <span class="hint">แนะนำสลับตำแหน่ง 4 ส่วนรอบสะดือทุกสัปดาห์</span>
-
-          <div class="abdomen-card">
-            <svg viewBox="0 0 280 240" width="100%" height="auto" style="max-width: 270px; margin: 0 auto; display: block;">
-              <path d="M 30,30 C 65,20 215,20 250,30 C 265,90 265,150 250,210 C 215,225 65,225 30,210 C 15,150 15,90 30,30 Z" 
-                    fill="#fafafa" stroke="#e2e8f0" stroke-width="2"/>
-
-              <g onclick="selectQuadrant('หน้าท้องบนขวา', 'boxRUQ')">
-                <rect id="boxRUQ" class="quad-box active" x="38" y="32" width="96" height="74" />
-                <text x="86" y="74" text-anchor="middle" class="quad-label-title">บนขวา</text>
-              </g>
-
-              <g onclick="selectQuadrant('หน้าท้องบนซ้าย', 'boxLUQ')">
-                <rect id="boxLUQ" class="quad-box" x="146" y="32" width="96" height="74" />
-                <text x="194" y="74" text-anchor="middle" class="quad-label-title">บนซ้าย</text>
-              </g>
-
-              <g onclick="selectQuadrant('หน้าท้องล่างขวา', 'boxRLQ')">
-                <rect id="boxRLQ" class="quad-box" x="38" y="118" width="96" height="74" />
-                <text x="86" y="160" text-anchor="middle" class="quad-label-title">ล่างขวา</text>
-              </g>
-
-              <g onclick="selectQuadrant('หน้าท้องล่างซ้าย', 'boxLLQ')">
-                <rect id="boxLLQ" class="quad-box" x="146" y="118" width="96" height="74" />
-                <text x="194" y="160" text-anchor="middle" class="quad-label-title">ล่างซ้าย</text>
-              </g>
-
-              <circle cx="140" cy="112" r="9" fill="#94a3b8" stroke="#ffffff" stroke-width="3"/>
-              <circle cx="140" cy="112" r="3.5" fill="#475569"/>
-            </svg>
-
-            <div style="font-size: 0.84rem; color: var(--primary); font-weight: 600; margin-top: 8px;" id="dispSelectedQuadName">
-              จุดที่เลือก: หน้าท้องบนขวา
-            </div>
-
-            <div id="repeatSiteWarning" class="site-repeat-warning">
-              ⚠️ <strong>ข้อแนะนำ:</strong> คุณเพิ่งฉีดตำแหน่งนี้ในรอบที่แล้ว แนะนำสลับไปตำแหน่งอื่นเพื่อป้องกันเนื้อเยื่อไขมันใต้ผิวหนังหนาตัวค่ะ
-            </div>
-          </div>
-          <input type="hidden" id="selectedSiteValue" value="หน้าท้องบนขวา">
-
-          <label class="label">อาการข้างเคียงในรอบสัปดาห์นี้</label>
-          <select id="recSideEffect">
-            <option value="ไม่มี / สบายดี">ไม่มี / สบายดี</option>
-            <option value="คลื่นไส้เล็กน้อย">คลื่นไส้เล็กน้อย</option>
-            <option value="พะอืดพะอม / เบื่ออาหารมาก">พะอืดพะอม / เบื่ออาหารมาก</option>
-            <option value="แน่นท้อง / ท้องอืด / อิ่มเร็ว">แน่นท้อง / ท้องอืด / อิ่มเร็ว</option>
-            <option value="ท้องผูก / ถ่ายไม่ออก">ท้องผูก / ถ่ายไม่ออก</option>
-            <option value="ถ่ายเหลว / ท้องเสีย">ถ่ายเหลว / ท้องเสีย</option>
-            <option value="เวียนศีรษะ / เพลีย">เวียนศีรษะ / เพลีย</option>
-          </select>
-
-          <button type="submit" class="btn-primary" id="btnRecord">บันทึกประวัติการฉีดยา</button>
-        </form>
-      </div>
-
-      <!-- แท็บที่ 2: ประวัติการฉีด (ภาษาไทยล้วน ไม่มีคำแปลกๆ) -->
-      <div id="tabHistoryContent" style="display: none;">
-        <div id="historyListContainer">
-          <div style="text-align: center; color: #94a3b8; padding: 20px;">กำลังโหลดประวัติ...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
-    const LIFF_ID = "2011178370-3Kbd4Giq";
-
-    let lineProfile = { userId: "" };
-    let patientData = {};
-    let cachedHistory = null;
-
-    const penDatabase = {
-      "มอนจาโร (Mounjaro)": {
-        pens: ["2.5 mg", "5 mg", "7.5 mg", "10 mg", "12.5 mg", "15 mg"],
-        splitMap: {
-          "2.5 mg": [{ label: "ฉีดเต็มโดส 2.5 mg (หมุนถึงเลข 1)", value: "2.5 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" }],
-          "5 mg": [
-            { label: "ฉีดเต็มโดส 5 mg (หมุนถึงเลข 1)", value: "5 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 2.5 mg (30 คลิก)", value: "2.5 mg", clicks: "หมุน 30 คลิก" }
-          ],
-          "7.5 mg": [
-            { label: "ฉีดเต็มโดส 7.5 mg (หมุนถึงเลข 1)", value: "7.5 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 2.5 mg (20 คลิก)", value: "2.5 mg", clicks: "หมุน 20 คลิก" },
-            { label: "แบ่งฉีด 5 mg (40 คลิก)", value: "5 mg", clicks: "หมุน 40 คลิก" }
-          ],
-          "10 mg": [
-            { label: "ฉีดเต็มโดส 10 mg (หมุนถึงเลข 1)", value: "10 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 2.5 mg (15 คลิก)", value: "2.5 mg", clicks: "หมุน 15 คลิก" },
-            { label: "แบ่งฉีด 5 mg (30 คลิก)", value: "5 mg", clicks: "หมุน 30 คลิก" },
-            { label: "แบ่งฉีด 7.5 mg (45 คลิก)", value: "7.5 mg", clicks: "หมุน 45 คลิก" }
-          ],
-          "12.5 mg": [
-            { label: "ฉีดเต็มโดส 12.5 mg (หมุนถึงเลข 1)", value: "12.5 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 2.5 mg (12 คลิก)", value: "2.5 mg", clicks: "หมุน 12 คลิก" },
-            { label: "แบ่งฉีด 5 mg (24 คลิก)", value: "5 mg", clicks: "หมุน 24 คลิก" }
-          ],
-          "15 mg": [
-            { label: "ฉีดเต็มโดส 15 mg (หมุนถึงเลข 1)", value: "15 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 2.5 mg (10 คลิก)", value: "2.5 mg", clicks: "หมุน 10 คลิก" },
-            { label: "แบ่งฉีด 5 mg (20 คลิก)", value: "5 mg", clicks: "หมุน 20 คลิก" },
-            { label: "แบ่งฉีด 7.5 mg (30 คลิก)", value: "7.5 mg", clicks: "หมุน 30 คลิก" },
-            { label: "แบ่งฉีด 10 mg (40 คลิก)", value: "10 mg", clicks: "หมุน 40 คลิก" }
-          ]
-        }
-      },
-      "วีโกวี (Wegovy)": {
-        pens: ["0.25 mg", "0.5 mg", "1 mg", "1.7 mg", "2.4 mg"],
-        splitMap: {
-          "0.25 mg": [{ label: "ฉีดเต็มโดส 0.25 mg (หมุนถึงเลข 1)", value: "0.25 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" }],
-          "0.5 mg": [
-            { label: "ฉีดเต็มโดส 0.5 mg (หมุนถึงเลข 1)", value: "0.5 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 0.25 mg (37 คลิก)", value: "0.25 mg", clicks: "หมุน 37 คลิก" }
-          ],
-          "1 mg": [
-            { label: "ฉีดเต็มโดส 1 mg (หมุนถึงเลข 1)", value: "1 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 0.25 mg (19 คลิก)", value: "0.25 mg", clicks: "หมุน 19 คลิก" },
-            { label: "แบ่งฉีด 0.5 mg (37 คลิก)", value: "0.5 mg", clicks: "หมุน 37 คลิก" }
-          ],
-          "1.7 mg": [
-            { label: "ฉีดเต็มโดส 1.7 mg (หมุนถึงเลข 1)", value: "1.7 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 0.5 mg (22 คลิก)", value: "0.5 mg", clicks: "หมุน 22 คลิก" },
-            { label: "แบ่งฉีด 1 mg (44 คลิก)", value: "1 mg", clicks: "หมุน 44 คลิก" }
-          ],
-          "2.4 mg": [
-            { label: "ฉีดเต็มโดส 2.4 mg (หมุนถึงเลข 1)", value: "2.4 mg", clicks: "หมุนถึงเลข 1 (เต็มโดส)" },
-            { label: "แบ่งฉีด 0.5 mg (15 คลิก)", value: "0.5 mg", clicks: "หมุน 15 คลิก" },
-            { label: "แบ่งฉีด 1 mg (31 คลิก)", value: "1 mg", clicks: "หมุน 31 คลิก" },
-            { label: "แบ่งฉีด 1.7 mg (52 คลิก)", value: "1.7 mg", clicks: "หมุน 52 คลิก" }
-          ]
-        }
-      }
-    };
-
-    let modalCallback = null;
-    function showModal(title, desc, icon = "✅", callback = null) {
-      document.getElementById("modalIcon").innerText = icon;
-      document.getElementById("modalTitle").innerText = title;
-      document.getElementById("modalDesc").innerText = desc;
-      modalCallback = callback;
-      document.getElementById("customModal").style.display = "flex";
-    }
-
-    function closeModal() {
-      document.getElementById("customModal").style.display = "none";
-      if (modalCallback) {
-        modalCallback();
-        modalCallback = null;
-      }
-    }
-
-    // แปลงวันที่แบบปลอดภัย 100% ป้องกัน Invalid Date
-    function parseDateSafe(dateStr) {
-      if (!dateStr) return null;
-      if (dateStr instanceof Date) return isNaN(dateStr) ? null : dateStr;
-      const s = String(dateStr).trim();
-      
-      // กรณี YYYY-MM-DD
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-        const parts = s.substring(0, 10).split('-');
-        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-      }
-      // กรณี DD/MM/YYYY
-      if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
-        const parts = s.split('/');
-        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-      }
-      const d = new Date(s);
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    function renderDoseButtons(penNum, lastDose) {
-      document.getElementById("selectedPenNum").value = penNum;
-      document.getElementById("dispPenStatusTitle").innerText = `🖋️ ปากกาด้ามที่ ${penNum}`;
-
-      const penStrengthVal = parseFloat(patientData.penStrength) || 5;
-      const currentDoseVal = parseFloat(patientData.currentDose) || penStrengthVal;
-      
-      let maxDosesInPen = 4;
-      if (currentDoseVal < penStrengthVal) {
-        maxDosesInPen = Math.min(16, Math.round((penStrengthVal / currentDoseVal) * 4));
-      }
-
-      let targetDose = 1;
-      if (lastDose >= 1 && lastDose < maxDosesInPen) {
-        targetDose = lastDose + 1;
-      } else if (lastDose === maxDosesInPen && maxDosesInPen === 4) {
-        targetDose = 5;
-      } else {
-        targetDose = 1;
-      }
-
-      document.getElementById("selectedDoseNum").value = targetDose;
-
-      const grid = document.getElementById("doseNumGridContainer");
-      grid.innerHTML = "";
-
-      const totalButtonsToShow = (maxDosesInPen === 4) ? 5 : maxDosesInPen;
-
-      for (let i = 1; i <= totalButtonsToShow; i++) {
-        const btn = document.createElement("div");
-        const isSpecialDose5 = (i === 5 && maxDosesInPen === 4);
-
-        btn.id = `btnDose${i}`;
-        btn.innerText = isSpecialDose5 ? "ครั้งที่ 5 ⭐" : `ครั้งที่ ${i}`;
-
-        if (i === targetDose) {
-          btn.className = isSpecialDose5 ? "dose-num-btn special active" : "dose-num-btn active";
-        } else {
-          btn.className = isSpecialDose5 ? "dose-num-btn special locked" : "dose-num-btn locked";
-        }
-        grid.appendChild(btn);
-      }
-
-      document.getElementById("dose5WarningBox").style.display = (targetDose === 5 && maxDosesInPen === 4) ? "block" : "none";
-      document.getElementById("penLogicHint").innerText = `ด้ามที่ ${penNum} ระบบกำหนดเป็น: 'ครั้งที่ ${targetDose}'`;
-    }
-
-    function startNewPen() {
-      const currentPen = parseInt(document.getElementById("selectedPenNum").value, 10) || 1;
-      const nextPen = currentPen + 1;
-      renderDoseButtons(nextPen, 0);
-      setupDateConstraints(true);
-      showModal("เริ่มด้ามใหม่", `ตั้งค่าเป็น ปากกาด้ามที่ ${nextPen} (ครั้งที่ 1) เรียบร้อยค่ะ`, "🔄");
-    }
-
-    function setupDateConstraints(isNewPen = false) {
-      const recDate = document.getElementById("recDate");
-      const hint = document.getElementById("dateValidationHint");
-      const todayIso = new Date().toISOString().split('T')[0];
-
-      recDate.max = todayIso;
-
-      if (!isNewPen && patientData.lastInjectedDate) {
-        recDate.min = patientData.lastInjectedDate;
-        hint.innerText = `* บันทึกวันย้อนหลังได้ตั้งแต่ ${patientData.lastInjectedDate} ถึงวันนี้`;
-      } else {
-        recDate.removeAttribute("min");
-        hint.innerText = `* สามารถเลือกบันทึกย้อนหลังได้ถึงวันนี้`;
-      }
-    }
-
-    function validateInjectionDate() {
-      const recDate = document.getElementById("recDate");
-      if (recDate.min && recDate.value < recDate.min) {
-        showModal("วันที่ไม่ถูกต้อง", `ไม่สามารถเลือกวันก่อนหน้าเข็มก่อน (${recDate.min}) ได้ค่ะ`, "⚠️");
-        recDate.value = new Date().toISOString().split('T')[0];
-      }
-    }
-
-    function setDateMode(mode) {
-      const btnToday = document.getElementById("btnDateToday");
-      const btnOther = document.getElementById("btnDateOther");
-      const otherWrap = document.getElementById("otherDateWrap");
-      const recDate = document.getElementById("recDate");
-
-      if (mode === 'today') {
-        btnToday.classList.add("active");
-        btnOther.classList.remove("active");
-        otherWrap.style.display = "none";
-        recDate.value = new Date().toISOString().split('T')[0];
-      } else {
-        btnOther.classList.add("active");
-        btnToday.classList.remove("active");
-        otherWrap.style.display = "block";
-        setupDateConstraints(false);
-      }
-    }
-
-    function initPenStrengthOptions() {
-      const med = patientData.medication || "มอนจาโร (Mounjaro)";
-      const penSelect = document.getElementById("penStrengthSelect");
-      penSelect.innerHTML = "";
-
-      const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
-      penData.pens.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p;
-        opt.text = `ปากกาด้าม ${p}`;
-        if (patientData.penStrength && patientData.penStrength.trim() === p.trim()) {
-          opt.selected = true;
-        } else if (patientData.currentDose && patientData.currentDose.trim() === p.trim()) {
-          opt.selected = true;
-        }
-        penSelect.appendChild(opt);
-      });
-
-      renderSplitDoseOptions();
-    }
-
-    function renderSplitDoseOptions() {
-      const med = patientData.medication || "มอนจาโร (Mounjaro)";
-      const penStrength = document.getElementById("penStrengthSelect").value;
-      const recDose = document.getElementById("recDose");
-      recDose.innerHTML = "";
-
-      const penData = penDatabase[med] || penDatabase["มอนจาโร (Mounjaro)"];
-      const splitList = penData.splitMap[penStrength] || [];
-
-      splitList.forEach((item) => {
-        const opt = document.createElement("option");
-        opt.value = item.value;
-        opt.text = item.label;
-        opt.setAttribute("data-clicks", item.clicks);
-        if (patientData.currentDose && patientData.currentDose.trim() === item.value.trim()) {
-          opt.selected = true;
-        }
-        recDose.appendChild(opt);
-      });
-
-      updateClickPill();
-    }
-
-    function updateClickPill() {
-      const recDose = document.getElementById("recDose");
-      const selectedOpt = recDose.options[recDose.selectedIndex];
-      const clickWrap = document.getElementById("clickPillWrap");
-      const clickText = document.getElementById("clickInfoText");
-
-      if (selectedOpt && selectedOpt.getAttribute("data-clicks")) {
-        clickWrap.style.display = "block";
-        clickText.innerText = `🔘 คำแนะนำ: ${selectedOpt.getAttribute("data-clicks")}`;
-      } else {
-        clickWrap.style.display = "none";
-      }
-    }
-
-    function selectQuadrant(siteName, boxId) {
-      document.querySelectorAll('.quad-box').forEach(b => b.classList.remove('active'));
-      const target = document.getElementById(boxId);
-      if (target) target.classList.add('active');
-
-      document.getElementById('selectedSiteValue').value = siteName;
-      document.getElementById('dispSelectedQuadName').innerText = `จุดที่เลือก: ${siteName}`;
-
-      const warnBox = document.getElementById("repeatSiteWarning");
-      const cleanLastSite = (patientData.lastInjectedSite || "").replace(/\s*\([A-Z]+\)/g, "").trim();
-      if (cleanLastSite && cleanLastSite === siteName.trim()) {
-        warnBox.style.display = "block";
-      } else {
-        warnBox.style.display = "none";
-      }
-    }
-
-    function onRegisterMedChange() {
-      const med = document.getElementById("regMed").value;
-      const doseSelect = document.getElementById("regDose");
-      doseSelect.innerHTML = "<option value='' disabled selected>-- เลือกขนาดยาที่ต้องฉีด --</option>";
-      const penData = penDatabase[med];
-      if (penData) {
-        penData.pens.forEach(p => {
-          const opt = document.createElement("option");
-          opt.value = p;
-          opt.text = p;
-          doseSelect.appendChild(opt);
-        });
-      }
-    }
-
-    function onRegisterIntervalChange() {
-      const val = document.getElementById("regInterval").value;
-      document.getElementById("regCustomIntervalWrap").style.display = (val === 'custom') ? 'block' : 'none';
-    }
-
-    function switchTab(tab) {
-      const recordBtn = document.getElementById("tabRecordBtn");
-      const historyBtn = document.getElementById("tabHistoryBtn");
-      const recordSec = document.getElementById("tabRecordContent");
-      const historySec = document.getElementById("tabHistoryContent");
-
-      if (tab === 'record') {
-        recordBtn.classList.add('active');
-        historyBtn.classList.remove('active');
-        recordSec.style.display = 'block';
-        historySec.style.display = 'none';
-      } else {
-        recordBtn.classList.remove('active');
-        historyBtn.classList.add('active');
-        recordSec.style.display = 'none';
-        historySec.style.display = 'block';
-        loadGroupedHistory();
-      }
-    }
-
-    async function initApp() {
-      try {
-        if (LIFF_ID && LIFF_ID !== "YOUR_LIFF_ID") {
-          await liff.init({ liffId: LIFF_ID });
-          if (liff.isLoggedIn()) {
-            lineProfile = await liff.getProfile();
-          } else if (liff.isInClient()) {
-            liff.login();
-            return;
+    return createJsonResponse({ status: "invalid_action" });
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() });
+  }
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(5000);
+
+    const data = JSON.parse(e.postData.contents);
+    const action = data.action;
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    ensureSheetsExist();
+
+    // 1. ลงทะเบียนคนไข้ใหม่ (รับเฉพาะข้อมูลจำเป็น)
+    if (action === "register") {
+      const pSheet = ss.getSheetByName("Patients");
+      const lastRow = pSheet.getLastRow();
+      let targetRow = -1;
+
+      if (lastRow > 1) {
+        const uids = pSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (let i = 0; i < uids.length; i++) {
+          if (String(uids[i][0]).trim() === String(data.lineUid).trim()) {
+            targetRow = i + 2;
+            break;
           }
         }
-      } catch (err) {
-        console.warn("LIFF info:", err);
       }
 
-      if (!lineProfile.userId) {
-        lineProfile.userId = localStorage.getItem("shape_line_uid") || "U_TEST_" + Math.floor(100000 + Math.random() * 900000);
-        localStorage.setItem("shape_line_uid", lineProfile.userId);
+      if (targetRow !== -1) {
+        pSheet.getRange(targetRow, 2, 1, 7).setValues([[
+          data.hn || "-",
+          data.name,
+          "'" + data.phone,
+          data.medication,
+          "-",
+          "สัปดาห์ละครั้ง",
+          data.injectionDay
+        ]]);
+      } else {
+        pSheet.appendRow([
+          data.lineUid,
+          data.hn || "-",
+          data.name,
+          "'" + data.phone,
+          data.medication,
+          "-",
+          "สัปดาห์ละครั้ง",
+          data.injectionDay,
+          "",
+          "ลงทะเบียนเมื่อ " + Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm"),
+          1,  // last_pen_num
+          0,  // last_dose_num
+          "", // last_injected_date
+          "", // last_site
+          "", // pen_strength
+          7   // interval_days
+        ]);
       }
+      return createJsonResponse({ status: "success" });
+    }
 
-      // ระบบ Fast Cache: ดึงข้อมูลเดิมมาแสดงทันทีใน 0.01 วินาที!
-      const cached = localStorage.getItem("cached_patient_" + lineProfile.userId);
-      if (cached) {
-        try {
-          const cachedData = JSON.parse(cached);
-          if (cachedData.found) {
-            patientData = cachedData;
-            renderPatientDashboard(cachedData);
+    // 2. บันทึกการฉีดยาจริง (ตัด LINE Push ออกเพื่อความเร็วระดับเสี้ยววินาที)
+    if (action === "recordInjection") {
+      const pSheet = ss.getSheetByName("Patients");
+      const logSheet = ss.getSheetByName("Injections_Log");
+
+      // กรองคำภาษาอังกฤษและข้อความแปลกๆ ออกจากชื่อตำแหน่งฉีด
+      const cleanSiteName = sanitizeText(data.site || "หน้าท้อง");
+      const injectDateParts = data.actualDate.split("-");
+      const injectDate = new Date(Number(injectDateParts[0]), Number(injectDateParts[1]) - 1, Number(injectDateParts[2]));
+
+      let patientRow = -1;
+      let patientName = data.name || "";
+      let patientHn = data.hn || "-";
+      let currentMed = data.medication || "";
+      const intervalDays = parseInt(data.intervalDays, 10) || 7;
+
+      const pLastRow = pSheet.getLastRow();
+      if (pLastRow > 1) {
+        const lastCol = Math.max(pSheet.getLastColumn(), 16);
+        const pData = pSheet.getRange(2, 1, pLastRow - 1, lastCol).getValues();
+        for (let k = 0; k < pData.length; k++) {
+          if (String(pData[k][0]).trim() === String(data.lineUid).trim()) {
+            patientRow = k + 2;
+            patientHn = pData[k][1] || patientHn;
+            patientName = pData[k][2] || patientName;
+            currentMed = pData[k][4] || currentMed;
+            break;
           }
-        } catch(e) {}
-      }
-
-      await checkUserStatus();
-    }
-
-    function renderPatientDashboard(data) {
-      document.getElementById("sectionLoading").style.display = "none";
-      document.getElementById("sectionRegister").style.display = "none";
-      document.getElementById("sectionMain").style.display = "block";
-
-      document.getElementById("dispName").innerText = data.name || "-";
-      document.getElementById("dispHn").innerText = data.hn ? `HN: ${data.hn}` : "รอระบุ HN";
-      document.getElementById("dispDay").innerText = data.frequency || data.injectionDay || "สัปดาห์ละครั้ง";
-      document.getElementById("dispMed").innerText = `💊 ${data.medication || '-'}`;
-
-      if (data.doctor) {
-        document.getElementById("dispDoctorWrap").style.display = "inline";
-        document.getElementById("dispDoctor").innerText = `แพทย์: ${data.doctor}`;
-      }
-
-      updateDueStatus(data.lastInjectedDate);
-      setDateMode('today');
-      renderDoseButtons(data.lastPenNumber || 1, data.lastDoseNumber || 0);
-      initPenStrengthOptions();
-    }
-
-    async function checkUserStatus() {
-      try {
-        const res = await fetch(`${GAS_URL}?action=getPatientInfo&lineUid=${encodeURIComponent(lineProfile.userId)}`, {
-          method: "GET"
-        });
-        const data = await res.json();
-
-        if (data.found) {
-          patientData = data;
-          localStorage.setItem("cached_patient_" + lineProfile.userId, JSON.stringify(data));
-          renderPatientDashboard(data);
-        } else {
-          document.getElementById("sectionLoading").style.display = "none";
-          document.getElementById("sectionMain").style.display = "none";
-          document.getElementById("sectionRegister").style.display = "block";
-        }
-      } catch (err) {
-        if (!patientData.found) {
-          document.getElementById("sectionLoading").innerHTML = `<span style="color:red;">โหลดข้อมูลไม่สำเร็จ: ${err.message}</span>`;
         }
       }
-    }
 
-    function updateDueStatus(lastDateStr) {
-      const banner = document.getElementById("dueBanner");
-      const text = document.getElementById("dueText");
-      const icon = document.getElementById("dueIcon");
-
-      const lastDate = parseDateSafe(lastDateStr);
-      if (!lastDate) {
-        banner.className = "due-banner normal";
-        icon.innerText = "ℹ️";
-        text.innerText = `ยินดีต้อนรับ! ถึงรอบบันทึกการฉีดยา (${patientData.injectionDay || 'สัปดาห์ละครั้ง'})`;
-        return;
-      }
-
-      const intervalDays = parseInt(patientData.intervalDays, 10) || 7;
-      const nextDue = new Date(lastDate);
+      // คำนวณวันนัดถัดไปตามจำนวนวันจริง
+      const nextDue = new Date(injectDate);
       nextDue.setDate(nextDue.getDate() + intervalDays);
 
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      nextDue.setHours(0,0,0,0);
+      const formattedActual = Utilities.formatDate(injectDate, "GMT+7", "dd/MM/yyyy");
+      const formattedNext = Utilities.formatDate(nextDue, "GMT+7", "dd/MM/yyyy");
+      const penNum = data.penNumber || 1;
+      const doseNum = data.doseNumber || 1;
 
-      const diffDays = Math.round((today - nextDue) / (1000 * 60 * 60 * 24));
+      const cleanDose = formatDoseDisplay(data.currentDoseValue || data.doseDisplay);
+      const cleanPen = formatDoseDisplay(data.penStrength || cleanDose);
+      const clicksText = calculateClicksText(currentMed, cleanDose, cleanPen);
 
-      if (diffDays === 0) {
-        banner.className = "due-banner today";
-        icon.innerText = "🔔";
-        text.innerHTML = `<strong>ครบกำหนดฉีดวันนี้!</strong> อย่าลืมบันทึกหลังฉีดนะคะ`;
-      } else if (diffDays > 0) {
-        banner.className = "due-banner overdue";
-        icon.innerText = "⚠️";
-        text.innerHTML = `<strong>เลยกำหนดนัดมา ${diffDays} วัน</strong> (นัดเดิม: ${nextDue.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'})})`;
-      } else {
-        banner.className = "due-banner normal";
-        icon.innerText = "✅";
-        text.innerText = `รอบถัดไป: ${nextDue.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'})} (อีก ${Math.abs(diffDays)} วัน)`;
-      }
-    }
+      const scheduleRemark = `(รอบ ${intervalDays} วัน)`;
+      const logNote = `วันฉีดจริง: ${formattedActual} | นัดรอบถัดไป: ${formattedNext} ${scheduleRemark} | ด้ามที่: ${penNum} | ครั้งที่: ${doseNum} | คำแนะนำคลิก: ${clicksText}`;
 
-    async function loadGroupedHistory() {
-      const container = document.getElementById("historyListContainer");
-      if (cachedHistory) {
-        renderHistoryUI(cachedHistory);
-        return;
-      }
+      logSheet.appendRow([
+        Utilities.getUuid(),
+        new Date(),
+        data.lineUid,
+        patientHn,
+        patientName,
+        currentMed,
+        data.doseDisplay || cleanDose,
+        cleanSiteName,
+        sanitizeText(data.sideEffects || "ปกติ"),
+        logNote
+      ]);
 
-      container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">กำลังโหลดประวัติ...</div>`;
-
-      try {
-        const res = await fetch(`${GAS_URL}?action=getInjectionHistory&lineUid=${encodeURIComponent(lineProfile.userId)}`, {
-          method: "GET"
-        });
-        const list = await res.json();
-        cachedHistory = list;
-        renderHistoryUI(list);
-      } catch (err) {
-        container.innerHTML = `<div style="color:red; text-align:center; font-size:0.8rem;">โหลดประวัติไม่สำเร็จ: ${err.message}</div>`;
-      }
-    }
-
-    function renderHistoryUI(list) {
-      const container = document.getElementById("historyListContainer");
-      if (!list || list.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:24px;">ยังไม่มีประวัติการฉีดยาค่ะ</div>`;
-        return;
+      if (patientRow !== -1) {
+        pSheet.getRange(patientRow, 5, 1, 3).setValues([[currentMed, cleanDose, `ทุก ${intervalDays} วัน`]]);
+        pSheet.getRange(patientRow, 11, 1, 6).setValues([[
+          penNum,
+          doseNum,
+          data.actualDate,
+          cleanSiteName,
+          cleanPen,
+          intervalDays
+        ]]);
       }
 
-      const pensMap = {};
-      list.forEach(item => {
-        const p = item.penNumber || 1;
-        if (!pensMap[p]) pensMap[p] = [];
-        pensMap[p].push(item);
+      return createJsonResponse({ 
+        status: "success", 
+        doseFormatted: cleanDose,
+        clicksInfo: clicksText,
+        nextDueDate: `${formattedNext} ${scheduleRemark}` 
       });
-
-      const penKeys = Object.keys(pensMap).sort((a, b) => b - a);
-
-      let html = "";
-      penKeys.forEach((penKey, index) => {
-        const doseItems = pensMap[penKey].sort((a, b) => a.doseNumber - b.doseNumber);
-        const isLatest = (index === 0);
-
-        html += `
-          <div class="pen-group-card">
-            <div class="pen-group-header" onclick="togglePenGroup('penGroup${penKey}')">
-              <div style="font-size:0.92rem; font-weight:600; color:#0f172a;">
-                🖋️ ปากกาด้ามที่ ${penKey} 
-                <span style="font-size:0.75rem; color:#64748b; font-weight:normal;">(${doseItems.length} ครั้ง)</span>
-              </div>
-              <span id="arrow_penGroup${penKey}" style="font-size:0.85rem; color:#64748b;">${isLatest ? '▲' : '▼'}</span>
-            </div>
-            <div id="penGroup${penKey}" class="pen-group-content ${isLatest ? 'open' : ''}">
-              ${doseItems.map(d => `
-                <div class="history-dose-item">
-                  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;">
-                    <strong style="color:var(--primary); font-size:0.92rem;">ครั้งที่ ${d.doseNumber}</strong>
-                    <span style="font-size:0.75rem; color:#64748b;">${d.actualDate}</span>
-                  </div>
-                  <div style="font-size:0.83rem; color:#1e293b; margin-bottom:2px;">
-                    💉 ขนาดยา: <strong>${d.dose}</strong>
-                  </div>
-                  <div style="font-size:0.78rem; color:#475569;">
-                    📍 ${d.site} • อาการ: ${d.sideEffects}
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      });
-
-      container.innerHTML = html;
     }
 
-    function togglePenGroup(groupId) {
-      const el = document.getElementById(groupId);
-      const arrow = document.getElementById(`arrow_${groupId}`);
-      if (el.classList.contains('open')) {
-        el.classList.remove('open');
-        arrow.innerText = '▼';
-      } else {
-        el.classList.add('open');
-        arrow.innerText = '▲';
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function createJsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function ensureSheetsExist() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let pSheet = ss.getSheetByName("Patients");
+  if (!pSheet) {
+    pSheet = ss.insertSheet("Patients");
+    pSheet.appendRow([
+      "Line UID", "HN", "ชื่อ-สกุล", "เบอร์โทร", "ตัวยา", "ขนาดยา", 
+      "ความถี่", "วันนัดฉีด", "แพทย์ผู้ดูแล", "หมายเหตุ", 
+      "last_pen_num", "last_dose_num", "last_injected_date", "last_site", "pen_strength", "interval_days"
+    ]);
+  }
+  
+  let lSheet = ss.getSheetByName("Injections_Log");
+  if (!lSheet) {
+    lSheet = ss.insertSheet("Injections_Log");
+    lSheet.appendRow([
+      "Log ID", "Timestamp", "Line UID", "HN", "ชื่อ-สกุล", 
+      "ตัวยา", "ขนาดยา", "ตำแหน่งฉีด", "อาการข้างเคียง", "หมายเหตุ"
+    ]);
+  }
+}
+
+function getFastPatientData(lineUid) {
+  if (!lineUid) return { found: false };
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pSheet = ss.getSheetByName("Patients");
+  if (!pSheet) return { found: false };
+
+  const pData = pSheet.getDataRange().getValues();
+  if (pData.length < 2) return { found: false };
+
+  const uidTarget = String(lineUid).trim();
+  for (let i = 1; i < pData.length; i++) {
+    const row = pData[i];
+    if (String(row[0]).trim() === uidTarget) {
+      const med = String(row[4] || "");
+      const currentDose = formatDoseDisplay(row[5]);
+      const penStrength = row[14] ? formatDoseDisplay(row[14]) : currentDose;
+      const intervalDays = row[15] ? parseInt(row[15], 10) : 7;
+      const clicksText = calculateClicksText(med, currentDose, penStrength);
+
+      let lastDateIso = "";
+      if (row[12]) {
+        if (row[12] instanceof Date) {
+          lastDateIso = Utilities.formatDate(row[12], "GMT+7", "yyyy-MM-dd");
+        } else {
+          lastDateIso = String(row[12]).trim();
+        }
       }
-    }
 
-    // ฟอร์มลงทะเบียน
-    document.getElementById("formRegister").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById("btnRegister");
-      btn.disabled = true;
-      btn.innerText = "กำลังบันทึก...";
-
-      let intervalDays = parseInt(document.getElementById("regInterval").value, 10);
-      if (document.getElementById("regInterval").value === 'custom') {
-        intervalDays = parseInt(document.getElementById("regCustomDays").value, 10) || 10;
-      }
-      const selectedDose = document.getElementById("regDose").value;
-
-      try {
-        const payload = {
-          action: "register",
-          lineUid: lineProfile.userId,
-          hn: document.getElementById("regHN").value.trim(),
-          name: document.getElementById("regName").value.trim(),
-          phone: document.getElementById("regPhone").value.trim(),
-          medication: document.getElementById("regMed").value,
-          penStrength: selectedDose, // กำหนดเริ่มต้นให้เท่ากับโดสที่ฉีด
-          dose: selectedDose,
-          injectionDay: document.getElementById("regDay").value,
-          intervalDays: intervalDays
-        };
-
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        showModal("ลงทะเบียนสำเร็จ", "ระบบเริ่มนับรอบบันทึกการฉีดยาของคุณเรียบร้อยแล้วค่ะ", "🎉", () => {
-          document.getElementById("sectionRegister").style.display = "none";
-          document.getElementById("sectionLoading").style.display = "block";
-          checkUserStatus();
-        });
-
-      } catch (err) {
-        showModal("เกิดข้อผิดพลาด", err.message, "❌");
-        btn.disabled = false;
-        btn.innerText = "ยืนยันการลงทะเบียน";
-      }
-    });
-
-    // ฟอร์มบันทึกการฉีดยา (ทำงานเร็วทันทีใน 1-2 วินาที)
-    document.getElementById("formRecord").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById("btnRecord");
-      btn.disabled = true;
-      btn.innerText = "กำลังบันทึกประวัติ...";
-
-      const penNum = document.getElementById("selectedPenNum").value;
-      const doseNum = document.getElementById("selectedDoseNum").value;
-      const penStrength = document.getElementById("penStrengthSelect").value;
-      const recDoseSelect = document.getElementById("recDose");
-      const selectedOpt = recDoseSelect.options[recDoseSelect.selectedIndex];
-      const doseLabel = selectedOpt ? selectedOpt.text : recDoseSelect.value;
-      
-      const doseDisplay = `${doseLabel} [ด้าม ${penStrength}] (ด้ามที่ ${penNum} ครั้งที่ ${doseNum})`;
-      const actualDateVal = document.getElementById("recDate").value;
-
-      const payload = {
-        action: "recordInjection",
-        lineUid: lineProfile.userId,
-        hn: patientData.hn || "-",
-        name: patientData.name,
-        medication: patientData.medication,
-        doseDisplay: doseDisplay,
-        currentDoseValue: recDoseSelect.value,
+      return {
+        found: true,
+        hn: String(row[1] || ""),
+        name: String(row[2] || ""),
+        phone: String(row[3] || ""),
+        medication: med,
+        currentDose: currentDose,
         penStrength: penStrength,
+        intervalDays: intervalDays,
+        clicksGuidance: clicksText,
+        frequency: String(row[6] || "สัปดาห์ละครั้ง"),
+        injectionDay: String(row[7] || "วันจันทร์"),
+        doctor: String(row[8] || ""),
+        lastPenNumber: row[10] ? parseInt(row[10], 10) : 1,
+        lastDoseNumber: row[11] ? parseInt(row[11], 10) : 0,
+        lastInjectedDate: lastDateIso,
+        lastInjectedSite: sanitizeText(String(row[13] || ""))
+      };
+    }
+  }
+
+  return { found: false };
+}
+
+function getFastInjectionHistory(lineUid) {
+  if (!lineUid) return [];
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const lSheet = ss.getSheetByName("Injections_Log");
+  if (!lSheet) return [];
+
+  const data = lSheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const list = [];
+  const uidTarget = String(lineUid).trim();
+
+  // ดึง 30 รายการล่าสุดจากล่างขึ้นบน
+  for (let i = data.length - 1; i >= 1; i--) {
+    const row = data[i];
+    if (String(row[2]).trim() === uidTarget) {
+      const note = String(row[9] || "");
+      let actualDate = "";
+      if (row[1] instanceof Date) {
+        actualDate = Utilities.formatDate(row[1], "GMT+7", "dd/MM/yyyy");
+      }
+      const mDate = note.match(/วันฉีดจริง:\s*(\d{2}\/\d{2}\/\d{4})/);
+      if (mDate) actualDate = mDate[1];
+
+      let penNum = 1;
+      const mPen = note.match(/ด้ามที่:\s*(\d+)/);
+      if (mPen) penNum = parseInt(mPen[1], 10);
+
+      let doseNum = 1;
+      const mDose = note.match(/ครั้งที่:\s*(\d+)/);
+      if (mDose) doseNum = parseInt(mDose[1], 10);
+
+      list.push({
         penNumber: penNum,
         doseNumber: doseNum,
-        actualDate: actualDateVal,
-        site: document.getElementById("selectedSiteValue").value,
-        sideEffects: document.getElementById("recSideEffect").value
-      };
+        actualDate: actualDate,
+        medication: String(row[5] || ""),
+        dose: formatDoseDisplay(row[6]),
+        site: sanitizeText(String(row[7] || "")),
+        sideEffects: sanitizeText(String(row[8] || "ปกติ"))
+      });
 
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        cachedHistory = null;
+      if (list.length >= 30) break;
+    }
+  }
+  return list;
+}
 
-        showModal(
-          "บันทึกเรียบร้อยค่ะ", 
-          `บันทึกด้ามที่ ${penNum} ครั้งที่ ${doseNum} สำเร็จแล้วค่ะ\n🗓️ รอบฉีดครั้งถัดไป: ${result.nextDueDate || 'ตามที่แพทย์นัด'}`, 
-          "💉", 
-          () => {
-            patientData.lastPenNumber = parseInt(penNum, 10);
-            patientData.lastDoseNumber = parseInt(doseNum, 10);
-            patientData.lastInjectedDate = actualDateVal;
-            patientData.lastInjectedSite = document.getElementById("selectedSiteValue").value;
-            localStorage.setItem("cached_patient_" + lineProfile.userId, JSON.stringify(patientData));
-            renderPatientDashboard(patientData);
-            btn.disabled = false;
-            btn.innerText = "บันทึกประวัติการฉีดยา";
-          }
-        );
+// กรองคำแปลกๆ เช่น \vert{}, Xert และตัวย่อภาษาอังกฤษ RUQ
+function sanitizeText(text) {
+  if (!text) return "";
+  let s = String(text);
+  s = s.replace(/\s*\([A-Z]+\)/gi, ""); // ลบ (RUQ), (LUQ)
+  s = s.replace(/\\?x?v?ert\{\}/gi, ""); // ลบ \vert{}, vert{}, ert{}, Xert
+  s = s.replace(/xert/gi, "");
+  s = s.replace(/[\\|{}]/g, ""); // ลบเครื่องหมายตกค้าง
+  return s.trim();
+}
 
-      } catch (err) {
-        showModal("เกิดข้อผิดพลาด", err.message, "❌");
-        btn.disabled = false;
-        btn.innerText = "บันทึกประวัติการฉีดยา";
-      }
-    });
+function formatDoseDisplay(val) {
+  if (!val || val === "-") return "";
+  const m = String(val).match(/([0-9.]+)/);
+  if (!m) return String(val);
+  const num = parseFloat(m[1]);
+  if (isNaN(num) || num <= 0) return String(val);
+  const numStr = (num % 1 === 0) ? num.toFixed(0) : num.toString();
+  return numStr + " mg";
+}
 
-    window.addEventListener("DOMContentLoaded", () => {
-      initApp();
-    });
-  </script>
-</body>
-</html>
+function calculateClicksText(med, doseVal, penVal) {
+  const parseNum = (v) => {
+    const m = String(v).match(/([0-9.]+)/);
+    return m ? parseFloat(m[1]) : 0;
+  };
+
+  const dose = parseNum(doseVal);
+  const pen = parseNum(penVal);
+  if (!dose || !pen) return "";
+
+  if (Math.abs(dose - pen) < 0.01) {
+    return "หมุนถึงเลข 1 (เต็มโดส)";
+  }
+
+  let clicks = 0;
+  if (String(med).indexOf("Mounjaro") !== -1 || String(med).indexOf("มอนจาโร") !== -1) {
+    clicks = Math.round((dose / pen) * 60);
+  } else {
+    const baseClicks = (pen <= 0.5) ? 32 : 72;
+    clicks = Math.round((dose / pen) * baseClicks);
+  }
+
+  if (clicks <= 0) return "";
+  return "หมุน " + clicks + " คลิก";
+}
