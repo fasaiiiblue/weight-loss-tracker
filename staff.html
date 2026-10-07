@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Shape me up · เจ้าหน้าที่</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0b5c36;
+      --primary-light: #eef7f2;
+      --accent: #b58d3d;
+      --bg: #f4f7f5;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-2: #334155;
+      --muted: #64748b;
+      --line: #dbe2ea;
+      --grid: #e2e8f0;
+      --good-bg: #f0fdf4; --good-tx: #166534; --good-bd: #bbf7d0;
+      --warn-bg: #fefce8; --warn-tx: #854d0e; --warn-bd: #fde68a;
+      --crit-bg: #fef2f2; --crit-tx: #991b1b; --crit-bd: #fecaca;
+      --info-bg: #eff6ff; --info-tx: #1e40af; --info-bd: #bfdbfe;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Prompt', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    button, input, select, textarea { font-family: inherit; font-size: 0.9rem; }
+    input, select, textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: var(--text); outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11,92,54,0.12); }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-2); margin: 10px 0 4px; }
+    .btn { border: 1px solid #cbd5e1; background: #fff; color: var(--text-2); border-radius: 10px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+    .btn:hover { background: #f8fafc; }
+    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+    .btn-primary:hover { background: #094d2d; }
+    .btn-danger { color: var(--crit-tx); border-color: var(--crit-bd); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-sm { padding: 4px 10px; font-size: 0.78rem; border-radius: 8px; }
+    .muted { color: var(--muted); font-size: 0.78rem; }
+
+    /* Login */
+    #viewLogin { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .login-card { background: #fff; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; box-shadow: 0 12px 36px rgba(11,92,54,0.08); }
+
+    /* Top bar */
+    .topbar { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; gap: 12px; padding: 10px 20px; flex-wrap: wrap; }
+    .brand { font-weight: 700; color: var(--primary); font-size: 1.05rem; margin-right: auto; }
+    .brand small { display: block; font-weight: 500; font-size: 0.72rem; color: var(--accent); }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 20px 40px; }
+
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .tile { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; text-align: left; }
+    .tile.active { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(11,92,54,0.15); }
+    .tile-label { font-size: 0.78rem; color: var(--muted); }
+    .tile-value { font-size: 1.7rem; font-weight: 700; line-height: 1.2; }
+    .tile-sub { font-size: 0.72rem; color: var(--muted); }
+
+    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip { border: 1px solid #cbd5e1; background: #fff; border-radius: 99px; padding: 6px 12px; cursor: pointer; font-size: 0.8rem; color: var(--text-2); }
+    .chip.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+    .filters input { max-width: 260px; }
+    .filters select { width: auto; }
+
+    .table-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    table.list { width: 100%; border-collapse: collapse; }
+    table.list th { text-align: left; font-size: 0.74rem; color: var(--muted); font-weight: 600; padding: 10px 12px; background: #f8fafc; border-bottom: 1px solid var(--line); }
+    table.list td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 0.84rem; }
+    table.list tbody tr { cursor: pointer; }
+    table.list tbody tr:hover { background: #f8fafc; }
+    .name { font-weight: 600; }
+    .empty { text-align: center; color: var(--muted); padding: 30px; }
+
+    .st { display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+    .st-good { background: var(--good-bg); color: var(--good-tx); border-color: var(--good-bd); }
+    .st-warn { background: var(--warn-bg); color: var(--warn-tx); border-color: var(--warn-bd); }
+    .st-crit { background: var(--crit-bg); color: var(--crit-tx); border-color: var(--crit-bd); }
+    .st-info { background: var(--info-bg); color: var(--info-tx); border-color: var(--info-bd); }
+    .st-muted { background: #f1f5f9; color: var(--muted); border-color: #e2e8f0; }
+    .red-note { color: var(--crit-tx); font-size: 0.76rem; font-weight: 600; margin-top: 2px; }
+    .bar { height: 6px; width: 80px; background: var(--grid); border-radius: 99px; overflow: hidden; margin-top: 4px; }
+    .bar > div { height: 100%; background: var(--primary); }
+    .bar > div.full { background: #b45309; }
+
+    /* Drawer */
+    .drawer-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.35); z-index: 50; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--bg); z-index: 51;
+      overflow-y: auto; transform: translateX(100%); transition: transform 0.2s; box-shadow: -10px 0 30px rgba(0,0,0,0.08); }
+    .drawer.open { transform: none; }
+    .drawer-head { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--line); padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px; z-index: 2; }
+    .drawer-body { padding: 16px 18px 40px; }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+    .panel h3 { margin: 0 0 10px; font-size: 0.95rem; color: var(--primary); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .kv { background: #f8fafc; border-radius: 10px; padding: 8px 10px; }
+    .kv .k { font-size: 0.72rem; color: var(--muted); }
+    .kv .v { font-size: 0.95rem; font-weight: 600; }
+    table.mini { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    table.mini th { text-align: left; color: var(--muted); font-weight: 600; font-size: 0.72rem; padding: 6px; border-bottom: 1px solid var(--line); }
+    table.mini td { padding: 6px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    tr.voided td { color: #94a3b8; text-decoration: line-through; }
+    tr.voided td.keep { text-decoration: none; }
+    .scroll-x { overflow-x: auto; }
+    .seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; }
+    .seg button { border: none; background: #fff; padding: 5px 12px; cursor: pointer; font-size: 0.78rem; }
+    .seg button.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .chart-wrap { position: relative; width: 100%; min-height: 190px; }
+    .chart-empty { text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 60px 0; }
+    .chart-tip { position: absolute; pointer-events: none; background: #0f172a; color: #fff; font-size: 0.74rem; padding: 5px 8px;
+      border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); display: none; }
+
+    /* Modal */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .modal { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; }
+    .modal h4 { margin: 0 0 6px; font-size: 1rem; }
+    .modal p { margin: 0 0 12px; color: var(--text-2); font-size: 0.86rem; white-space: pre-line; }
+    .modal .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 16px;
+      border-radius: 10px; font-size: 0.85rem; z-index: 200; display: none; max-width: calc(100% - 32px); }
+
+    @media (max-width: 900px) {
+      .tiles { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .topbar, .wrap { padding-left: 16px; padding-right: 16px; }
+      .filters input { max-width: none; flex: 1 1 100%; }
+      table.list thead { display: none; }
+      table.list, table.list tbody, table.list tr, table.list td { display: block; width: 100%; }
+      table.list tr { border-bottom: 1px solid var(--line); padding: 8px 4px; }
+      table.list td { border: none; padding: 3px 10px; }
+      table.list td[data-l]::before { content: attr(data-l) ": "; color: var(--muted); font-size: 0.74rem; }
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+      .drawer-body { padding: 12px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- เข้าสู่ระบบ -->
+  <div id="viewLogin">
+    <form class="login-card" id="formLogin" novalidate>
+      <div style="text-align: center; font-size: 2rem;">🩺</div>
+      <h1 style="text-align: center; color: var(--primary); font-size: 1.2rem; margin: 6px 0 2px;">Shape me up Record</h1>
+      <div style="text-align: center; color: var(--accent); font-size: 0.8rem; font-weight: 600; margin-bottom: 14px;">สำหรับเจ้าหน้าที่</div>
+      <label for="loginUser">ชื่อผู้ใช้</label>
+      <input id="loginUser" autocomplete="username" autocapitalize="none">
+      <label for="loginPass">รหัสผ่าน</label>
+      <input id="loginPass" type="password" autocomplete="current-password">
+      <button type="submit" class="btn btn-primary" id="btnLogin" style="width: 100%; margin-top: 16px; padding: 11px;">เข้าสู่ระบบ</button>
+      <div class="muted" id="loginMsg" style="margin-top: 10px; text-align: center; color: var(--crit-tx);"></div>
+    </form>
+  </div>
+
+  <!-- แดชบอร์ด -->
+  <div id="viewApp" style="display: none;">
+    <div class="topbar">
+      <div class="brand">💉 Shape me up Record <small>ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</small></div>
+      <span class="st st-muted" id="lineStatus"></span>
+      <span class="muted" id="staffName"></span>
+      <button class="btn btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+      <button class="btn btn-sm" onclick="logout()">ออกจากระบบ</button>
+    </div>
+
+    <div class="wrap">
+      <div class="tiles" id="tiles"></div>
+
+      <div class="filters">
+        <div id="filterChips" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        <input type="search" id="search" placeholder="ค้นหาชื่อ / HN / เบอร์โทร" oninput="renderList()">
+        <select id="sortBy" onchange="renderList()" aria-label="เรียงลำดับ">
+          <option value="due">เรียงตามวันนัดถัดไป</option>
+          <option value="name">เรียงตามชื่อ</option>
+          <option value="weight">เรียงตามน้ำหนักที่ลดได้</option>
+        </select>
+      </div>
+
+      <div class="table-card">
+        <table class="list">
+          <thead>
+            <tr>
+              <th>ผู้ป่วย</th><th>ยา</th><th>ปากกา</th><th>ฉีดล่าสุด</th><th>นัดถัดไป</th><th>อาการล่าสุด</th><th>น้ำหนัก</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="listFoot" style="margin-top: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- รายละเอียดผู้ป่วย -->
+  <div class="drawer-bg" id="drawerBg" onclick="closeDrawer()"></div>
+  <aside class="drawer" id="drawer" aria-label="รายละเอียดผู้ป่วย">
+    <div class="drawer-head">
+      <button class="btn btn-sm" onclick="closeDrawer()" aria-label="ปิด">✕</button>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 700; font-size: 1.02rem;" id="dName">-</div>
+        <div class="muted" id="dSub"></div>
+      </div>
+      <span id="dStatus"></span>
+    </div>
+    <div class="drawer-body" id="dBody"></div>
+  </aside>
+
+  <!-- Modal -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h4 id="mTitle"></h4>
+      <p id="mText"></p>
+      <div id="mInputWrap" style="display: none;"><textarea id="mInput" rows="3"></textarea></div>
+      <div class="btns">
+        <button class="btn" id="mCancel">ยกเลิก</button>
+        <button class="btn btn-primary" id="mOk">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
+    const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
+    let token = "";
+    let dash = null;
+    let filter = "active";
+    let detail = null;
+    let detailMetric = "weight";
+
+    const $ = id => document.getElementById(id);
+    function ssGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+    function ssSet(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
+    function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function isoUtc(iso) { const p = iso.split("-").map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+    function thaiDate(iso) { if (!iso) return "-"; const p = iso.split("-").map(Number); return `${p[2]} ${THAI_MONTHS[p[1] - 1]} ${String(p[0] + 543).slice(2)}`; }
+    function thaiShort(iso) { const p = iso.split("-").map(Number); return `${p[2]} ${THAI_MONTHS[p[1] - 1]}`; }
+    function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString("th-TH", { maximumFractionDigits: 1 }); }
+    function fmtMg(n) { return n ? `${Number(n)} mg` : "-"; }
+
+    function toast(msg) {
+      const t = $("toast");
+      t.innerText = msg;
+      t.style.display = "block";
+      clearTimeout(t._h);
+      t._h = setTimeout(() => (t.style.display = "none"), 3000);
+    }
+
+    function modal({ title, text, input, placeholder, okLabel = "ยืนยัน", cancel = true, danger = false }) {
+      return new Promise(resolve => {
+        $("mTitle").innerText = title;
+        $("mText").innerText = text || "";
+        $("mInputWrap").style.display = input ? "block" : "none";
+        $("mInput").value = "";
+        $("mInput").placeholder = placeholder || "";
+        $("mOk").innerText = okLabel;
+        $("mOk").className = "btn " + (danger ? "btn-danger" : "btn-primary");
+        $("mCancel").style.display = cancel ? "" : "none";
+        $("modalBg").style.display = "flex";
+        if (input) setTimeout(() => $("mInput").focus(), 50);
+        const close = val => { $("modalBg").style.display = "none"; resolve(val); };
+        $("mOk").onclick = () => close(input ? $("mInput").value.trim() : true);
+        $("mCancel").onclick = () => close(input ? null : false);
+      });
+    }
+
+    // ================== API ==================
+    async function api(action, payload = {}) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 40000);
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(Object.assign({ action, staffToken: token }, payload)),
+          signal: controller.signal
+        });
+        const json = await res.json();
+        if (json.status !== "success") {
+          if (json.status === "staff_auth" && action !== "staff.login") { forceLogin(json.message); }
+          const err = new Error(json.message || json.status);
+          err.code = json.status;
+          throw err;
+        }
+        return json;
+      } catch (err) {
+        if (err.name === "AbortError") err.message = "ระบบตอบสนองช้า กรุณาลองใหม่";
+        else if (!err.code) err.message = "เชื่อมต่อระบบไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต";
+        throw err;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // ================== Login ==================
+    $("formLogin").addEventListener("submit", async e => {
+      e.preventDefault();
+      const btn = $("btnLogin");
+      btn.disabled = true; btn.innerText = "กำลังตรวจสอบ...";
+      $("loginMsg").innerText = "";
+      try {
+        const r = await api("staff.login", { username: $("loginUser").value, password: $("loginPass").value });
+        token = r.token;
+        ssSet("smu_staff_token", token);
+        $("loginPass").value = "";
+        showApp();
+      } catch (err) {
+        $("loginMsg").innerText = err.message;
+      } finally {
+        btn.disabled = false; btn.innerText = "เข้าสู่ระบบ";
+      }
+    });
+
+    function forceLogin(msg) {
+      token = "";
+      ssSet("smu_staff_token", null);
+      closeDrawer();
+      $("viewApp").style.display = "none";
+      $("viewLogin").style.display = "flex";
+      $("loginMsg").innerText = msg || "";
+    }
+    async function logout() {
+      try { await api("staff.logout"); } catch (e) {}
+      forceLogin("ออกจากระบบแล้ว");
+    }
+    function showApp() {
+      $("viewLogin").style.display = "none";
+      $("viewApp").style.display = "block";
+      loadDashboard();
+    }
+
+    // ================== สถานะ ==================
+    function statusOf(p) {
+      if (p.status === "inactive") return { key: "inactive", label: "ปิดการติดตาม", icon: "⏸", cls: "st-muted" };
+      const d = p.daysFromDue;
+      if (d === null || d === undefined) return { key: "new", label: "ยังไม่เริ่มฉีด", icon: "🆕", cls: "st-info" };
+      if (d > 0) return { key: "overdue", label: `เลยนัด ${d} วัน`, icon: "⚠️", cls: "st-crit" };
+      if (d === 0) return { key: "soon", label: "ครบวันนี้", icon: "🔔", cls: "st-warn" };
+      if (d === -1) return { key: "soon", label: "ครบพรุ่งนี้", icon: "📅", cls: "st-warn" };
+      return { key: "ok", label: `อีก ${-d} วัน`, icon: "✓", cls: "st-good" };
+    }
+    const badge = s => `<span class="st ${s.cls}"><span aria-hidden="true">${s.icon}</span>${esc(s.label)}</span>`;
+
+    // ================== แดชบอร์ด ==================
+    async function loadDashboard() {
+      $("rows").innerHTML = `<tr><td colspan="7" class="empty">กำลังโหลด...</td></tr>`;
+      try {
+        dash = await api("staff.dashboard");
+        $("staffName").innerText = `👤 ${dash.staff.display}`;
+        $("lineStatus").className = "st " + (dash.messagingReady ? "st-good" : "st-warn");
+        $("lineStatus").innerHTML = dash.messagingReady ? "✓ LINE แจ้งเตือนพร้อม" : "⚠️ ยังไม่ตั้งค่า LINE token";
+        renderTiles();
+        renderChips();
+        renderList();
+      } catch (err) {
+        if (err.code !== "staff_auth") $("rows").innerHTML = `<tr><td colspan="7" class="empty">${esc(err.message)}</td></tr>`;
+      }
+    }
+
+    const FILTERS = [
+      { key: "active", label: "ติดตามอยู่", test: p => p.status !== "inactive" },
+      { key: "overdue", label: "เลยนัด", test: p => statusOf(p).key === "overdue" },
+      { key: "soon", label: "ครบวันนี้/พรุ่งนี้", test: p => statusOf(p).key === "soon" },
+      { key: "red", label: "อาการเฝ้าระวัง (14 วัน)", test: p => p.status !== "inactive" && !!p.redFlag },
+      { key: "new", label: "ยังไม่เริ่มฉีด", test: p => statusOf(p).key === "new" },
+      { key: "inactive", label: "ปิดการติดตาม", test: p => p.status === "inactive" },
+      { key: "all", label: "ทั้งหมด", test: () => true }
+    ];
+
+    function renderTiles() {
+      const ps = dash.patients;
+      const count = k => ps.filter(FILTERS.find(f => f.key === k).test).length;
+      const tiles = [
+        { key: "active", label: "ผู้ป่วยที่ติดตามอยู่", value: count("active"), sub: `ทั้งหมด ${ps.length} คน` },
+        { key: "soon", label: "ครบกำหนดวันนี้/พรุ่งนี้", value: count("soon"), sub: "🔔 ควรได้รับแจ้งเตือน" },
+        { key: "overdue", label: "เลยนัดฉีด", value: count("overdue"), sub: "⚠️ ควรโทรติดตาม" },
+        { key: "red", label: "อาการเฝ้าระวัง 14 วัน", value: count("red"), sub: "🚑 ตรวจสอบอาการ" }
+      ];
+      $("tiles").innerHTML = tiles.map(t => `
+        <button type="button" class="tile ${filter === t.key ? "active" : ""}" onclick="setFilter('${t.key}')">
+          <div class="tile-label">${t.label}</div><div class="tile-value">${t.value}</div><div class="tile-sub">${t.sub}</div>
+        </button>`).join("");
+    }
+    function renderChips() {
+      $("filterChips").innerHTML = FILTERS.map(f =>
+        `<button type="button" class="chip ${filter === f.key ? "active" : ""}" onclick="setFilter('${f.key}')">${f.label}</button>`).join("");
+    }
+    function setFilter(k) { filter = k; renderTiles(); renderChips(); renderList(); }
+
+    function renderList() {
+      if (!dash) return;
+      const q = $("search").value.trim().toLowerCase();
+      const f = FILTERS.find(x => x.key === filter);
+      let list = dash.patients.filter(f.test).filter(p =>
+        !q || [p.name, p.hn, p.phone].some(v => String(v || "").toLowerCase().includes(q)));
+
+      const sort = $("sortBy").value;
+      if (sort === "name") list.sort((a, b) => a.name.localeCompare(b.name, "th"));
+      else if (sort === "weight") list.sort((a, b) => wDiff(a) - wDiff(b));
+      else list.sort((a, b) => dueRank(b) - dueRank(a));
+
+      $("rows").innerHTML = list.length ? list.map(p => {
+        const s = statusOf(p);
+        const usedPct = Math.min(100, (p.penUsedDoses / (dash.config.dosesPerPen || 4)) * 100);
+        const wd = wDiff(p);
+        return `
+          <tr onclick="openPatient('${esc(p.uid)}')">
+            <td><div class="name">${esc(p.name || "-")}</div><div class="muted">HN ${esc(p.hn || "-")} · ${esc(p.phone || "")}</div>
+              ${p.doctor ? `<div class="muted">แพทย์: ${esc(p.doctor)}</div>` : ""}</td>
+            <td data-l="ยา">${esc((p.medication || "-").replace(/\s*\(.*\)/, ""))}<div class="muted">${p.currentDose ? fmtMg(p.currentDose) : ""} · ทุก ${p.intervalDays} วัน</div></td>
+            <td data-l="ปากกา">${p.penNumber ? `ด้าม ${p.penNumber} · ครั้งที่ ${p.penCount}${p.penSpecial ? " ⭐" : ""}
+              <div class="bar"><div class="${usedPct >= 100 ? "full" : ""}" style="width: ${usedPct}%"></div></div>
+              <div class="muted">${fmt1(p.penUsedDoses)}/${dash.config.dosesPerPen} โดส · ${fmtMg(p.penStrength)}</div>` : '<span class="muted">-</span>'}</td>
+            <td data-l="ฉีดล่าสุด">${thaiDate(p.lastInjectedDate)}<div class="muted">${p.injectionCount} ครั้ง</div></td>
+            <td data-l="นัดถัดไป">${p.nextDueDate ? thaiDate(p.nextDueDate) : "-"}<div style="margin-top: 3px;">${badge(s)}</div></td>
+            <td data-l="อาการล่าสุด">${esc(p.lastSideEffects || "-")}
+              ${p.redFlag ? `<div class="red-note">⚠️ ${esc(p.redFlag.text)} (${thaiDate(p.redFlag.date)})</div>` : ""}</td>
+            <td data-l="น้ำหนัก">${p.weightLatest ? `${fmt1(p.weightLatest)} กก.` : "-"}
+              ${wd !== 0 && p.weightFirst ? `<div class="muted">${wd < 0 ? "▼" : "▲"} ${fmt1(Math.abs(wd))} กก. (${fmt1(Math.abs(wd / p.weightFirst * 100))}%)</div>` : ""}
+              ${p.waistLatest ? `<div class="muted">เอว ${fmt1(p.waistLatest)} ซม.</div>` : ""}</td>
+          </tr>`;
+      }).join("") : `<tr><td colspan="7" class="empty">ไม่พบผู้ป่วยในกลุ่มนี้</td></tr>`;
+      $("listFoot").innerText = `แสดง ${list.length} คน · ข้อมูล ณ ${thaiDate(dash.today)}`;
+    }
+    function wDiff(p) { return p.weightLatest && p.weightFirst ? p.weightLatest - p.weightFirst : 0; }
+    function dueRank(p) {
+      if (p.daysFromDue === null || p.daysFromDue === undefined) return -1000;
+      return p.daysFromDue + (p.redFlag ? 1000 : 0);
+    }
+
+    // ================== รายละเอียด ==================
+    async function openPatient(uid) {
+      $("drawerBg").style.display = "block";
+      $("drawer").classList.add("open");
+      $("dName").innerText = "กำลังโหลด...";
+      $("dSub").innerText = "";
+      $("dStatus").innerHTML = "";
+      $("dBody").innerHTML = "";
+      try {
+        const r = await api("staff.patient", { uid });
+        detail = r.detail;
+        renderDetail();
+      } catch (err) {
+        if (err.code !== "staff_auth") $("dBody").innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+      }
+    }
+    function closeDrawer() {
+      $("drawer").classList.remove("open");
+      $("drawerBg").style.display = "none";
+      detail = null;
+    }
+
+    function renderDetail() {
+      const p = detail.patient;
+      const row = dash.patients.find(x => x.uid === detail.uid) || {};
+      const today = dash.today;
+      const daysFromDue = p.nextDueDate ? Math.round((isoUtc(today) - isoUtc(p.nextDueDate)) / 864e5) : null;
+      const s = statusOf({ status: p.status, daysFromDue });
+      $("dName").innerText = p.name || "-";
+      $("dSub").innerText = `HN ${p.hn || "-"} · ${p.phone || "-"} · ลงทะเบียน ${thaiDate(p.registeredAt)}`;
+      $("dStatus").innerHTML = badge(s);
+
+      const meds = dash.config.meds;
+      const inj = detail.injections;
+      const body = detail.body;
+      const activeBody = body.filter(b => !b.voided);
+      const weights = activeBody.filter(b => b.weight);
+      const lastW = weights[weights.length - 1], firstW = weights[0];
+      const bmi = lastW && p.heightCm ? lastW.weight / Math.pow(p.heightCm / 100, 2) : null;
+      const m = meds.find(x => x.key === p.medKey);
+
+      $("dBody").innerHTML = `
+        <div class="panel">
+          <h3>สรุป</h3>
+          <div class="grid3">
+            <div class="kv"><div class="k">ยา / ขนาดล่าสุด</div><div class="v">${esc((p.medication || "-").replace(/\s*\(.*\)/, ""))} ${p.currentDose ? fmtMg(p.currentDose) : ""}</div></div>
+            <div class="kv"><div class="k">ปากกาปัจจุบัน</div><div class="v">${p.lastPenNumber ? `ด้าม ${p.lastPenNumber} · ครั้งที่ ${p.lastDoseNumber}${p.penSpecialUsed ? " ⭐" : ""}` : "-"}</div>
+              <div class="muted">${m && p.lastPenNumber ? `${fmt1(p.penUsedClicks / m.clicksPerFullDose)}/${dash.config.dosesPerPen} โดส · ${fmtMg(p.penStrength)}` : ""}</div></div>
+            <div class="kv"><div class="k">นัดถัดไป</div><div class="v">${p.nextDueDate ? thaiDate(p.nextDueDate) : "-"}</div><div class="muted">ทุก ${p.intervalDays} วัน</div></div>
+            <div class="kv"><div class="k">น้ำหนักล่าสุด</div><div class="v">${lastW ? fmt1(lastW.weight) + " กก." : "-"}</div><div class="muted">${lastW ? thaiDate(lastW.date) : ""}</div></div>
+            <div class="kv"><div class="k">เปลี่ยนแปลงจากครั้งแรก</div><div class="v">${lastW && firstW && lastW !== firstW ? `${lastW.weight - firstW.weight < 0 ? "▼" : "▲"} ${fmt1(Math.abs(lastW.weight - firstW.weight))} กก.` : "-"}</div>
+              <div class="muted">${lastW && firstW && lastW !== firstW ? `${fmt1(Math.abs((lastW.weight - firstW.weight) / firstW.weight * 100))}% ตั้งแต่ ${thaiDate(firstW.date)}` : ""}</div></div>
+            <div class="kv"><div class="k">BMI</div><div class="v">${bmi ? fmt1(bmi) : "-"}</div><div class="muted">${p.heightCm ? `ส่วนสูง ${fmt1(p.heightCm)} ซม.` : "ยังไม่ระบุส่วนสูง"}</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <h3 style="margin: 0;" id="dChartTitle"></h3>
+            <div class="seg">
+              <button type="button" id="dSegW" onclick="setDetailMetric('weight')">น้ำหนัก</button>
+              <button type="button" id="dSegWaist" onclick="setDetailMetric('waist')">รอบเอว</button>
+            </div>
+          </div>
+          <div class="chart-wrap" id="dChart"></div>
+        </div>
+
+        <div class="panel">
+          <h3>ประวัติการฉีด (${inj.filter(x => !x.voided).length} ครั้ง)</h3>
+          <div class="scroll-x">
+            <table class="mini">
+              <thead><tr><th>วันที่</th><th>ด้าม/ครั้ง</th><th>ขนาด</th><th>ตำแหน่ง</th><th>อาการ</th><th>โดย</th><th></th></tr></thead>
+              <tbody>${inj.length ? inj.map(e => `
+                <tr class="${e.voided ? "voided" : ""}">
+                  <td>${thaiDate(e.date)}</td>
+                  <td>${e.penNumber}/${e.doseNumber}${e.special ? " ⭐" : ""}</td>
+                  <td>${e.dose ? fmtMg(e.dose) : "-"}${e.penStrength ? `<div class="muted">ด้าม ${fmtMg(e.penStrength)}${e.clicks ? ` · ${e.clicks} คลิก` : ""}</div>` : ""}</td>
+                  <td>${esc(e.site || "-")}</td>
+                  <td>${esc(e.sideEffects)}${e.redFlag ? `<div class="red-note">⚠️ ${esc(e.redFlag)}</div>` : ""}</td>
+                  <td>${esc(e.by)}</td>
+                  <td class="keep">${e.voided ? `<span class="muted" title="${esc(e.voidReason)}">ยกเลิกแล้ว</span>` : `<button class="btn btn-sm btn-danger" onclick="voidEntry('injection','${esc(e.id)}')">ยกเลิก</button>`}</td>
+                </tr>`).join("") : `<tr><td colspan="7" class="muted">ยังไม่มีข้อมูล</td></tr>`}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>น้ำหนัก / รอบเอว (${activeBody.length} รายการ)</h3>
+          <div class="scroll-x">
+            <table class="mini">
+              <thead><tr><th>วันที่</th><th>น้ำหนัก (กก.)</th><th>รอบเอว (ซม.)</th><th>โดย</th><th></th></tr></thead>
+              <tbody>${body.length ? body.slice().reverse().map(b => `
+                <tr class="${b.voided ? "voided" : ""}">
+                  <td>${thaiDate(b.date)}</td><td>${b.weight ? fmt1(b.weight) : "-"}</td><td>${b.waist ? fmt1(b.waist) : "-"}</td><td>${esc(b.by)}</td>
+                  <td class="keep">${b.voided ? `<span class="muted" title="${esc(b.voidReason)}">ยกเลิกแล้ว</span>` : `<button class="btn btn-sm btn-danger" onclick="voidEntry('body','${esc(b.id)}')">ยกเลิก</button>`}</td>
+                </tr>`).join("") : `<tr><td colspan="5" class="muted">ยังไม่มีข้อมูล</td></tr>`}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>ส่งข้อความ LINE</h3>
+          <div class="muted">เว้นว่างเพื่อส่งข้อความเตือนตามสถานะนัดปัจจุบันของผู้ป่วย</div>
+          <textarea id="dMsg" rows="2" maxlength="300" placeholder="ข้อความถึงผู้ป่วย (ไม่บังคับ)" style="margin-top: 8px;"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; flex-wrap: wrap;">
+            <span class="muted">${p.notify ? "ผู้ป่วยเปิดรับแจ้งเตือน" : "ผู้ป่วยปิดแจ้งเตือนอัตโนมัติ (ส่งเองได้)"}</span>
+            <button class="btn btn-primary btn-sm" id="btnSend" onclick="sendReminder()" ${dash.messagingReady ? "" : "disabled"}>📤 ส่งข้อความ</button>
+          </div>
+          ${detail.notifications.length ? `<div style="margin-top: 10px;" class="scroll-x"><table class="mini"><thead><tr><th>เวลา</th><th>ประเภท</th><th>ผล</th><th>โดย</th></tr></thead><tbody>
+            ${detail.notifications.map(n => `<tr><td>${esc(n.ts)}</td><td>${esc(n.type)}</td><td>${esc(n.result)}</td><td>${esc(n.by)}</td></tr>`).join("")}
+          </tbody></table></div>` : ""}
+        </div>
+
+        <form class="panel" id="formEdit" onsubmit="savePatient(event)">
+          <h3>แก้ไขข้อมูลผู้ป่วย</h3>
+          <div class="grid2">
+            <div><label for="eName">ชื่อ-สกุล</label><input id="eName" value="${esc(p.name)}"></div>
+            <div><label for="eHn">HN</label><input id="eHn" value="${esc(p.hn)}"></div>
+            <div><label for="ePhone">เบอร์โทร</label><input id="ePhone" value="${esc(p.phone)}"></div>
+            <div><label for="eDoctor">แพทย์ผู้ดูแล</label><input id="eDoctor" value="${esc(p.doctor)}"></div>
+            <div><label for="eMed">ชนิดยา</label><select id="eMed">${meds.map(x => `<option value="${x.key}" ${x.key === p.medKey ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></div>
+            <div><label for="eInterval">ระยะห่างการฉีด (วัน)</label><input id="eInterval" type="number" min="1" max="60" value="${p.intervalDays}"></div>
+            <div><label for="eHeight">ส่วนสูง (ซม.)</label><input id="eHeight" type="number" min="100" max="250" step="0.1" value="${p.heightCm || ""}"></div>
+            <div><label for="eStatus">สถานะการติดตาม</label><select id="eStatus">
+              <option value="active" ${p.status !== "inactive" ? "selected" : ""}>ติดตามอยู่</option>
+              <option value="inactive" ${p.status === "inactive" ? "selected" : ""}>ปิดการติดตาม (ไม่ส่งแจ้งเตือน)</option></select></div>
+          </div>
+          <label for="eNote">หมายเหตุ</label>
+          <textarea id="eNote" rows="2" maxlength="500">${esc(p.note)}</textarea>
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: 500;"><input type="checkbox" id="eNotify" style="width: auto;" ${p.notify ? "checked" : ""}> ส่งแจ้งเตือนอัตโนมัติผ่าน LINE</label>
+          <div class="muted" style="margin-top: 6px;">หากเปลี่ยนชนิดยา ครั้งถัดไปผู้ป่วยจะเริ่มปากกาด้ามใหม่อัตโนมัติ</div>
+          <div style="text-align: right; margin-top: 12px;"><button class="btn btn-primary" id="btnSave" type="submit">บันทึกการแก้ไข</button></div>
+        </form>`;
+      setDetailMetric(detailMetric);
+    }
+
+    function setDetailMetric(metric) {
+      detailMetric = metric;
+      if (!detail) return;
+      $("dSegW").classList.toggle("active", metric === "weight");
+      $("dSegWaist").classList.toggle("active", metric === "waist");
+      $("dChartTitle").innerText = metric === "weight" ? "น้ำหนัก (กก.)" : "รอบเอว (ซม.)";
+      const pts = detail.body.filter(b => !b.voided && b[metric]).map(b => ({ date: b.date, value: b[metric] }));
+      renderLineChart($("dChart"), pts, { unit: metric === "weight" ? "กก." : "ซม.", label: metric === "weight" ? "น้ำหนัก" : "รอบเอว" });
+    }
+
+    async function savePatient(e) {
+      e.preventDefault();
+      const btn = $("btnSave");
+      btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+      const p = detail.patient;
+      const fields = {
+        name: $("eName").value, hn: $("eHn").value, phone: $("ePhone").value, doctor: $("eDoctor").value,
+        intervalDays: $("eInterval").value, heightCm: $("eHeight").value, status: $("eStatus").value,
+        note: $("eNote").value, notify: $("eNotify").checked
+      };
+      if ($("eMed").value !== p.medKey) {
+        const ok = await modal({ title: "เปลี่ยนชนิดยา", text: "ยืนยันเปลี่ยนชนิดยา? ครั้งถัดไปผู้ป่วยจะต้องเริ่มปากกาด้ามใหม่", okLabel: "เปลี่ยน" });
+        if (!ok) { btn.disabled = false; btn.innerText = "บันทึกการแก้ไข"; return; }
+        fields.medKey = $("eMed").value;
+      }
+      try {
+        const r = await api("staff.updatePatient", { uid: detail.uid, fields });
+        detail = r.detail;
+        renderDetail();
+        toast("บันทึกการแก้ไขแล้ว");
+        refreshDashboardQuietly();
+      } catch (err) {
+        if (err.code !== "staff_auth") modal({ title: "บันทึกไม่สำเร็จ", text: err.message, okLabel: "ตกลง", cancel: false });
+      } finally {
+        if ($("btnSave")) { $("btnSave").disabled = false; $("btnSave").innerText = "บันทึกการแก้ไข"; }
+      }
+    }
+
+    async function voidEntry(kind, id) {
+      const reason = await modal({
+        title: kind === "injection" ? "ยกเลิกรายการฉีด" : "ยกเลิกรายการน้ำหนัก",
+        text: "รายการจะยังอยู่ในชีตแต่ถูกทำเครื่องหมายยกเลิก" + (kind === "injection" ? "\nระบบจะคำนวณสถานะปากกาของผู้ป่วยใหม่" : ""),
+        input: true, placeholder: "เหตุผล เช่น ผู้ป่วยบันทึกซ้ำ", okLabel: "ยกเลิกรายการ", danger: true
+      });
+      if (reason === null) return;
+      if (!reason) { toast("กรุณาระบุเหตุผล"); return; }
+      try {
+        const r = await api(kind === "injection" ? "staff.voidInjection" : "staff.voidBody", { uid: detail.uid, id, reason });
+        detail = r.detail;
+        renderDetail();
+        toast("ยกเลิกรายการแล้ว");
+        refreshDashboardQuietly();
+      } catch (err) {
+        if (err.code !== "staff_auth") modal({ title: "ทำรายการไม่สำเร็จ", text: err.message, okLabel: "ตกลง", cancel: false });
+      }
+    }
+
+    async function sendReminder() {
+      const msg = $("dMsg").value.trim();
+      const ok = await modal({ title: "ส่งข้อความ LINE", text: msg ? `ส่งข้อความนี้ถึง ${detail.patient.name}?\n\n"${msg}"` : `ส่งข้อความเตือนตามสถานะนัดถึง ${detail.patient.name}?`, okLabel: "ส่ง" });
+      if (!ok) return;
+      const btn = $("btnSend");
+      btn.disabled = true; btn.innerText = "กำลังส่ง...";
+      try {
+        await api("staff.sendReminder", { uid: detail.uid, message: msg });
+        toast("ส่งข้อความแล้ว");
+        const r = await api("staff.patient", { uid: detail.uid });
+        detail = r.detail;
+        renderDetail();
+      } catch (err) {
+        if (err.code !== "staff_auth") modal({ title: "ส่งไม่สำเร็จ", text: err.message + "\n\nผู้ป่วยอาจยังไม่ได้เพิ่มเพื่อน LINE OA หรือบล็อกไว้", okLabel: "ตกลง", cancel: false });
+        if ($("btnSend")) { $("btnSend").disabled = false; $("btnSend").innerText = "📤 ส่งข้อความ"; }
+      }
+    }
+
+    async function refreshDashboardQuietly() {
+      try { dash = await api("staff.dashboard"); renderTiles(); renderList(); } catch (e) {}
+    }
+
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && $("modalBg").style.display !== "flex") closeDrawer(); });
+
+    // ================== กราฟเส้น (1 ชุดข้อมูล) ==================
+    function niceStep(raw) {
+      const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+      for (const m of [1, 2, 2.5, 5, 10]) if (m * pow >= raw) return m * pow;
+      return 10 * pow;
+    }
+    function renderLineChart(el, points, opt) {
+      el.innerHTML = "";
+      if (!points.length) { el.innerHTML = `<div class="chart-empty">ยังไม่มีข้อมูล${opt.label}</div>`; return; }
+      const W = Math.max(220, el.clientWidth || 600), H = 200;
+      const pad = { l: 40, r: 14, t: 14, b: 26 };
+      const xs = points.map(p => isoUtc(p.date));
+      let x0 = Math.min(...xs), x1 = Math.max(...xs);
+      if (x0 === x1) { x0 -= 3 * 864e5; x1 += 3 * 864e5; }
+      const vals = points.map(p => p.value);
+      const vmin = Math.min(...vals), vmax = Math.max(...vals);
+      const step = niceStep(Math.max(vmax - vmin, 2) / 4);
+      let y0 = Math.floor((vmin - step * 0.5) / step) * step;
+      let y1 = Math.ceil((vmax + step * 0.5) / step) * step;
+      if (y1 - y0 < step * 2) y1 = y0 + step * 2;
+      const sx = v => pad.l + (v - x0) / (x1 - x0) * (W - pad.l - pad.r);
+      const sy = v => pad.t + (1 - (v - y0) / (y1 - y0)) * (H - pad.t - pad.b);
+
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      svg.setAttribute("width", W); svg.setAttribute("height", H);
+      svg.style.width = "100%"; svg.style.height = "auto"; svg.style.display = "block";
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", `กราฟ${opt.label} ${points.length} ครั้ง`);
+      let html = "";
+      const dec = step < 1 ? 1 : 0;
+      for (let v = y0; v <= y1 + 1e-9; v += step) {
+        const y = sy(v);
+        html += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}" stroke="#e2e8f0"/>`;
+        html += `<text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#64748b">${v.toFixed(dec)}</text>`;
+      }
+      const li = new Set([0, points.length - 1]);
+      if (points.length >= 3 && W > 340) li.add(Math.floor((points.length - 1) / 2));
+      [...li].forEach(i => {
+        const anchor = i === 0 ? "start" : i === points.length - 1 ? "end" : "middle";
+        html += `<text x="${Math.min(Math.max(sx(xs[i]), pad.l), W - pad.r)}" y="${H - 8}" text-anchor="${anchor}" font-size="10" fill="#64748b">${thaiShort(points[i].date)}</text>`;
+      });
+      html += `<path d="${points.map((p, i) => `${i ? "L" : "M"}${sx(xs[i]).toFixed(1)},${sy(p.value).toFixed(1)}`).join(" ")}" fill="none" stroke="#0b5c36" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      html += `<line class="g" y1="${pad.t}" y2="${H - pad.b}" stroke="#94a3b8" stroke-dasharray="3 3" visibility="hidden"/>`;
+      points.forEach((p, i) => { html += `<circle cx="${sx(xs[i])}" cy="${sy(p.value)}" r="4" fill="#0b5c36" stroke="#fff" stroke-width="2"/>`; });
+      html += `<circle class="h" r="6" fill="#0b5c36" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
+      html += `<rect class="hit" x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent"/>`;
+      svg.innerHTML = html;
+      el.appendChild(svg);
+      const tip = document.createElement("div");
+      tip.className = "chart-tip";
+      el.appendChild(tip);
+      const guide = svg.querySelector(".g"), hi = svg.querySelector(".h");
+      const show = ev => {
+        const rect = svg.getBoundingClientRect();
+        const mx = (ev.clientX - rect.left) * (W / rect.width);
+        let best = 0, bd = Infinity;
+        xs.forEach((x, i) => { const d = Math.abs(sx(x) - mx); if (d < bd) { bd = d; best = i; } });
+        const px = sx(xs[best]), py = sy(points[best].value), sc = rect.width / W;
+        guide.setAttribute("x1", px); guide.setAttribute("x2", px); guide.setAttribute("visibility", "visible");
+        hi.setAttribute("cx", px); hi.setAttribute("cy", py); hi.setAttribute("visibility", "visible");
+        tip.innerText = `${thaiDate(points[best].date)} · ${fmt1(points[best].value)} ${opt.unit}`;
+        tip.style.display = "block";
+        tip.style.left = Math.min(Math.max(px * sc, 70), rect.width - 70) + "px";
+        tip.style.top = py * sc + "px";
+      };
+      const hide = () => { tip.style.display = "none"; guide.setAttribute("visibility", "hidden"); hi.setAttribute("visibility", "hidden"); };
+      const hit = svg.querySelector(".hit");
+      hit.addEventListener("pointermove", show);
+      hit.addEventListener("pointerdown", show);
+      hit.addEventListener("pointerleave", hide);
+    }
+
+    // ================== เริ่มต้น ==================
+    token = ssGet("smu_staff_token") || "";
+    if (token) showApp();
+  </script>
+</body>
+</html>
