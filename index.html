@@ -211,7 +211,7 @@
       <div class="switch-row">
         <div>
           <div style="font-size: 0.88rem; font-weight: 600;">แจ้งเตือนวันนัดฉีดผ่าน LINE</div>
-          <div class="muted">ต้องเพิ่มเพื่อน LINE ของศูนย์ฯ ก่อนจึงจะได้รับข้อความ</div>
+          <div class="muted">ระบบจะส่งข้อความเตือนเวลา 8:00 น. ของวันนัด</div>
         </div>
         <input type="checkbox" id="setNotify">
       </div>
@@ -996,7 +996,7 @@
         });
         patient = r.patient;
         saveCache();
-        await showModal("ลงทะเบียนสำเร็จ", "เริ่มบันทึกการฉีดยาและน้ำหนักได้เลยค่ะ\n\nอย่าลืมเพิ่มเพื่อน LINE ของศูนย์ฯ เพื่อรับแจ้งเตือนวันนัดฉีดนะคะ", "🎉");
+        await showModal("ลงทะเบียนสำเร็จ", "เริ่มบันทึกการฉีดยาและน้ำหนักได้เลยค่ะ", "🎉");
         renderMain();
       } catch (err) {
         showModal("ลงทะเบียนไม่สำเร็จ", err.name === "AbortError" ? "ระบบตอบสนองช้า กรุณาลองใหม่อีกครั้งค่ะ" : (err.message || "กรุณาลองใหม่อีกครั้งค่ะ"), "❌");

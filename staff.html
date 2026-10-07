@@ -7,134 +7,207 @@
   <title>Shape me up · เจ้าหน้าที่</title>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Glassy · ฟ้า-ขาว */
     :root {
-      --primary: #0b5c36;
-      --primary-light: #eef7f2;
-      --accent: #b58d3d;
-      --bg: #f4f7f5;
-      --surface: #ffffff;
-      --text: #0f172a;
-      --text-2: #334155;
-      --muted: #64748b;
-      --line: #dbe2ea;
-      --grid: #e2e8f0;
-      --good-bg: #f0fdf4; --good-tx: #166534; --good-bd: #bbf7d0;
-      --warn-bg: #fefce8; --warn-tx: #854d0e; --warn-bd: #fde68a;
-      --crit-bg: #fef2f2; --crit-tx: #991b1b; --crit-bd: #fecaca;
-      --info-bg: #eff6ff; --info-tx: #1e40af; --info-bd: #bfdbfe;
+      --ink: #0c2a43;
+      --ink-2: #33536e;
+      --muted: #6b8499;
+      --blue: #1677c9;
+      --blue-deep: #0b4f86;
+      --blue-soft: #e3f1fc;
+      --gold: #a9802f;
+      --glass: rgba(255, 255, 255, 0.58);
+      --glass-strong: rgba(255, 255, 255, 0.78);
+      --glass-edge: rgba(255, 255, 255, 0.85);
+      --hair: rgba(22, 119, 201, 0.12);
+      --shadow: 0 10px 34px rgba(18, 74, 122, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      --good-bg: #eafaf1; --good-tx: #126b3c; --good-bd: #b6e8cb;
+      --warn-bg: #fff8e6; --warn-tx: #865c09; --warn-bd: #f7dc9a;
+      --crit-bg: #fff0f0; --crit-tx: #a3222b; --crit-bd: #f7c3c6;
+      --info-bg: #eaf3ff; --info-tx: #1d4f99; --info-bd: #c3dbfb;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Prompt', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    html { background: #eef6fc; }
+    body {
+      margin: 0; min-height: 100vh; font-family: 'Prompt', -apple-system, sans-serif; font-size: 14px; color: var(--ink);
+      background:
+        radial-gradient(900px 600px at 8% -10%, rgba(125, 196, 247, 0.55), transparent 60%),
+        radial-gradient(700px 520px at 100% 10%, rgba(176, 222, 255, 0.65), transparent 60%),
+        radial-gradient(800px 600px at 60% 110%, rgba(150, 205, 245, 0.45), transparent 60%),
+        linear-gradient(180deg, #f4faff 0%, #e8f3fb 100%);
+      background-attachment: fixed;
+    }
+    .glass {
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      backdrop-filter: blur(18px) saturate(150%);
+      border: 1px solid var(--glass-edge);
+      box-shadow: var(--shadow);
+    }
     button, input, select, textarea { font-family: inherit; font-size: 0.9rem; }
     input, select, textarea {
-      width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; color: var(--text); outline: none;
+      width: 100%; padding: 9px 12px; border: 1px solid rgba(22, 119, 201, 0.18); border-radius: 12px;
+      background: rgba(255, 255, 255, 0.85); color: var(--ink); outline: none;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11,92,54,0.12); }
-    label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-2); margin: 10px 0 4px; }
-    .btn { border: 1px solid #cbd5e1; background: #fff; color: var(--text-2); border-radius: 10px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
-    .btn:hover { background: #f8fafc; }
-    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
-    .btn-primary:hover { background: #094d2d; }
-    .btn-danger { color: var(--crit-tx); border-color: var(--crit-bd); }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .btn-sm { padding: 4px 10px; font-size: 0.78rem; border-radius: 8px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(22, 119, 201, 0.16); background: #fff; }
+    button:focus-visible, .tile:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--ink-2); margin: 10px 0 4px; }
+    .btn {
+      border: 1px solid rgba(22, 119, 201, 0.2); background: rgba(255, 255, 255, 0.75); color: var(--ink-2);
+      border-radius: 12px; padding: 8px 14px; cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover { background: #fff; border-color: rgba(22, 119, 201, 0.35); }
+    .btn-primary {
+      background: linear-gradient(180deg, #2a8ce0 0%, var(--blue) 100%); border-color: var(--blue); color: #fff; font-weight: 600;
+      box-shadow: 0 6px 16px rgba(22, 119, 201, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    .btn-primary:hover { background: linear-gradient(180deg, #1f80d3 0%, var(--blue-deep) 100%); border-color: var(--blue-deep); }
+    .btn-danger { color: var(--crit-tx); border-color: var(--crit-bd); background: rgba(255, 255, 255, 0.8); }
+    .btn-danger:hover { background: var(--crit-bg); border-color: #eea5aa; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 5px 11px; font-size: 0.78rem; border-radius: 10px; }
     .muted { color: var(--muted); font-size: 0.78rem; }
 
-    /* Login */
+    /* เข้าสู่ระบบ */
     #viewLogin { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .login-card { background: #fff; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; box-shadow: 0 12px 36px rgba(11,92,54,0.08); }
+    .login-card { border-radius: 26px; padding: 32px 28px 26px; width: 100%; max-width: 380px; }
+    .login-mark {
+      width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 18px; display: grid; place-items: center; font-size: 1.6rem;
+      background: linear-gradient(145deg, #ffffff, #d7ecfc); border: 1px solid var(--glass-edge); box-shadow: 0 8px 20px rgba(22, 119, 201, 0.18);
+    }
 
-    /* Top bar */
-    .topbar { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: 1px solid var(--line);
-      display: flex; align-items: center; gap: 12px; padding: 10px 20px; flex-wrap: wrap; }
-    .brand { font-weight: 700; color: var(--primary); font-size: 1.05rem; margin-right: auto; }
-    .brand small { display: block; font-weight: 500; font-size: 0.72rem; color: var(--accent); }
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 16px 20px 40px; }
+    /* แถบบน */
+    .topbar-wrap { position: sticky; top: 0; z-index: 10; padding: 12px 20px 0; }
+    .topbar {
+      max-width: 1320px; margin: 0 auto; border-radius: 18px; display: flex; align-items: center; gap: 12px; padding: 10px 16px; flex-wrap: wrap;
+      background: var(--glass-strong);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; font-size: 1.05rem;
+      background: linear-gradient(145deg, #3d9be8, var(--blue-deep)); color: #fff; box-shadow: 0 4px 12px rgba(22, 119, 201, 0.3);
+    }
+    .brand-name { font-weight: 700; color: var(--blue-deep); font-size: 1.02rem; line-height: 1.2; }
+    .brand-sub { font-size: 0.72rem; color: var(--gold); font-weight: 500; }
+    .who { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 0.82rem; }
+    .who-dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue-deep); font-weight: 600; font-size: 0.78rem; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 18px 20px 48px; }
 
-    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
-    .tile { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; text-align: left; }
-    .tile.active { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(11,92,54,0.15); }
-    .tile-label { font-size: 0.78rem; color: var(--muted); }
-    .tile-value { font-size: 1.7rem; font-weight: 700; line-height: 1.2; }
-    .tile-sub { font-size: 0.72rem; color: var(--muted); }
+    /* แถบสรุป: แผ่นกระจกเดียว แบ่ง 4 ช่อง */
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 22px; overflow: hidden; margin-bottom: 16px; }
+    .tile {
+      position: relative; background: transparent; border: none; padding: 16px 20px 15px; cursor: pointer; text-align: left; color: var(--ink);
+      border-right: 1px solid var(--hair);
+    }
+    .tile:last-child { border-right: none; }
+    .tile:hover { background: rgba(255, 255, 255, 0.45); }
+    .tile.active { background: rgba(255, 255, 255, 0.82); }
+    .tile.active::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--blue); }
+    .tile-label { font-size: 0.8rem; color: var(--ink-2); display: flex; align-items: center; gap: 7px; }
+    .tile-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .tile-value { font-size: 2.1rem; font-weight: 600; line-height: 1.15; margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .tile-sub { font-size: 0.74rem; color: var(--muted); }
 
-    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-    .chip { border: 1px solid #cbd5e1; background: #fff; border-radius: 99px; padding: 6px 12px; cursor: pointer; font-size: 0.8rem; color: var(--text-2); }
-    .chip.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
-    .filters input { max-width: 260px; }
+    .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip {
+      border: 1px solid var(--glass-edge); background: rgba(255, 255, 255, 0.55); border-radius: 99px; padding: 6px 13px;
+      cursor: pointer; font-size: 0.8rem; color: var(--ink-2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    }
+    .chip:hover { background: rgba(255, 255, 255, 0.85); }
+    .chip.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 500; box-shadow: 0 4px 12px rgba(22, 119, 201, 0.25); }
+    .filters input { max-width: 280px; margin-left: auto; }
     .filters select { width: auto; }
 
-    .table-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    /* ตาราง */
+    .table-card { border-radius: 22px; overflow: hidden; }
     table.list { width: 100%; border-collapse: collapse; }
-    table.list th { text-align: left; font-size: 0.74rem; color: var(--muted); font-weight: 600; padding: 10px 12px; background: #f8fafc; border-bottom: 1px solid var(--line); }
-    table.list td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 0.84rem; }
-    table.list tbody tr { cursor: pointer; }
-    table.list tbody tr:hover { background: #f8fafc; }
-    .name { font-weight: 600; }
-    .empty { text-align: center; color: var(--muted); padding: 30px; }
+    table.list th {
+      text-align: left; font-size: 0.75rem; color: var(--muted); font-weight: 500; padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.5); border-bottom: 1px solid var(--hair);
+    }
+    table.list td { padding: 12px 14px; border-bottom: 1px solid rgba(22, 119, 201, 0.07); vertical-align: top; font-size: 0.85rem; }
+    table.list tbody tr { cursor: pointer; transition: background 0.12s; }
+    table.list tbody tr:hover { background: rgba(227, 241, 252, 0.7); }
+    table.list tbody tr:last-child td { border-bottom: none; }
+    .name { font-weight: 600; color: var(--ink); }
+    .empty { text-align: center; color: var(--muted); padding: 34px; }
 
-    .st { display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+    .st { display: inline-flex; align-items: center; gap: 4px; font-size: 0.74rem; font-weight: 500; padding: 2px 9px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
     .st-good { background: var(--good-bg); color: var(--good-tx); border-color: var(--good-bd); }
     .st-warn { background: var(--warn-bg); color: var(--warn-tx); border-color: var(--warn-bd); }
     .st-crit { background: var(--crit-bg); color: var(--crit-tx); border-color: var(--crit-bd); }
     .st-info { background: var(--info-bg); color: var(--info-tx); border-color: var(--info-bd); }
-    .st-muted { background: #f1f5f9; color: var(--muted); border-color: #e2e8f0; }
-    .red-note { color: var(--crit-tx); font-size: 0.76rem; font-weight: 600; margin-top: 2px; }
-    .bar { height: 6px; width: 80px; background: var(--grid); border-radius: 99px; overflow: hidden; margin-top: 4px; }
-    .bar > div { height: 100%; background: var(--primary); }
-    .bar > div.full { background: #b45309; }
+    .st-muted { background: rgba(255, 255, 255, 0.7); color: var(--muted); border-color: #dbe6ef; }
+    .red-note { color: var(--crit-tx); font-size: 0.76rem; font-weight: 500; margin-top: 2px; }
+    .bar { height: 6px; width: 92px; background: rgba(22, 119, 201, 0.12); border-radius: 99px; overflow: hidden; margin-top: 5px; }
+    .bar > div { height: 100%; background: linear-gradient(90deg, #57aef0, var(--blue)); border-radius: 99px; }
+    .bar > div.full { background: #c98a1b; }
 
-    /* Drawer */
-    .drawer-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.35); z-index: 50; }
-    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--bg); z-index: 51;
-      overflow-y: auto; transform: translateX(100%); transition: transform 0.2s; box-shadow: -10px 0 30px rgba(0,0,0,0.08); }
+    /* แผงรายละเอียด */
+    .drawer-bg { display: none; position: fixed; inset: 0; background: rgba(12, 42, 67, 0.22); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); z-index: 50; }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: min(780px, 100%); z-index: 51; overflow-y: auto;
+      transform: translateX(100%); transition: transform 0.22s ease;
+      background: rgba(240, 248, 254, 0.86); -webkit-backdrop-filter: blur(24px) saturate(150%); backdrop-filter: blur(24px) saturate(150%);
+      border-left: 1px solid var(--glass-edge); box-shadow: -18px 0 40px rgba(18, 74, 122, 0.14);
+    }
     .drawer.open { transform: none; }
-    .drawer-head { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--line); padding: 12px 18px;
-      display: flex; align-items: center; gap: 10px; z-index: 2; }
-    .drawer-body { padding: 16px 18px 40px; }
-    .panel { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
-    .panel h3 { margin: 0 0 10px; font-size: 0.95rem; color: var(--primary); }
+    .drawer-head {
+      position: sticky; top: 0; z-index: 2; padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+      background: rgba(255, 255, 255, 0.72); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid var(--hair);
+    }
+    .drawer-body { padding: 18px 20px 44px; }
+    .panel { border-radius: 20px; padding: 16px; margin-bottom: 14px; }
+    .panel h3 { margin: 0 0 12px; font-size: 0.95rem; font-weight: 600; color: var(--blue-deep); }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
     .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .kv { background: #f8fafc; border-radius: 10px; padding: 8px 10px; }
+    .kv { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 14px; padding: 9px 12px; }
     .kv .k { font-size: 0.72rem; color: var(--muted); }
-    .kv .v { font-size: 0.95rem; font-weight: 600; }
+    .kv .v { font-size: 0.96rem; font-weight: 600; }
     table.mini { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-    table.mini th { text-align: left; color: var(--muted); font-weight: 600; font-size: 0.72rem; padding: 6px; border-bottom: 1px solid var(--line); }
-    table.mini td { padding: 6px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-    tr.voided td { color: #94a3b8; text-decoration: line-through; }
+    table.mini th { text-align: left; color: var(--muted); font-weight: 500; font-size: 0.72rem; padding: 7px 6px; border-bottom: 1px solid var(--hair); }
+    table.mini td { padding: 8px 6px; border-bottom: 1px solid rgba(22, 119, 201, 0.07); vertical-align: top; }
+    tr.voided td { color: #9db0c0; text-decoration: line-through; }
     tr.voided td.keep { text-decoration: none; }
     .scroll-x { overflow-x: auto; }
-    .seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; }
-    .seg button { border: none; background: #fff; padding: 5px 12px; cursor: pointer; font-size: 0.78rem; }
-    .seg button.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .seg { display: inline-flex; padding: 3px; border-radius: 12px; background: rgba(22, 119, 201, 0.08); }
+    .seg button { border: none; background: transparent; padding: 5px 13px; cursor: pointer; font-size: 0.78rem; border-radius: 9px; color: var(--ink-2); }
+    .seg button.active { background: #fff; color: var(--blue-deep); font-weight: 600; box-shadow: 0 2px 6px rgba(18, 74, 122, 0.12); }
     .chart-wrap { position: relative; width: 100%; min-height: 190px; }
-    .chart-empty { text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 60px 0; }
-    .chart-tip { position: absolute; pointer-events: none; background: #0f172a; color: #fff; font-size: 0.74rem; padding: 5px 8px;
-      border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); display: none; }
+    .chart-empty { text-align: center; color: #9db0c0; font-size: 0.82rem; padding: 60px 0; }
+    .chart-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: 0.74rem; padding: 5px 9px;
+      border-radius: 9px; white-space: nowrap; transform: translate(-50%, -115%); display: none; }
 
-    /* Modal */
-    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
-    .modal { background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 380px; }
-    .modal h4 { margin: 0 0 6px; font-size: 1rem; }
-    .modal p { margin: 0 0 12px; color: var(--text-2); font-size: 0.86rem; white-space: pre-line; }
+    /* Modal / Toast */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(12, 42, 67, 0.3); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+      z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .modal { border-radius: 22px; padding: 22px; width: 100%; max-width: 400px; background: rgba(255, 255, 255, 0.92); }
+    .modal h4 { margin: 0 0 6px; font-size: 1rem; font-weight: 600; }
+    .modal p { margin: 0 0 12px; color: var(--ink-2); font-size: 0.86rem; white-space: pre-line; }
     .modal .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 16px;
-      border-radius: 10px; font-size: 0.85rem; z-index: 200; display: none; max-width: calc(100% - 32px); }
+    .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: rgba(12, 42, 67, 0.92); color: #fff;
+      padding: 10px 18px; border-radius: 12px; font-size: 0.85rem; z-index: 200; display: none; max-width: calc(100% - 32px); }
 
-    @media (max-width: 900px) {
+    @media (prefers-reduced-motion: reduce) { .drawer { transition: none; } }
+    @media (max-width: 1000px) {
       .tiles { grid-template-columns: repeat(2, 1fr); }
+      .tile:nth-child(2) { border-right: none; }
+      .tile:nth-child(-n+2) { border-bottom: 1px solid var(--hair); }
+      .filters input { margin-left: 0; }
     }
     @media (max-width: 720px) {
-      .topbar, .wrap { padding-left: 16px; padding-right: 16px; }
+      .topbar-wrap { padding: 10px 12px 0; }
+      .wrap { padding: 14px 12px 40px; }
+      .tile { padding: 12px 14px; }
+      .tile-value { font-size: 1.7rem; }
       .filters input { max-width: none; flex: 1 1 100%; }
       table.list thead { display: none; }
       table.list, table.list tbody, table.list tr, table.list td { display: block; width: 100%; }
-      table.list tr { border-bottom: 1px solid var(--line); padding: 8px 4px; }
-      table.list td { border: none; padding: 3px 10px; }
+      table.list tr { border-bottom: 1px solid var(--hair); padding: 10px 4px; }
+      table.list td { border: none; padding: 3px 12px; }
       table.list td[data-l]::before { content: attr(data-l) ": "; color: var(--muted); font-size: 0.74rem; }
       .grid2, .grid3 { grid-template-columns: 1fr; }
-      .drawer-body { padding: 12px 16px 40px; }
+      .drawer-body { padding: 14px 14px 40px; }
     }
   </style>
 </head>
@@ -142,31 +215,39 @@
 
   <!-- เข้าสู่ระบบ -->
   <div id="viewLogin">
-    <form class="login-card" id="formLogin" novalidate>
-      <div style="text-align: center; font-size: 2rem;">🩺</div>
-      <h1 style="text-align: center; color: var(--primary); font-size: 1.2rem; margin: 6px 0 2px;">Shape me up Record</h1>
-      <div style="text-align: center; color: var(--accent); font-size: 0.8rem; font-weight: 600; margin-bottom: 14px;">สำหรับเจ้าหน้าที่</div>
+    <form class="login-card glass" id="formLogin" novalidate>
+      <div class="login-mark" aria-hidden="true">💉</div>
+      <h1 style="text-align: center; color: var(--blue-deep); font-size: 1.25rem; font-weight: 700; margin: 0 0 2px;">Shape me up Record</h1>
+      <div style="text-align: center; color: var(--muted); font-size: 0.82rem; margin-bottom: 16px;">ระบบสำหรับเจ้าหน้าที่ ศูนย์ดูแลและควบคุมน้ำหนัก</div>
       <label for="loginUser">ชื่อผู้ใช้</label>
       <input id="loginUser" autocomplete="username" autocapitalize="none">
       <label for="loginPass">รหัสผ่าน</label>
       <input id="loginPass" type="password" autocomplete="current-password">
-      <button type="submit" class="btn btn-primary" id="btnLogin" style="width: 100%; margin-top: 16px; padding: 11px;">เข้าสู่ระบบ</button>
+      <button type="submit" class="btn btn-primary" id="btnLogin" style="width: 100%; margin-top: 18px; padding: 12px; font-size: 0.95rem;">เข้าสู่ระบบ</button>
       <div class="muted" id="loginMsg" style="margin-top: 10px; text-align: center; color: var(--crit-tx);"></div>
     </form>
   </div>
 
   <!-- แดชบอร์ด -->
   <div id="viewApp" style="display: none;">
-    <div class="topbar">
-      <div class="brand">💉 Shape me up Record <small>ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</small></div>
-      <span class="st st-muted" id="lineStatus"></span>
-      <span class="muted" id="staffName"></span>
-      <button class="btn btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
-      <button class="btn btn-sm" onclick="logout()">ออกจากระบบ</button>
+    <div class="topbar-wrap">
+      <div class="topbar glass">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">💉</div>
+          <div>
+            <div class="brand-name">Shape me up Record</div>
+            <div class="brand-sub">ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</div>
+          </div>
+        </div>
+        <span class="st st-muted" id="lineStatus"></span>
+        <span class="who"><span class="who-dot" id="staffInitial">?</span><span id="staffName"></span></span>
+        <button class="btn btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+        <button class="btn btn-sm" onclick="logout()">ออกจากระบบ</button>
+      </div>
     </div>
 
     <div class="wrap">
-      <div class="tiles" id="tiles"></div>
+      <div class="tiles glass" id="tiles"></div>
 
       <div class="filters">
         <div id="filterChips" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
@@ -178,7 +259,7 @@
         </select>
       </div>
 
-      <div class="table-card">
+      <div class="table-card glass">
         <table class="list">
           <thead>
             <tr>
@@ -208,7 +289,7 @@
 
   <!-- Modal -->
   <div class="modal-bg" id="modalBg">
-    <div class="modal">
+    <div class="modal glass">
       <h4 id="mTitle"></h4>
       <p id="mText"></p>
       <div id="mInputWrap" style="display: none;"><textarea id="mInput" rows="3"></textarea></div>
@@ -348,7 +429,8 @@
       $("rows").innerHTML = `<tr><td colspan="7" class="empty">กำลังโหลด...</td></tr>`;
       try {
         dash = await api("staff.dashboard");
-        $("staffName").innerText = `👤 ${dash.staff.display}`;
+        $("staffName").innerText = dash.staff.display;
+        $("staffInitial").innerText = (dash.staff.display || "?").replace(/^(พว\.|นพ\.|พญ\.|ภก\.|ภญ\.|นาย|นาง|น\.ส\.)\s*/, "").charAt(0) || "?";
         $("lineStatus").className = "st " + (dash.messagingReady ? "st-good" : "st-warn");
         $("lineStatus").innerHTML = dash.messagingReady ? "✓ LINE แจ้งเตือนพร้อม" : "⚠️ ยังไม่ตั้งค่า LINE token";
         renderTiles();
@@ -373,14 +455,15 @@
       const ps = dash.patients;
       const count = k => ps.filter(FILTERS.find(f => f.key === k).test).length;
       const tiles = [
-        { key: "active", label: "ผู้ป่วยที่ติดตามอยู่", value: count("active"), sub: `ทั้งหมด ${ps.length} คน` },
-        { key: "soon", label: "ครบกำหนดวันนี้/พรุ่งนี้", value: count("soon"), sub: "🔔 ควรได้รับแจ้งเตือน" },
-        { key: "overdue", label: "เลยนัดฉีด", value: count("overdue"), sub: "⚠️ ควรโทรติดตาม" },
-        { key: "red", label: "อาการเฝ้าระวัง 14 วัน", value: count("red"), sub: "🚑 ตรวจสอบอาการ" }
+        { key: "active", label: "ผู้ป่วยที่ติดตามอยู่", value: count("active"), sub: `จากทั้งหมด ${ps.length} คน`, dot: "#1677c9" },
+        { key: "soon", label: "ครบกำหนดวันนี้/พรุ่งนี้", value: count("soon"), sub: "ได้รับแจ้งเตือนเช้าวันนัด", dot: "#d69a1c" },
+        { key: "overdue", label: "เลยนัดฉีด", value: count("overdue"), sub: "ควรโทรติดตาม", dot: "#d23b45" },
+        { key: "red", label: "อาการเฝ้าระวัง 14 วัน", value: count("red"), sub: "ตรวจสอบอาการ", dot: "#d23b45" }
       ];
       $("tiles").innerHTML = tiles.map(t => `
-        <button type="button" class="tile ${filter === t.key ? "active" : ""}" onclick="setFilter('${t.key}')">
-          <div class="tile-label">${t.label}</div><div class="tile-value">${t.value}</div><div class="tile-sub">${t.sub}</div>
+        <button type="button" class="tile ${filter === t.key ? "active" : ""}" onclick="setFilter('${t.key}')" aria-pressed="${filter === t.key}">
+          <div class="tile-label"><span class="tile-dot" style="background: ${t.dot}"></span>${t.label}</div>
+          <div class="tile-value">${t.value}</div><div class="tile-sub">${t.sub}</div>
         </button>`).join("");
     }
     function renderChips() {
@@ -472,7 +555,7 @@
       const m = meds.find(x => x.key === p.medKey);
 
       $("dBody").innerHTML = `
-        <div class="panel">
+        <div class="panel glass">
           <h3>สรุป</h3>
           <div class="grid3">
             <div class="kv"><div class="k">ยา / ขนาดล่าสุด</div><div class="v">${esc((p.medication || "-").replace(/\s*\(.*\)/, ""))} ${p.currentDose ? fmtMg(p.currentDose) : ""}</div></div>
@@ -486,7 +569,7 @@
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel glass">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
             <h3 style="margin: 0;" id="dChartTitle"></h3>
             <div class="seg">
@@ -497,7 +580,7 @@
           <div class="chart-wrap" id="dChart"></div>
         </div>
 
-        <div class="panel">
+        <div class="panel glass">
           <h3>ประวัติการฉีด (${inj.filter(x => !x.voided).length} ครั้ง)</h3>
           <div class="scroll-x">
             <table class="mini">
@@ -516,7 +599,7 @@
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel glass">
           <h3>น้ำหนัก / รอบเอว (${activeBody.length} รายการ)</h3>
           <div class="scroll-x">
             <table class="mini">
@@ -530,7 +613,7 @@
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel glass">
           <h3>ส่งข้อความ LINE</h3>
           <div class="muted">เว้นว่างเพื่อส่งข้อความเตือนตามสถานะนัดปัจจุบันของผู้ป่วย</div>
           <textarea id="dMsg" rows="2" maxlength="300" placeholder="ข้อความถึงผู้ป่วย (ไม่บังคับ)" style="margin-top: 8px;"></textarea>
@@ -543,7 +626,7 @@
           </tbody></table></div>` : ""}
         </div>
 
-        <form class="panel" id="formEdit" onsubmit="savePatient(event)">
+        <form class="panel glass" id="formEdit" onsubmit="savePatient(event)">
           <h3>แก้ไขข้อมูลผู้ป่วย</h3>
           <div class="grid2">
             <div><label for="eName">ชื่อ-สกุล</label><input id="eName" value="${esc(p.name)}"></div>
@@ -681,19 +764,19 @@
       const dec = step < 1 ? 1 : 0;
       for (let v = y0; v <= y1 + 1e-9; v += step) {
         const y = sy(v);
-        html += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}" stroke="#e2e8f0"/>`;
-        html += `<text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#64748b">${v.toFixed(dec)}</text>`;
+        html += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}" stroke="rgba(22,119,201,0.12)"/>`;
+        html += `<text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#6b8499">${v.toFixed(dec)}</text>`;
       }
       const li = new Set([0, points.length - 1]);
       if (points.length >= 3 && W > 340) li.add(Math.floor((points.length - 1) / 2));
       [...li].forEach(i => {
         const anchor = i === 0 ? "start" : i === points.length - 1 ? "end" : "middle";
-        html += `<text x="${Math.min(Math.max(sx(xs[i]), pad.l), W - pad.r)}" y="${H - 8}" text-anchor="${anchor}" font-size="10" fill="#64748b">${thaiShort(points[i].date)}</text>`;
+        html += `<text x="${Math.min(Math.max(sx(xs[i]), pad.l), W - pad.r)}" y="${H - 8}" text-anchor="${anchor}" font-size="10" fill="#6b8499">${thaiShort(points[i].date)}</text>`;
       });
-      html += `<path d="${points.map((p, i) => `${i ? "L" : "M"}${sx(xs[i]).toFixed(1)},${sy(p.value).toFixed(1)}`).join(" ")}" fill="none" stroke="#0b5c36" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      html += `<path d="${points.map((p, i) => `${i ? "L" : "M"}${sx(xs[i]).toFixed(1)},${sy(p.value).toFixed(1)}`).join(" ")}" fill="none" stroke="#1677c9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
       html += `<line class="g" y1="${pad.t}" y2="${H - pad.b}" stroke="#94a3b8" stroke-dasharray="3 3" visibility="hidden"/>`;
-      points.forEach((p, i) => { html += `<circle cx="${sx(xs[i])}" cy="${sy(p.value)}" r="4" fill="#0b5c36" stroke="#fff" stroke-width="2"/>`; });
-      html += `<circle class="h" r="6" fill="#0b5c36" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
+      points.forEach((p, i) => { html += `<circle cx="${sx(xs[i])}" cy="${sy(p.value)}" r="4" fill="#1677c9" stroke="#fff" stroke-width="2"/>`; });
+      html += `<circle class="h" r="6" fill="#1677c9" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
       html += `<rect class="hit" x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent"/>`;
       svg.innerHTML = html;
       el.appendChild(svg);
