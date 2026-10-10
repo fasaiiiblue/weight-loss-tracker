@@ -2,1383 +2,1298 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shape me up Record - Samitivej Sriracha</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#EAF6EE">
+  <title>ยาเป๊ะ หุ่นปัง</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #0b5c36;
-      --primary-dark: #074025;
-      --primary-light: #eef7f2;
-      --accent: #b58d3d;
-      --surface: #ffffff;
-      --text-main: #0f172a;
-      --text-2: #334155;
-      --text-muted: #64748b;
-      --line: #cbd5e1;
-      --grid: #e2e8f0;
-      --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #92400e;
-      --red-bg: #fef2f2;  --red-bd: #fecaca;  --red-tx: #991b1b;
+      --bg: #EAF6EE;
+      --bg-2: #F6FBF7;
+      --card: #FFFFFF;
+      --forest: #0B5C36;
+      --leaf: #2E9A5B;
+      --mint: #D6F0DF;
+      --sun: #FFC845;
+      --sun-soft: #FFF3D1;
+      --ink: #16362A;
+      --ink-2: #3D5A4D;
+      --muted: #6F887C;
+      --line: #D9EADF;
+      --warn-bg: #FFF5DC; --warn-tx: #8A5A00; --warn-bd: #F5D98A;
+      --red-bg: #FDEEEC;  --red-tx: #A8261B;  --red-bd: #F4C2BC;
+      --radius: 22px;
+      --shadow: 0 6px 20px rgba(11, 92, 54, 0.08);
+      --head: 'Mitr', 'Prompt', sans-serif;
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Prompt', -apple-system, sans-serif;
-      background: radial-gradient(circle at 15% 15%, #e8f5ed 0%, #f0fdf4 45%, #f8fafc 90%);
-      min-height: 100vh;
-      padding: 16px 12px 32px;
-      margin: 0;
-      color: var(--text-main);
-    }
-    .glass-card {
-      background: rgba(255,255,255,0.95);
-      border: 1px solid rgba(255,255,255,0.85);
-      border-radius: 24px;
-      padding: 22px 16px;
-      box-shadow: 0 12px 36px rgba(11, 92, 54, 0.08);
-      max-width: 460px;
-      margin: 0 auto;
-    }
-    .app-title { font-size: 1.25rem; font-weight: 700; color: var(--primary); margin: 0 0 3px; text-align: center; }
-    .app-sub { text-align: center; font-size: 0.78rem; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
-    .debug-badge {
-      display: none; text-align: center; font-size: 0.72rem; color: #b91c1c; background: var(--red-bg);
-      border: 1px dashed #fca5a5; border-radius: 8px; padding: 4px; margin-bottom: 10px;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: 'Prompt', -apple-system, sans-serif; font-size: 16px; color: var(--ink); background: var(--bg); min-height: 100dvh; }
+    button, input, select { font-family: inherit; font-size: 1rem; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+    .app { max-width: 480px; margin: 0 auto; min-height: 100dvh; position: relative;
+      background: linear-gradient(180deg, #E1F3E7 0%, var(--bg) 220px, var(--bg-2) 100%); }
+    .screen { display: none; min-height: 100dvh; padding: 18px 18px 110px; }
+    .screen.active { display: block; }
+    .h1 { font-family: var(--head); font-weight: 500; font-size: 1.5rem; line-height: 1.3; margin: 0; }
+    .h2 { font-family: var(--head); font-weight: 500; font-size: 1.12rem; margin: 0; }
+    .muted { color: var(--muted); font-size: 0.86rem; }
+    .small { font-size: 0.82rem; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; }
+    .row { display: flex; align-items: center; gap: 10px; }
+    .between { justify-content: space-between; }
+    .grow { flex: 1; min-width: 0; }
+    .debug { display: none; text-align: center; font-size: 0.72rem; color: var(--red-tx); background: var(--red-bg); border-radius: 10px; padding: 4px; margin-bottom: 10px; }
 
-    /* แอนิเมชันคนเดิน */
-    .walking-anim-wrap { width: 72px; height: 72px; margin: 0 auto 12px; }
-    @keyframes leg-l { 0%,100% { transform: rotate(-24deg); } 50% { transform: rotate(24deg); } }
-    @keyframes leg-r { 0%,100% { transform: rotate(24deg); } 50% { transform: rotate(-24deg); } }
-    @keyframes arm-l { 0%,100% { transform: rotate(26deg); } 50% { transform: rotate(-26deg); } }
-    @keyframes arm-r { 0%,100% { transform: rotate(-26deg); } 50% { transform: rotate(26deg); } }
-    @keyframes track { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -28; } }
-    .leg-left  { transform-origin: 50px 58px; animation: leg-l 0.7s ease-in-out infinite; }
-    .leg-right { transform-origin: 50px 58px; animation: leg-r 0.7s ease-in-out infinite; }
-    .arm-left  { transform-origin: 50px 38px; animation: arm-l 0.7s ease-in-out infinite; }
-    .arm-right { transform-origin: 50px 38px; animation: arm-r 0.7s ease-in-out infinite; }
-    .floor-track { animation: track 0.7s linear infinite; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 54px; border-radius: 18px; border: none;
+      font-family: var(--head); font-weight: 500; font-size: 1.05rem; padding: 12px 18px; }
+    .btn-main { background: var(--forest); color: #fff; box-shadow: 0 8px 18px rgba(11, 92, 54, 0.25); }
+    .btn-main:active { transform: translateY(1px); }
+    .btn-main:disabled { background: #A9C7B6; box-shadow: none; cursor: not-allowed; }
+    .btn-sun { background: var(--sun); color: var(--ink); box-shadow: 0 8px 18px rgba(214, 160, 20, 0.28); }
+    .btn-soft { background: var(--mint); color: var(--forest); }
+    .btn-ghost { background: #fff; color: var(--ink-2); border: 1.5px solid var(--line); }
+    .link { background: none; border: none; color: var(--forest); font-weight: 500; text-decoration: underline; padding: 6px 0; font-size: 0.9rem; }
 
-    .label { font-size: 0.86rem; color: var(--text-2); margin-bottom: 6px; display: block; font-weight: 600; }
-    .opt { font-weight: 400; color: var(--text-muted); font-size: 0.78rem; }
-    .hint { font-size: 0.76rem; color: var(--text-muted); margin: -3px 0 8px; display: block; line-height: 1.45; }
-    input, select, textarea {
-      width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,0.55);
-      background: #fff; font-size: 0.95rem; font-family: inherit; color: #1e293b; margin-bottom: 12px; outline: none;
-    }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(11,92,54,0.15); }
-    select:disabled, input:disabled { background: #f1f5f9; color: #475569; opacity: 1; }
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    /* หน้าหลัก */
+    .hello { margin: 4px 2px 14px; }
+    .hello .date { font-size: 0.84rem; color: var(--muted); }
+    .garden { display: grid; grid-template-columns: 132px 1fr; gap: 6px; align-items: end; padding: 14px 16px 12px; overflow: hidden;
+      background: linear-gradient(160deg, #FFFFFF 0%, #F1FAF4 100%); }
+    .garden .count { font-family: var(--head); font-size: 2.3rem; font-weight: 600; color: var(--forest); line-height: 1; }
+    .garden .count small { font-size: 1rem; font-weight: 500; }
+    .streak { display: inline-flex; align-items: center; gap: 6px; background: var(--sun-soft); color: #7A5200; border-radius: 99px;
+      padding: 4px 11px; font-size: 0.8rem; font-weight: 500; margin-top: 8px; }
+    .due { display: grid; grid-template-columns: 74px 1fr; gap: 14px; align-items: center; }
+    .due.today { background: linear-gradient(150deg, #FFF8E3 0%, #FFFFFF 70%); }
+    .due.over { background: linear-gradient(150deg, var(--red-bg) 0%, #FFFFFF 70%); }
+    .due-title { font-family: var(--head); font-size: 1.12rem; font-weight: 500; }
+    .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mini { background: var(--card); border-radius: 20px; padding: 14px; box-shadow: var(--shadow); border: none; text-align: left; width: 100%; }
+    .mini .lbl { font-size: 0.78rem; color: var(--muted); }
+    .mini .val { font-family: var(--head); font-size: 1.35rem; font-weight: 500; margin: 2px 0; }
+    .mini .val small { font-size: 0.8rem; font-family: 'Prompt'; color: var(--muted); }
+    .notice { background: #FFF1E3; border-radius: 16px; padding: 12px 14px; font-size: 0.86rem; color: #8A4B08; margin-bottom: 14px; display: none; }
+    .notice button { margin-top: 8px; border: 1.5px solid #E7A35A; background: #fff; color: #8A4B08; border-radius: 12px; padding: 6px 12px; font-size: 0.84rem; }
 
-    .btn-primary {
-      width: 100%; background: linear-gradient(135deg, #0b5c36 0%, #15803d 100%); color: #fff; border: none;
-      border-radius: 14px; padding: 13px; font-size: 1rem; font-weight: 600; font-family: inherit; cursor: pointer;
-      box-shadow: 0 4px 14px rgba(11,92,54,0.25);
-    }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-ghost {
-      width: 100%; background: #fff; color: var(--text-2); border: 1px solid var(--line); border-radius: 14px;
-      padding: 12px; font-size: 0.95rem; font-family: inherit; cursor: pointer;
-    }
-    .btn-small {
-      display: inline-flex; align-items: center; gap: 4px; background: #fff; border: 1px dashed var(--primary);
-      color: var(--primary-dark); border-radius: 8px; padding: 5px 10px; font-size: 0.76rem; cursor: pointer;
-      font-family: inherit; white-space: nowrap;
-    }
-    .btn-link { background: none; border: none; color: var(--primary); font-family: inherit; font-size: 0.78rem;
-      text-decoration: underline; cursor: pointer; padding: 0; margin-top: 6px; }
+    /* แถบยา 4 โดส */
+    .doses { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 8px 0 6px; }
+    .dose-cap { height: 12px; border-radius: 99px; background: #E6EFE9; overflow: hidden; position: relative; }
+    .dose-cap > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--leaf); }
+    .dose-cap > b { position: absolute; top: 0; bottom: 0; background: var(--sun); }
+    .doses.big .dose-cap { height: 18px; }
 
-    .tab-bar { display: flex; background: rgba(226,232,240,0.65); border-radius: 12px; padding: 4px; margin-bottom: 16px; gap: 4px; }
-    .tab-btn { flex: 1; border: none; background: transparent; padding: 8px 4px; border-radius: 8px; font-family: inherit;
-      font-size: 0.82rem; font-weight: 500; color: #475569; cursor: pointer; }
-    .tab-btn.active { background: #fff; color: var(--primary); font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    /* แถบเมนูล่าง */
+    .tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 20;
+      background: rgba(255, 255, 255, 0.97); border-top: 1px solid var(--line); display: none;
+      grid-template-columns: repeat(4, 1fr); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); }
+    .tabbar.show { display: grid; }
+    .tab { background: none; border: none; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      font-size: 0.74rem; color: var(--muted); border-radius: 14px; }
+    .tab svg { width: 24px; height: 24px; }
+    .tab.on { color: var(--forest); font-weight: 500; }
+    .tab.on svg { background: var(--mint); border-radius: 10px; padding: 2px; width: 34px; }
 
-    .patient-header {
-      background: linear-gradient(135deg, rgba(11,92,54,0.08) 0%, rgba(181,141,61,0.08) 100%);
-      border: 1px solid rgba(11,92,54,0.2); border-radius: 16px; padding: 14px; margin-bottom: 12px; position: relative;
-    }
-    .gear-btn { position: absolute; top: 10px; right: 10px; border: none; background: rgba(255,255,255,0.8);
-      border-radius: 10px; width: 34px; height: 34px; font-size: 1rem; cursor: pointer; }
-    .badge { display: inline-block; font-size: 0.74rem; padding: 3px 8px; border-radius: 20px; font-weight: 600; margin: 2px 4px 2px 0; }
-    .badge-hn { background: #eef7f2; color: var(--primary); border: 1px solid #c0d8c9; }
-    .badge-doc { background: #fef8eb; color: var(--accent); border: 1px solid #f6d896; }
+    /* Wizard */
+    .wz-head { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 14px 18px 10px; margin: -18px -18px 6px; }
+    .wz-top { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 42px; height: 42px; border-radius: 14px; border: none; background: #fff; box-shadow: var(--shadow);
+      display: grid; place-items: center; flex: none; color: var(--ink); }
+    .wz-title { flex: 1; text-align: center; font-family: var(--head); font-size: 0.98rem; color: var(--ink-2); }
+    .wz-bar { display: flex; gap: 5px; margin-top: 12px; }
+    .wz-bar span { flex: 1; height: 6px; border-radius: 99px; background: #D3E6DA; }
+    .wz-bar span.on { background: var(--leaf); }
+    .wz-q { font-family: var(--head); font-size: 1.42rem; font-weight: 500; line-height: 1.35; margin: 10px 2px 4px; }
+    .wz-sub { color: var(--muted); font-size: 0.9rem; margin: 0 2px 16px; line-height: 1.5; }
+    .wz-gap { height: 12px; }
+    .wz-content { animation: wzIn 0.24s ease-out; }
+    .wz-content.back { animation-name: wzBack; }
+    @keyframes wzIn { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+    @keyframes wzBack { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+    .wz-foot { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; z-index: 15;
+      padding: 14px 18px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(246,251,247,0) 0%, var(--bg-2) 30%); }
 
-    .banner { border-radius: 12px; padding: 10px 14px; font-size: 0.82rem; margin-bottom: 12px; display: flex;
-      align-items: flex-start; gap: 8px; font-weight: 500; line-height: 1.45; }
-    .banner.normal { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-    .banner.today { background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }
-    .banner.overdue { background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red-tx); }
-    .banner.notice { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; display: none; flex-direction: column; }
-    .banner.notice button { align-self: flex-start; border: 1px solid #ea580c; background: #fff; color: #c2410c; border-radius: 8px;
-      padding: 5px 12px; font-family: inherit; font-size: 0.78rem; cursor: pointer; }
+    /* ตัวเลือก */
+    .opts { display: grid; gap: 10px; }
+    .opts.two { grid-template-columns: 1fr 1fr; }
+    .opts.three { grid-template-columns: repeat(3, 1fr); }
+    .opts.four { grid-template-columns: repeat(4, 1fr); }
+    .opt { background: #fff; border: 2px solid transparent; border-radius: 18px; padding: 14px; text-align: left; box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; position: relative; }
+    .opt.center { flex-direction: column; justify-content: center; text-align: center; gap: 0; padding: 12px 6px; }
+    .opt[aria-pressed="true"] { border-color: var(--forest); background: #F3FBF6; }
+    .opt[aria-pressed="true"]::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
+      background: var(--forest); color: #fff; font-size: 0.7rem; display: grid; place-items: center; }
+    .opt .t { font-family: var(--head); font-size: 1.12rem; font-weight: 500; }
+    .opt .s { font-size: 0.8rem; color: var(--muted); }
+    .opt .emoji { font-size: 1.5rem; width: 46px; height: 46px; border-radius: 14px; background: var(--mint); display: grid; place-items: center; flex: none; }
+    .opt .pill { margin-left: auto; margin-right: 18px; background: var(--mint); color: var(--forest); font-size: 0.82rem; font-weight: 500; border-radius: 99px; padding: 5px 10px; white-space: nowrap; }
+    .opt.special[aria-pressed="true"] { border-color: #C98A1B; background: #FFFBEF; }
 
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 14px; }
-    .card.soft { background: rgba(241,245,249,0.85); }
+    .pen-card { background: linear-gradient(150deg, #FFFFFF 0%, #F0FAF3 100%); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+    .pen-num { font-family: var(--head); font-size: 2rem; font-weight: 600; color: var(--forest); line-height: 1.1; }
+    .chip-round { display: inline-block; background: var(--forest); color: #fff; border-radius: 99px; padding: 5px 13px; font-size: 0.88rem; font-weight: 500; }
+    .chip-round.special { background: #B97810; }
+    .box-warn { background: var(--warn-bg); border: 1px solid var(--warn-bd); color: var(--warn-tx); border-radius: 16px; padding: 12px 14px; font-size: 0.88rem; line-height: 1.55; margin: 12px 0; }
+    .box-red { background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red-tx); border-radius: 16px; padding: 12px 14px; font-size: 0.88rem; line-height: 1.55; margin: 12px 0; }
+    .box-info { background: var(--mint); color: var(--forest); border-radius: 16px; padding: 12px 14px; font-size: 0.9rem; line-height: 1.5; margin: 12px 0; }
 
-    .dose-num-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 5px; margin: 6px 0 8px; }
-    .dose-num-btn { padding: 8px 4px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-size: 0.74rem; text-align: center; }
-    .dose-num-btn.done { background: #f1f5f9; color: var(--text-muted); border-color: var(--grid); }
-    .dose-num-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
-    .dose-num-btn.special.active { background: #b45309; border-color: #b45309; }
-    .dose-num-btn.waiting { border-style: dashed; border-color: #d97706; color: var(--warn-tx); background: var(--warn-bg); }
-    .pen-progress { height: 8px; background: var(--grid); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
-    .pen-progress-bar { height: 100%; background: var(--primary); border-radius: 99px; transition: width 0.3s; }
-    .pen-progress-bar.full { background: #b45309; }
-    .pen-progress-text { font-size: 0.74rem; color: #475569; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-weight: 500; font-size: 0.92rem; margin: 0 2px 6px; color: var(--ink-2); }
+    .field label .opt-l { font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+    .input { width: 100%; height: 54px; border-radius: 16px; border: 2px solid var(--line); background: #fff; padding: 0 16px; font-size: 1.05rem; outline: none; }
+    .input:focus { border-color: var(--leaf); }
 
-    .choice-card, .warn-box { background: var(--warn-bg); border: 1px solid var(--warn-bd); border-radius: 12px; padding: 10px 12px;
-      margin-top: 8px; font-size: 0.8rem; color: var(--warn-tx); line-height: 1.5; }
-    .red-box { background: var(--red-bg); border: 1px solid var(--red-bd); border-radius: 12px; padding: 10px 12px;
-      margin-top: 4px; margin-bottom: 12px; font-size: 0.8rem; color: var(--red-tx); line-height: 1.5; display: none; }
-    .choice-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-    .btn-choice { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px; font-family: inherit;
-      font-size: 0.82rem; cursor: pointer; text-align: left; color: var(--text-main); }
-    .btn-choice.special { border-color: #d97706; color: var(--warn-tx); }
+    .stepper { display: grid; grid-template-columns: 64px 1fr 64px; gap: 10px; align-items: center; margin: 8px 0 6px; }
+    .stepper button { height: 64px; border-radius: 20px; border: none; background: #fff; box-shadow: var(--shadow); font-size: 1.8rem; color: var(--forest); font-family: var(--head); }
+    .stepper input { height: 84px; border-radius: 24px; border: 2px solid var(--line); background: #fff; text-align: center;
+      font-family: var(--head); font-size: 2.6rem; font-weight: 500; color: var(--forest); width: 100%; outline: none; min-width: 0; }
+    .stepper input:focus { border-color: var(--leaf); }
+    .unit { text-align: center; color: var(--muted); font-size: 0.9rem; }
 
-    .pill { display: inline-block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 0.86rem;
-      font-weight: 700; padding: 5px 12px; border-radius: 8px; }
-
-    .toggle-group { display: flex; gap: 8px; margin-bottom: 8px; }
-    .toggle-btn { flex: 1; padding: 9px; border: 1px solid var(--line); background: #fff; border-radius: 10px; font-size: 0.82rem;
-      font-family: inherit; cursor: pointer; }
-    .toggle-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); font-weight: 600; }
-
-    .quad-box { fill: #f8fafc; stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 4 3; cursor: pointer; }
-    .quad-box.active { fill: #eef7f2; stroke: var(--primary); stroke-width: 2.5; stroke-dasharray: none; }
-    .quad-label { font-size: 13px; fill: var(--text-2); font-weight: 600; pointer-events: none; font-family: inherit; }
-
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .chip { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 7px 12px; font-family: inherit;
-      font-size: 0.8rem; color: var(--text-2); cursor: pointer; }
-    .chip[aria-pressed="true"] { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); font-weight: 600; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { border: 2px solid var(--line); background: #fff; border-radius: 99px; padding: 9px 14px; font-size: 0.9rem; color: var(--ink-2); }
+    .chip[aria-pressed="true"] { border-color: var(--forest); background: #F3FBF6; color: var(--forest); font-weight: 500; }
     .chip.red { border-color: var(--red-bd); color: var(--red-tx); }
-    .chip.red[aria-pressed="true"] { background: var(--red-bg); border-color: #dc2626; color: var(--red-tx); }
+    .chip.red[aria-pressed="true"] { background: var(--red-bg); border-color: var(--red-tx); }
 
-    /* น้ำหนัก */
-    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-    .tile { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
-    .tile-label { font-size: 0.72rem; color: var(--text-muted); }
-    .tile-value { font-size: 1.25rem; font-weight: 700; color: var(--text-main); line-height: 1.3; }
-    .tile-value small { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
-    .tile-sub { font-size: 0.72rem; color: var(--text-muted); }
+    .belly { background: #fff; border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); text-align: center; }
+    .quad { fill: #F4FAF6; stroke: #B9D6C4; stroke-width: 2; stroke-dasharray: 5 4; }
+    .quad.on { fill: #DDF3E5; stroke: var(--forest); stroke-width: 3; stroke-dasharray: none; }
+    .qlabel { font-family: 'Mitr', sans-serif; font-size: 15px; fill: var(--ink-2); pointer-events: none; }
+
+    .sum-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+    .sum-row:last-child { border-bottom: none; }
+    .sum-ic { width: 38px; height: 38px; border-radius: 12px; background: var(--mint); display: grid; place-items: center; flex: none; font-size: 1.15rem; }
+    .sum-row .k { font-size: 0.78rem; color: var(--muted); }
+    .sum-row .v { font-weight: 500; line-height: 1.45; }
+    .sum-row .edit { margin-left: auto; background: none; border: none; color: var(--forest); font-size: 0.85rem; text-decoration: underline; padding: 4px; flex: none; }
+
+    /* หน้าฉลอง */
+    .done { text-align: center; padding-top: 24px; }
+    .done .plant-wrap { width: 210px; margin: 0 auto 6px; }
+    .done .h1 { font-size: 1.7rem; }
+    .done .lead { color: var(--ink-2); margin: 8px 6px 18px; line-height: 1.6; }
+    .pop { transform-box: fill-box; transform-origin: 0% 50%; animation: pop 0.7s cubic-bezier(.2,1.6,.4,1) 0.25s both; }
+    .bloom { transform-box: fill-box; transform-origin: center; animation: bloom 0.8s cubic-bezier(.2,1.6,.4,1) 0.3s both; }
+    @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+    @keyframes bloom { from { transform: scale(0) rotate(-40deg); } to { transform: scale(1) rotate(0); } }
+    .spark { animation: spark 1.2s ease-out 0.5s both; transform-box: fill-box; transform-origin: center; }
+    @keyframes spark { 0% { opacity: 0; transform: scale(0.3); } 40% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(1.3); } }
+    .stat-pill { display: inline-flex; flex-direction: column; background: #fff; border-radius: 18px; padding: 10px 16px; box-shadow: var(--shadow); margin: 4px; min-width: 130px; }
+    .stat-pill b { font-family: var(--head); font-size: 1.15rem; font-weight: 500; color: var(--forest); }
+
+    /* น้ำหนัก / ประวัติ */
+    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
     .chart-wrap { position: relative; width: 100%; min-height: 190px; }
-    .chart-empty { text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 60px 0; }
-    .chart-tip { position: absolute; pointer-events: none; background: #0f172a; color: #fff; font-size: 0.74rem; padding: 5px 8px;
-      border-radius: 8px; white-space: nowrap; transform: translate(-50%, -110%); display: none; }
-    .list-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 2px;
-      border-bottom: 1px solid #f1f5f9; font-size: 0.84rem; }
-    .list-row:last-child { border-bottom: none; }
-    .muted { color: var(--text-muted); font-size: 0.76rem; }
-    .tag-pending { font-size: 0.7rem; color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 1px 6px; }
+    .chart-empty { text-align: center; color: var(--muted); font-size: 0.86rem; padding: 60px 0; }
+    .chart-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: 0.76rem; padding: 5px 9px; border-radius: 10px;
+      white-space: nowrap; transform: translate(-50%, -115%); display: none; }
+    .seg { display: inline-flex; background: var(--mint); border-radius: 14px; padding: 3px; }
+    .seg button { border: none; background: transparent; padding: 6px 12px; border-radius: 11px; font-size: 0.84rem; color: var(--forest); }
+    .seg button.on { background: #fff; font-weight: 500; box-shadow: 0 2px 6px rgba(11,92,54,0.12); }
+    .li { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 11px 2px; border-bottom: 1px solid #EEF5F0; font-size: 0.92rem; }
+    .li:last-child { border-bottom: none; }
+    .tag-pend { font-size: 0.7rem; color: #8A4B08; background: #FFF1E3; border-radius: 6px; padding: 1px 6px; }
+    .pen-group { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; overflow: hidden; }
+    .pen-head { width: 100%; border: none; background: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+    .pen-body { padding: 0 14px 12px; display: none; }
+    .pen-body.open { display: block; }
+    .hi { border-left: 4px solid var(--leaf); background: #F6FBF8; border-radius: 0 14px 14px 0; padding: 10px 12px; margin-top: 8px; }
+    .hi.special { border-left-color: #C98A1B; background: #FFFBEF; }
+    .hi-red { color: var(--red-tx); font-size: 0.8rem; font-weight: 500; margin-top: 4px; }
 
-    /* ประวัติ */
-    .pen-group { background: #fff; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
-    .pen-group-header { padding: 12px 14px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;
-      cursor: pointer; user-select: none; width: 100%; border: none; font-family: inherit; text-align: left; }
-    .pen-group-content { padding: 10px 12px; display: none; }
-    .pen-group-content.open { display: block; }
-    .h-item { border-left: 3.5px solid var(--primary); margin-bottom: 10px; background: #fafafa; border-radius: 0 10px 10px 0; padding: 8px 10px; }
-    .h-item.special { border-left-color: #b45309; background: var(--warn-bg); }
-    .h-red { color: var(--red-tx); font-size: 0.76rem; font-weight: 600; margin-top: 3px; }
+    .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 14px; }
+    .switch input { width: 26px; height: 26px; accent-color: var(--forest); flex: none; }
 
-    /* Modal */
-    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 9999;
-      align-items: center; justify-content: center; padding: 16px; }
-    .modal-box { background: #fff; border-radius: 20px; padding: 22px; width: 100%; max-width: 340px; text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
-    .modal-btns { display: flex; flex-direction: column; gap: 8px; }
-    .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left; margin-bottom: 12px; }
-    .switch-row input { width: 22px; height: 22px; margin: 0; accent-color: var(--primary); }
+    /* Modal (bottom sheet) */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(22, 54, 42, 0.42); z-index: 100; align-items: flex-end; justify-content: center; }
+    .modal { background: #fff; width: 100%; max-width: 480px; border-radius: 28px 28px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom)); text-align: center;
+      animation: up 0.22s ease-out; max-height: 88vh; overflow-y: auto; }
+    @keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal .ic { font-size: 2.4rem; }
+    .modal .t { font-family: var(--head); font-size: 1.2rem; font-weight: 500; margin: 6px 0; }
+    .modal .d { color: var(--ink-2); font-size: 0.95rem; line-height: 1.6; white-space: pre-line; margin-bottom: 16px; }
+    .modal .btns { display: grid; gap: 8px; }
+
+    .loader { display: grid; place-items: center; min-height: 80dvh; text-align: center; }
+    .sway { transform-origin: 80px 112px; animation: sway 2.6s ease-in-out infinite; }
+    @keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wz-content, .pop, .bloom, .spark, .sway, .modal { animation: none !important; }
+    }
+    @media (max-width: 360px) {
+      .garden { grid-template-columns: 108px 1fr; }
+      .wz-q { font-size: 1.28rem; }
+      .opt .pill { margin-right: 14px; }
+    }
   </style>
 </head>
 <body>
+<div class="app">
 
-  <!-- Modal ทั่วไป -->
-  <div id="modal" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal-box">
-      <div id="modalIcon" style="font-size: 2.2rem; margin-bottom: 8px;">✅</div>
-      <div id="modalTitle" style="font-size: 1.08rem; font-weight: 600; margin-bottom: 6px;"></div>
-      <div id="modalDesc" style="font-size: 0.86rem; color: #475569; line-height: 1.55; margin-bottom: 16px; white-space: pre-line;"></div>
-      <div class="modal-btns" id="modalBtns"></div>
+  <section class="screen active" id="scrLoading">
+    <div class="loader">
+      <div>
+        <div style="width: 150px; margin: 0 auto;" id="loadingPlant"></div>
+        <div class="h2" style="margin-top: 8px;">ยาเป๊ะ หุ่นปัง</div>
+        <div class="muted">กำลังเตรียมข้อมูลของคุณ...</div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ตั้งค่า -->
-  <div id="settingsModal" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal-box" style="text-align: left;">
-      <div style="font-size: 1.05rem; font-weight: 600; margin-bottom: 12px; color: var(--primary);">⚙️ ตั้งค่า</div>
-      <div class="switch-row">
+  <section class="screen" id="scrError">
+    <div class="loader">
+      <div style="max-width: 320px;">
+        <div style="font-size: 3rem;">🌧️</div>
+        <div class="h1" id="errTitle" style="font-size: 1.3rem;">เชื่อมต่อไม่สำเร็จ</div>
+        <p class="muted" id="errDesc" style="line-height: 1.6;"></p>
+        <button class="btn btn-main" onclick="location.reload()">ลองใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- หน้าหลัก -->
+  <section class="screen" id="scrHome">
+    <div class="debug" id="debugBadge">โหมดทดสอบ (ไม่ได้เชื่อมต่อ LINE)</div>
+    <div class="hello">
+      <div class="date" id="homeDate"></div>
+      <h1 class="h1" id="homeHello">สวัสดีค่ะ</h1>
+    </div>
+    <div class="notice" id="notice"><div id="noticeText"></div><button type="button" id="noticeBtn" onclick="retrySync()">📤 ส่งอีกครั้ง</button></div>
+    <div class="card garden" id="garden"></div>
+    <div class="card due" id="dueCard"></div>
+    <div class="mini-grid" id="miniGrid"></div>
+  </section>
+
+  <!-- น้ำหนัก -->
+  <section class="screen" id="scrBody">
+    <h1 class="h1" style="margin: 4px 2px 14px;">น้ำหนักของฉัน</h1>
+    <div class="tiles" id="bodyTiles"></div>
+    <div class="card">
+      <div class="row between" style="margin-bottom: 8px;">
+        <div class="h2" id="chartTitle">น้ำหนัก (กก.)</div>
+        <div class="seg"><button type="button" id="segW" class="on" onclick="setMetric('weight')">น้ำหนัก</button><button type="button" id="segWa" onclick="setMetric('waist')">รอบเอว</button></div>
+      </div>
+      <div class="chart-wrap" id="bodyChart"></div>
+    </div>
+    <button class="btn btn-main" style="margin-bottom: 14px;" onclick="startBodyWizard()">⚖️ บันทึกน้ำหนักวันนี้</button>
+    <div class="card">
+      <div class="h2" style="margin-bottom: 4px;">รายการที่บันทึก</div>
+      <div id="bodyList"></div>
+    </div>
+  </section>
+
+  <!-- ประวัติ -->
+  <section class="screen" id="scrHistory">
+    <h1 class="h1" style="margin: 4px 2px 14px;">ประวัติการฉีดยา</h1>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ฉัน -->
+  <section class="screen" id="scrMe">
+    <h1 class="h1" style="margin: 4px 2px 14px;">ข้อมูลของฉัน</h1>
+    <div class="card" id="meCard"></div>
+    <div class="card">
+      <div class="h2" style="margin-bottom: 12px;">ตั้งค่า</div>
+      <div class="switch">
         <div>
-          <div style="font-size: 0.88rem; font-weight: 600;">แจ้งเตือนวันนัดฉีดผ่าน LINE</div>
-          <div class="muted">ระบบจะส่งข้อความเตือนเวลา 8:00 น. ของวันนัด</div>
+          <div style="font-weight: 500;">แจ้งเตือนวันนัดผ่าน LINE</div>
+          <div class="muted">ส่งข้อความเวลา 8:00 น. ของวันนัด</div>
         </div>
-        <input type="checkbox" id="setNotify">
+        <input type="checkbox" id="setNotify" aria-label="แจ้งเตือนวันนัดผ่าน LINE">
       </div>
-      <label class="label" for="setPhone">เบอร์โทรศัพท์</label>
-      <input type="tel" id="setPhone" inputmode="tel">
-      <label class="label" for="setHeight">ส่วนสูง (ซม.) <span class="opt">ใช้คำนวณ BMI</span></label>
-      <input type="number" id="setHeight" inputmode="decimal" min="100" max="250" step="0.1">
-      <div class="modal-btns">
-        <button type="button" class="btn-primary" id="btnSaveSettings">บันทึก</button>
-        <button type="button" class="btn-ghost" onclick="closeSettings()">ปิด</button>
+      <div class="field"><label for="setPhone">เบอร์โทรศัพท์</label><input class="input" id="setPhone" type="tel" inputmode="tel"></div>
+      <div class="field"><label for="setHeight">ส่วนสูง (ซม.) <span class="opt-l">ใช้คำนวณ BMI</span></label><input class="input" id="setHeight" type="number" inputmode="decimal" min="100" max="250" step="0.1"></div>
+      <button class="btn btn-main" id="btnSaveSettings" type="button">บันทึกการตั้งค่า</button>
+    </div>
+    <p class="muted" style="text-align: center;">ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</p>
+  </section>
+
+  <!-- Wizard -->
+  <section class="screen" id="scrWizard">
+    <div class="wz-head">
+      <div class="wz-top">
+        <button class="icon-btn" type="button" onclick="wzBack()" aria-label="ย้อนกลับ">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="wz-title" id="wzTitle"></div>
+        <button class="icon-btn" type="button" onclick="wzClose()" aria-label="ปิด" id="wzCloseBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
       </div>
+      <div class="wz-bar" id="wzBar"></div>
+    </div>
+    <div id="wzBody"></div>
+    <div class="wz-foot"><button class="btn btn-main" type="button" id="wzNext" onclick="wzNext()">ถัดไป</button></div>
+  </section>
+
+  <!-- ฉลอง -->
+  <section class="screen" id="scrDone">
+    <div class="done" id="doneBody"></div>
+    <div class="wz-foot"><button class="btn btn-main" type="button" onclick="goTab('home')">กลับหน้าหลัก</button></div>
+  </section>
+
+  <nav class="tabbar" id="tabbar" aria-label="เมนูหลัก">
+    <button class="tab" data-tab="home" onclick="goTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>หน้าหลัก</button>
+    <button class="tab" data-tab="body" onclick="goTab('body')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l5-6 4 3 7-8"/><path d="M15 7h5v5"/></svg>น้ำหนัก</button>
+    <button class="tab" data-tab="history" onclick="goTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 9h6M9 13h6M9 17h3"/></svg>ประวัติ</button>
+    <button class="tab" data-tab="me" onclick="goTab('me')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>ฉัน</button>
+  </nav>
+
+  <div class="modal-bg" id="modal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="ic" id="mIcon"></div>
+      <div class="t" id="mTitle"></div>
+      <div class="d" id="mDesc"></div>
+      <div class="btns" id="mBtns"></div>
     </div>
   </div>
+</div>
 
-  <div class="glass-card">
-    <h1 class="app-title">💉 Shape me up Record</h1>
-    <div class="app-sub">ศูนย์ดูแลและควบคุมน้ำหนัก รพ.สมิติเวชศรีราชา</div>
-    <div class="debug-badge" id="debugBadge">โหมดทดสอบ (ไม่ได้เชื่อมต่อ LINE)</div>
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
+  const LIFF_ID = "2011178370-3Kbd4Giq";
+  const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
+  const TH_M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  const TH_D = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
+  const EPS = 1e-9;
+  const PERMANENT = ["invalid", "not_registered", "invalid_action"];
+  const SITES = ["หน้าท้องบนขวา", "หน้าท้องบนซ้าย", "หน้าท้องล่างซ้าย", "หน้าท้องล่างขวา"];
+  const BLOOM_AT = 8;
 
-    <!-- กำลังโหลด -->
-    <div id="sectionLoading" style="text-align: center; padding: 25px 0;">
-      <div class="walking-anim-wrap">
-        <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
-          <circle cx="50" cy="20" r="9" fill="#0b5c36" />
-          <line x1="50" y1="29" x2="50" y2="58" stroke="#0b5c36" stroke-width="4.5" stroke-linecap="round" />
-          <g class="leg-left">
-            <line x1="50" y1="58" x2="41" y2="76" stroke="#0b5c36" stroke-width="4.5" stroke-linecap="round" />
-            <line x1="41" y1="76" x2="33" y2="91" stroke="#0b5c36" stroke-width="4.5" stroke-linecap="round" />
-          </g>
-          <g class="leg-right">
-            <line x1="50" y1="58" x2="59" y2="76" stroke="#0b5c36" stroke-width="4.5" stroke-linecap="round" />
-            <line x1="59" y1="76" x2="67" y2="91" stroke="#0b5c36" stroke-width="4.5" stroke-linecap="round" />
-          </g>
-          <line class="arm-left" x1="50" y1="36" x2="36" y2="50" stroke="#b58d3d" stroke-width="3.5" stroke-linecap="round" />
-          <line class="arm-right" x1="50" y1="36" x2="64" y2="50" stroke="#b58d3d" stroke-width="3.5" stroke-linecap="round" />
-          <line x1="15" y1="94" x2="85" y2="94" stroke="#c0d8c9" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 6" class="floor-track" />
-        </svg>
-      </div>
-      <div style="color: #475569; font-size: 0.88rem; font-weight: 500;" id="loadingText">กำลังตรวจสอบข้อมูลผู้ใช้งาน...</div>
-    </div>
+  let uid = "", cfg = null, patient = null;
+  let historyCache = null, bodyCache = null;
+  let histLoading = false, bodyLoading = false;
+  let currentTab = "home", metric = "weight", sending = false;
 
-    <!-- เชื่อมต่อไม่สำเร็จ -->
-    <div id="sectionError" style="display: none; text-align: center; padding: 20px 0;">
-      <div style="font-size: 2.2rem; margin-bottom: 8px;">📡</div>
-      <div style="font-size: 1rem; font-weight: 600; margin-bottom: 6px;" id="errorTitle">เชื่อมต่อไม่สำเร็จ</div>
-      <div style="font-size: 0.84rem; color: #475569; line-height: 1.5; margin-bottom: 16px;" id="errorDesc"></div>
-      <button type="button" class="btn-primary" onclick="location.reload()">ลองใหม่อีกครั้ง</button>
-    </div>
+  // ================== Storage ==================
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  const cacheKey = () => "smu3_state_" + uid;
+  const pendingKey = () => "smu3_pending_" + uid;
+  function loadCache() { try { const s = JSON.parse(lsGet(cacheKey()) || "null"); return s && s.cfg && s.patient && s.patient.found ? s : null; } catch (e) { return null; } }
+  function saveCache() { if (patient && cfg) lsSet(cacheKey(), JSON.stringify({ cfg, patient })); }
+  function getPending() { try { return JSON.parse(lsGet(pendingKey()) || "[]"); } catch (e) { return []; } }
+  function setPending(list) { lsSet(pendingKey(), JSON.stringify(list)); }
+  function removePending(id) { setPending(getPending().filter(r => r.requestId !== id)); }
 
-    <!-- ลงทะเบียน -->
-    <div id="sectionRegister" style="display: none;">
-      <h2 style="font-size: 1.1rem; margin-top: 0; color: var(--primary);">ลงทะเบียนเริ่มต้นใช้งาน</h2>
-      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">กรอกข้อมูลครั้งเดียว เพื่อเริ่มบันทึกการฉีดยาและติดตามน้ำหนักค่ะ</p>
-      <form id="formRegister" novalidate>
-        <label class="label" for="regHN">เลขประจำตัวผู้ป่วย (HN) *</label>
-        <input type="text" id="regHN" placeholder="เช่น 67-001234" autocomplete="off">
-        <label class="label" for="regName">ชื่อ - นามสกุล *</label>
-        <input type="text" id="regName" placeholder="เช่น นายสมชาย ใจดี" autocomplete="name">
-        <label class="label" for="regPhone">เบอร์โทรศัพท์ *</label>
-        <input type="tel" id="regPhone" placeholder="เช่น 0812345678" inputmode="tel" autocomplete="tel">
-        <label class="label" for="regMed">ชนิดปากกาที่ได้รับ *</label>
-        <select id="regMed"></select>
-        <div class="row2">
-          <div>
-            <label class="label" for="regHeight">ส่วนสูง (ซม.) <span class="opt">ไม่บังคับ</span></label>
-            <input type="number" id="regHeight" inputmode="decimal" min="100" max="250" step="0.1" placeholder="160">
-          </div>
-          <div>
-            <label class="label" for="regWeight">น้ำหนัก (กก.) <span class="opt">ไม่บังคับ</span></label>
-            <input type="number" id="regWeight" inputmode="decimal" min="20" max="300" step="0.1" placeholder="75.5">
-          </div>
-        </div>
-        <label class="label" for="regWaist">รอบเอว (ซม.) <span class="opt">ไม่บังคับ</span></label>
-        <input type="number" id="regWaist" inputmode="decimal" min="30" max="250" step="0.5" placeholder="90">
-        <button type="submit" class="btn-primary" id="btnRegister">ยืนยันการลงทะเบียน</button>
-      </form>
-    </div>
+  // ================== Helpers ==================
+  const $ = id => document.getElementById(id);
+  function localIso(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+  function isoUtc(iso) { const p = iso.split("-").map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+  function addDaysIso(iso, n) { return new Date(isoUtc(iso) + n * 864e5).toISOString().slice(0, 10); }
+  function diffDays(a, b) { return Math.round((isoUtc(a) - isoUtc(b)) / 864e5); }
+  function thaiDate(iso) { const p = iso.split("-").map(Number); return `${p[2]} ${TH_M[p[1] - 1]} ${p[0] + 543}`; }
+  function thaiShort(iso) { const p = iso.split("-").map(Number); return `${p[2]} ${TH_M[p[1] - 1]}`; }
+  function thaiDow(iso) { return "วัน" + TH_D[new Date(isoUtc(iso)).getUTCDay()]; }
+  function numKey(n) { return String(Number(n)); }
+  function fmtMg(n) { return `${numKey(n)} mg`; }
+  function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString("th-TH", { maximumFractionDigits: 1 }); }
+  function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function newRequestId() { return window.crypto && crypto.randomUUID ? crypto.randomUUID() : "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); }
+  function withTimeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]); }
+  function firstName(n) { return String(n || "").replace(/^(นาย|นางสาว|นาง|น\.ส\.)\s*/, "").split(/\s+/)[0] || ""; }
+  const isActive = id => $(id).classList.contains("active");
 
-    <!-- หน้าหลัก -->
-    <div id="sectionMain" style="display: none;">
-      <div class="patient-header">
-        <button type="button" class="gear-btn" onclick="openSettings()" aria-label="ตั้งค่า">⚙️</button>
-        <h2 style="margin: 0 40px 4px 0; font-size: 1.12rem; color: var(--primary);" id="dispName">-</h2>
-        <div>
-          <span class="badge badge-hn" id="dispHn">HN -</span>
-          <span class="badge badge-doc" id="dispDoctor" style="display: none;"></span>
-        </div>
-        <div style="margin-top: 6px; font-size: 0.86rem; color: var(--primary); font-weight: 600;" id="dispMed">💊 -</div>
-      </div>
-
-      <div id="noticeBanner" class="banner notice">
-        <div id="noticeText"></div>
-        <button type="button" id="noticeBtn" onclick="retrySync()">📤 ส่งอีกครั้ง</button>
-      </div>
-
-      <div id="dueBanner" class="banner normal"><span id="dueIcon">📅</span><div id="dueText"></div></div>
-
-      <div class="tab-bar" role="tablist">
-        <button type="button" class="tab-btn active" data-tab="record" onclick="switchTab('record')">💉 บันทึกฉีด</button>
-        <button type="button" class="tab-btn" data-tab="body" onclick="switchTab('body')">⚖️ น้ำหนัก</button>
-        <button type="button" class="tab-btn" data-tab="history" onclick="switchTab('history')">📜 ประวัติ</button>
-      </div>
-
-      <!-- แท็บ: บันทึกการฉีด -->
-      <div id="tab-record">
-        <form id="formRecord" novalidate>
-          <div class="card soft">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-              <div style="font-size: 0.9rem; font-weight: 600; color: var(--primary);" id="penTitle">🖋️ ปากกาด้ามที่ 1</div>
-              <div id="penAction"></div>
-            </div>
-            <div class="pen-progress"><div class="pen-progress-bar" id="penBar" style="width: 0%;"></div></div>
-            <div class="pen-progress-text" id="penText">-</div>
-            <div class="dose-num-grid" id="doseGrid"></div>
-            <span class="hint" id="penHint" style="margin: 0;"></span>
-            <div id="penChoice"></div>
-          </div>
-
-          <label class="label">วันที่ฉีดยาจริงรอบนี้</label>
-          <div class="toggle-group">
-            <button type="button" class="toggle-btn active" id="btnDateToday" onclick="setDateMode('today')">🟢 ฉีดวันนี้</button>
-            <button type="button" class="toggle-btn" id="btnDateOther" onclick="setDateMode('other')">📅 วันอื่น / ย้อนหลัง</button>
-          </div>
-          <div id="otherDateWrap" style="display: none;">
-            <input type="date" id="recDate" onchange="validateInjectionDate()">
-            <span class="hint" id="dateHint"></span>
-          </div>
-
-          <div class="card">
-            <label class="label" for="penStrengthSelect">1. ขนาดปากกาที่ถืออยู่ (ตามหน้ากล่อง)</label>
-            <select id="penStrengthSelect" onchange="onPenStrengthChange()"></select>
-            <span class="hint" id="penStrengthHint" style="margin-top: -8px;"></span>
-
-            <label class="label" for="recDose" style="margin-top: 8px;">2. ขนาดยาที่ฉีดรอบนี้</label>
-            <select id="recDose" onchange="updateClickPill()"></select>
-            <div id="clickWrap" style="display: none; margin-top: -4px;">
-              <span class="pill" id="clickText">🔘</span>
-              <span class="hint" id="afterDoseHint" style="margin-top: 6px;"></span>
-            </div>
-
-            <label class="label" for="recInterval" style="margin-top: 10px;">3. ระยะห่างเข็มถัดไป (ตามแพทย์สั่ง)</label>
-            <select id="recInterval" onchange="onIntervalChange()" style="margin-bottom: 0;">
-              <option value="7">ทุก 7 วัน (1 สัปดาห์)</option>
-              <option value="10">ทุก 10 วัน</option>
-              <option value="14">ทุก 14 วัน (2 สัปดาห์)</option>
-              <option value="custom">กำหนดจำนวนวันเอง...</option>
-            </select>
-            <div id="customDaysWrap" style="display: none; margin-top: 10px;">
-              <input type="number" id="recCustomDays" min="1" max="60" inputmode="numeric" placeholder="ระบุจำนวนวัน 1-60" style="margin-bottom: 0;">
-            </div>
-          </div>
-
-          <label class="label">ตำแหน่งที่ฉีด (แตะเลือกบริเวณหน้าท้อง)</label>
-          <span class="hint">แนะนำสลับตำแหน่ง 4 ส่วนรอบสะดือทุกครั้ง</span>
-          <div class="card" style="text-align: center;">
-            <svg viewBox="0 0 280 240" width="100%" style="max-width: 270px; margin: 0 auto; display: block;">
-              <path d="M 30,30 C 65,20 215,20 250,30 C 265,90 265,150 250,210 C 215,225 65,225 30,210 C 15,150 15,90 30,30 Z" fill="#fafafa" stroke="#e2e8f0" stroke-width="2"/>
-              <g onclick="selectSite('หน้าท้องบนขวา')"><rect data-site="หน้าท้องบนขวา" class="quad-box" x="38" y="32" width="96" height="74" rx="14"/><text x="86" y="74" text-anchor="middle" class="quad-label">บนขวา</text></g>
-              <g onclick="selectSite('หน้าท้องบนซ้าย')"><rect data-site="หน้าท้องบนซ้าย" class="quad-box" x="146" y="32" width="96" height="74" rx="14"/><text x="194" y="74" text-anchor="middle" class="quad-label">บนซ้าย</text></g>
-              <g onclick="selectSite('หน้าท้องล่างขวา')"><rect data-site="หน้าท้องล่างขวา" class="quad-box" x="38" y="118" width="96" height="74" rx="14"/><text x="86" y="160" text-anchor="middle" class="quad-label">ล่างขวา</text></g>
-              <g onclick="selectSite('หน้าท้องล่างซ้าย')"><rect data-site="หน้าท้องล่างซ้าย" class="quad-box" x="146" y="118" width="96" height="74" rx="14"/><text x="194" y="160" text-anchor="middle" class="quad-label">ล่างซ้าย</text></g>
-              <circle cx="140" cy="112" r="9" fill="#94a3b8" stroke="#fff" stroke-width="3"/><circle cx="140" cy="112" r="3.5" fill="#475569"/>
-            </svg>
-            <div style="font-size: 0.84rem; color: var(--primary); font-weight: 600; margin-top: 8px;" id="siteText"></div>
-            <div id="siteRepeatWarn" class="warn-box" style="display: none; text-align: left;">
-              ⚠️ ตำแหน่งนี้ฉีดไปเมื่อรอบที่แล้ว แนะนำสลับไปตำแหน่งอื่น เพื่อป้องกันไขมันใต้ผิวหนังหนาตัวค่ะ
-            </div>
-          </div>
-
-          <label class="label">อาการข้างเคียงในรอบนี้ <span class="opt">(เลือกได้หลายข้อ)</span></label>
-          <div class="chips" id="sideChips"></div>
-          <div class="red-box" id="redFlagWarn">
-            <strong>⚠️ อาการที่ต้องเฝ้าระวัง</strong><br>
-            กรุณาติดต่อโรงพยาบาลโดยเร็ว <span id="redContact"></span><br>
-            หากอาการรุนแรง เช่น หายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที
-          </div>
-
-          <button type="submit" class="btn-primary" id="btnRecord">บันทึกการฉีดยา</button>
-        </form>
-      </div>
-
-      <!-- แท็บ: น้ำหนัก -->
-      <div id="tab-body" style="display: none;">
-        <div class="tiles" id="bodyTiles"></div>
-
-        <form id="formBody" class="card" novalidate>
-          <div style="font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-bottom: 10px;">➕ บันทึกน้ำหนัก / รอบเอว</div>
-          <label class="label" for="bodyDate">วันที่ชั่ง</label>
-          <input type="date" id="bodyDate">
-          <div class="row2">
-            <div>
-              <label class="label" for="bodyWeight">น้ำหนัก (กก.)</label>
-              <input type="number" id="bodyWeight" inputmode="decimal" min="20" max="300" step="0.1" placeholder="75.5">
-            </div>
-            <div>
-              <label class="label" for="bodyWaist">รอบเอว (ซม.)</label>
-              <input type="number" id="bodyWaist" inputmode="decimal" min="30" max="250" step="0.5" placeholder="90">
-            </div>
-          </div>
-          <span class="hint">แนะนำชั่งตอนเช้าหลังเข้าห้องน้ำ ก่อนรับประทานอาหาร</span>
-          <button type="submit" class="btn-primary" id="btnBody">บันทึก</button>
-        </form>
-
-        <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <div style="font-size: 0.9rem; font-weight: 600;" id="chartTitle">น้ำหนัก (กก.)</div>
-            <div class="toggle-group" style="margin: 0; width: 150px;">
-              <button type="button" class="toggle-btn active" id="chartBtnW" onclick="setChartMetric('weight')" style="padding: 5px;">น้ำหนัก</button>
-              <button type="button" class="toggle-btn" id="chartBtnWaist" onclick="setChartMetric('waist')" style="padding: 5px;">รอบเอว</button>
-            </div>
-          </div>
-          <div class="chart-wrap" id="bodyChart"></div>
-        </div>
-
-        <div class="card">
-          <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 4px;">รายการที่บันทึก</div>
-          <div id="bodyList"></div>
-        </div>
-      </div>
-
-      <!-- แท็บ: ประวัติ -->
-      <div id="tab-history" style="display: none;">
-        <div id="historyList"><div style="text-align: center; color: #94a3b8; padding: 20px;">กำลังโหลดประวัติ...</div></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwEW9_vIWqjrhD4dyj09U7dNAVQ72wPvXcFCAUnl3A1-gPvmFjj067y55kpLPLMDycseg/exec";
-    const LIFF_ID = "2011178370-3Kbd4Giq";
-    const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
-    const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-    const EPS = 1e-9;
-    const PERMANENT = ["invalid", "not_registered", "invalid_action"];
-
-    let uid = "";
-    let cfg = null;          // ค่าตั้งค่าจาก backend (ยา อาการข้างเคียง)
-    let patient = null;      // ข้อมูลผู้ป่วย + สถานะปากกา
-    let draft = null;        // สถานะฟอร์มบันทึกการฉีดรอบนี้
-    let historyCache = null;
-    let bodyCache = null;
-    let chartMetric = "weight";
-    let selectedSite = "หน้าท้องบนขวา";
-    let selectedSides = new Set();
-    let sending = false;
-    let currentTab = "record";
-
-    // ================== Storage ==================
-    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-    const cacheKey = () => "smu3_state_" + uid;
-    const pendingKey = () => "smu3_pending_" + uid;
-
-    function loadCache() {
-      try {
-        const s = JSON.parse(lsGet(cacheKey()) || "null");
-        return s && s.cfg && s.patient && s.patient.found ? s : null;
-      } catch (e) { return null; }
-    }
-    function saveCache() { if (patient && cfg) lsSet(cacheKey(), JSON.stringify({ cfg, patient })); }
-    function getPending() { try { return JSON.parse(lsGet(pendingKey()) || "[]"); } catch (e) { return []; } }
-    function setPending(list) { lsSet(pendingKey(), JSON.stringify(list)); }
-    function removePending(id) { setPending(getPending().filter(r => r.requestId !== id)); }
-
-    // ================== Helpers ==================
-    function localIso(d = new Date()) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    }
-    function isoUtc(iso) { const p = iso.split("-").map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
-    function addDaysIso(iso, n) { return new Date(isoUtc(iso) + n * 86400000).toISOString().slice(0, 10); }
-    function diffDays(a, b) { return Math.round((isoUtc(a) - isoUtc(b)) / 86400000); }
-    function thaiDate(iso) { const p = iso.split("-").map(Number); return `${p[2]} ${THAI_MONTHS[p[1] - 1]} ${p[0] + 543}`; }
-    function thaiShort(iso) { const p = iso.split("-").map(Number); return `${p[2]} ${THAI_MONTHS[p[1] - 1]}`; }
-    function numKey(n) { return String(Number(n)); }
-    function fmtMg(n) { return `${numKey(n)} mg`; }
-    function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString("th-TH", { maximumFractionDigits: 1 }); }
-    function escapeHtml(s) {
-      return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    }
-    function newRequestId() {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
-    }
-    function withTimeout(promise, ms) {
-      return Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
-    }
-    function $(id) { return document.getElementById(id); }
-
-    // ================== Modal ==================
-    function showModal(title, desc, icon = "✅", buttons = [{ label: "ตกลง", primary: true }]) {
-      return new Promise(resolve => {
-        $("modalIcon").innerText = icon;
-        $("modalTitle").innerText = title;
-        $("modalDesc").innerText = desc;
-        const wrap = $("modalBtns");
-        wrap.innerHTML = "";
-        buttons.forEach((b, i) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = b.primary ? "btn-primary" : "btn-ghost";
-          btn.innerText = b.label;
-          btn.onclick = () => { $("modal").style.display = "none"; resolve(b.value !== undefined ? b.value : i); };
-          wrap.appendChild(btn);
-        });
-        $("modal").style.display = "flex";
+  // ================== Modal ==================
+  function showModal(title, desc, icon = "✅", buttons = [{ label: "ตกลง", primary: true }]) {
+    return new Promise(resolve => {
+      $("mIcon").innerText = icon; $("mTitle").innerText = title; $("mDesc").innerText = desc;
+      const w = $("mBtns"); w.innerHTML = "";
+      buttons.forEach((b, i) => {
+        const el = document.createElement("button");
+        el.type = "button"; el.className = "btn " + (b.primary ? "btn-main" : "btn-ghost"); el.innerText = b.label;
+        el.onclick = () => { $("modal").style.display = "none"; resolve(b.value !== undefined ? b.value : i); };
+        w.appendChild(el);
       });
-    }
-    function confirmModal(title, desc, okLabel = "ยืนยัน", icon = "❓") {
-      return showModal(title, desc, icon, [
-        { label: okLabel, primary: true, value: true },
-        { label: "ยกเลิก", value: false }
-      ]);
-    }
+      $("modal").style.display = "flex";
+    });
+  }
+  const confirmModal = (t, d, ok = "ยืนยัน", icon = "🧐") => showModal(t, d, icon, [{ label: ok, primary: true, value: true }, { label: "ยกเลิก", value: false }]);
 
-    function showSection(name) {
-      ["Loading", "Error", "Register", "Main"].forEach(s => { $("section" + s).style.display = s === name ? "block" : "none"; });
-    }
-    function showError(title, desc) {
-      $("errorTitle").innerText = title;
-      $("errorDesc").innerText = desc;
-      showSection("Error");
-    }
+  // ================== หน้าจอ ==================
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === id));
+    $("tabbar").classList.toggle("show", ["scrHome", "scrBody", "scrHistory", "scrMe"].includes(id));
+    window.scrollTo(0, 0);
+  }
+  function showError(t, d) { $("errTitle").innerText = t; $("errDesc").innerText = d; showScreen("scrError"); }
+  function goTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+    if (tab === "home") { showScreen("scrHome"); renderHome(); }
+    if (tab === "body") { showScreen("scrBody"); renderBody(); loadBody(); }
+    if (tab === "history") { showScreen("scrHistory"); renderHistory(); loadHistory(); }
+    if (tab === "me") { showScreen("scrMe"); renderMe(); }
+  }
 
-    // ================== API ==================
-    async function api(action, payload = {}, timeoutMs = 25000) {
-      const body = Object.assign({ action }, payload);
-      if (DEBUG) body.testUid = uid;
-      else body.accessToken = liff.getAccessToken();
+  // ================== API ==================
+  async function api(action, payload = {}, timeoutMs = 25000) {
+    const body = Object.assign({ action }, payload);
+    if (DEBUG) body.testUid = uid; else body.accessToken = liff.getAccessToken();
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      const res = await fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), signal: ctl.signal });
+      const json = await res.json();
+      if (json.status !== "success") { const e = new Error(json.message || json.status || "error"); e.code = json.status; throw e; }
+      return json;
+    } finally { clearTimeout(timer); }
+  }
+  const isPermanent = e => e && PERMANENT.includes(e.code);
 
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const res = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(body),
-          signal: controller.signal
-        });
-        const json = await res.json();
-        if (json.status !== "success") {
-          const err = new Error(json.message || json.status || "error");
-          err.code = json.status;
-          throw err;
-        }
-        return json;
-      } finally {
-        clearTimeout(timer);
+  // ================== ตรรกะปากกา (ต้องตรงกับ Code.gs) ==================
+  function medCfg() { return cfg && patient ? cfg.meds.find(m => m.key === patient.medKey) : null; }
+  function clicksFor(m, doseMg, penMg) {
+    const ov = m.overrides ? m.overrides[`${numKey(penMg)}|${numKey(doseMg)}`] : undefined;
+    let c;
+    if (ov !== undefined && ov !== null) c = Number(ov);
+    else if (Math.abs(doseMg - penMg) < EPS) c = m.clicksPerFullDose;
+    else c = Math.round((doseMg / penMg) * m.clicksPerFullDose);
+    return Math.min(m.clicksPerFullDose, Math.max(1, c));
+  }
+  function instructionText(m, doseMg, penMg) {
+    if (Math.abs(doseMg - penMg) < EPS) return m.fullDoseText.replace("{mg}", fmtMg(penMg));
+    return `หมุน ${clicksFor(m, doseMg, penMg)} คลิก`;
+  }
+  function penOptions(m, penMg) {
+    return m.doses.filter(d => d <= penMg + EPS).sort((a, b) => b - a).map(d => ({ mg: d, clicks: clicksFor(m, d, penMg), full: Math.abs(d - penMg) < EPS }));
+  }
+  const capacity = m => cfg.dosesPerPen * m.clicksPerFullDose;
+  const isValidPenMg = (m, mg) => m.doses.some(d => Math.abs(d - mg) < EPS);
+
+  function penState(p) {
+    const m = medCfg();
+    if (!p.lastPenNumber || !p.lastDoseNumber) return { status: "fresh" };
+    const penMg = Number(p.penStrength);
+    if (!penMg || !isValidPenMg(m, penMg)) return { status: "mustNew", reason: "ขนาดปากกาเดิมไม่ตรงกับยาปัจจุบัน จึงเริ่มด้ามใหม่ให้ค่ะ" };
+    if (p.penSpecialUsed) return { status: "mustNew", reason: `ด้ามที่ ${p.lastPenNumber} ใช้ครั้งพิเศษไปแล้ว จึงเริ่มด้ามใหม่ให้ค่ะ` };
+    const remaining = capacity(m) - (Number(p.penUsedClicks) || 0);
+    const fits = penOptions(m, penMg).filter(o => o.clicks <= remaining);
+    return fits.length ? { status: "continue", penMg, remaining } : { status: "full", penMg };
+  }
+  function defaultPenMg(m) {
+    for (const c of [patient.penStrength, patient.currentDose].map(Number)) if (c && isValidPenMg(m, c)) return c;
+    return null;
+  }
+  function buildDraft(forceNew) {
+    const st = penState(patient);
+    const base = { penNumber: patient.lastPenNumber, doseNumber: patient.lastDoseNumber + 1, penMg: st.penMg,
+      usedClicks: Number(patient.penUsedClicks) || 0, isNewPen: false, isSpecial: false };
+    if (!forceNew && st.status === "continue") return Object.assign(base, { mode: "continue" });
+    if (!forceNew && st.status === "full") return Object.assign(base, { mode: "full" });
+    return { mode: "new", penNumber: (patient.lastPenNumber || 0) + 1, doseNumber: 1, penMg: defaultPenMg(medCfg()),
+      usedClicks: 0, isNewPen: true, isSpecial: false, canReturn: st.status === "continue" || st.status === "full",
+      reason: forceNew ? "" : (st.reason || "") };
+  }
+  function applyRecord(p, rec) {
+    const q = Object.assign({}, p);
+    if (rec.penNumber > (q.lastPenNumber || 0)) {
+      Object.assign(q, { lastPenNumber: rec.penNumber, lastDoseNumber: rec.doseNumber, penUsedClicks: rec.isSpecial ? 0 : rec.clicks,
+        penSpecialUsed: !!rec.isSpecial, penStrength: rec.penStrengthMg });
+    } else if (rec.penNumber === q.lastPenNumber) {
+      q.lastDoseNumber = Math.max(q.lastDoseNumber || 0, rec.doseNumber);
+      if (rec.isSpecial) q.penSpecialUsed = true; else q.penUsedClicks = (Number(q.penUsedClicks) || 0) + rec.clicks;
+      q.penStrength = rec.penStrengthMg;
+    }
+    if (!q.lastInjectedDate || rec.actualDate >= q.lastInjectedDate) {
+      Object.assign(q, { lastInjectedDate: rec.actualDate, lastInjectedSite: rec.site, intervalDays: rec.intervalDays, currentDose: rec.doseMg });
+    }
+    q.nextDueDate = q.lastInjectedDate ? addDaysIso(q.lastInjectedDate, q.intervalDays || 7) : "";
+    return q;
+  }
+  function reapplyPending(sp) { return getPending().filter(r => r.kind === "injection").reduce((a, r) => applyRecord(a, r.payload), sp); }
+
+  // ================== ต้นปัง (มาสคอต) ==================
+  // n = จำนวนเข็มที่บันทึก: ใบงอกเพิ่มทีละใบ ครบ 8 เข็มออกดอก
+  function plantSVG(n, opts = {}) {
+    const grow = !!opts.grow, sway = !!opts.sway;
+    const leaves = Math.min(n, 12);
+    const stemH = n === 0 ? 0 : 22 + Math.min(n, 12) * 6.5;
+    const top = 112 - stemH;
+    let g = "";
+    if (n === 0) {
+      g += `<ellipse cx="80" cy="108" rx="7" ry="5" fill="#9C6B43"/><path d="M80 104 q2 -8 7 -10" stroke="#2E9A5B" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    } else {
+      g += `<path d="M80 112 C 76 ${112 - stemH * 0.35}, 85 ${112 - stemH * 0.7}, 80 ${top}" stroke="#2E9A5B" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
+      for (let i = 0; i < leaves; i++) {
+        const t = (i + 1) / (leaves + 1);
+        const y = 112 - 10 - t * (stemH - 16);
+        const left = i % 2 === 0;
+        const sc = 0.75 + (1 - t) * 0.45;
+        const isNew = grow && i === leaves - 1 && n <= 12;
+        const fill = ["#3FAE6A", "#2E9A5B", "#56C27E"][i % 3];
+        g += `<g transform="translate(80 ${y}) rotate(${left ? 200 : -20}) scale(${sc})"><g class="${isNew ? "pop" : ""}"><path d="M0 0 C 8 -11, 26 -11, 32 0 C 26 9, 8 9, 0 0 Z" fill="${fill}"/><path d="M3 0 H 26" stroke="rgba(255,255,255,0.45)" stroke-width="1.4"/></g></g>`;
+      }
+      if (n >= BLOOM_AT) {
+        g += `<g transform="translate(80 ${top - 6})"><g class="${grow && n === BLOOM_AT ? "bloom" : ""}">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="-9" rx="6.5" ry="9" fill="#FFC845" transform="rotate(${a})"/>`).join("")}<circle r="6" fill="#F08A3C"/></g></g>`;
+      } else {
+        g += `<g transform="translate(80 ${top})"><path d="M0 0 C -4 -10, -14 -12, -16 -6 C -12 -2, -5 -1, 0 0 Z" fill="#56C27E"/><path d="M0 0 C 4 -10, 14 -12, 16 -6 C 12 -2, 5 -1, 0 0 Z" fill="#3FAE6A"/></g>`;
       }
     }
-    const isPermanent = err => err && PERMANENT.includes(err.code);
+    const sparks = grow ? `<g fill="#FFC845"><path class="spark" d="M30 50 l3 -8 3 8 8 3 -8 3 -3 8 -3 -8 -8 -3z"/><path class="spark" style="animation-delay:.75s" d="M128 36 l2 -6 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2z"/><circle class="spark" style="animation-delay:.6s" cx="124" cy="78" r="4"/></g>` : "";
+    return `<svg viewBox="0 0 160 170" width="100%" role="img" aria-label="ต้นปัง ${n} ใบ">${sparks}
+      <g class="${sway ? "sway" : ""}">${g}</g>
+      <ellipse cx="80" cy="113" rx="40" ry="7" fill="#7A5638"/>
+      <path d="M38 112 H122 L112 162 Q111 167 106 167 H54 Q49 167 48 162 Z" fill="#F4D7A4"/>
+      <rect x="33" y="104" width="94" height="16" rx="8" fill="#EBC283"/>
+      <circle cx="66" cy="138" r="3.6" fill="#16362A"/><circle cx="94" cy="138" r="3.6" fill="#16362A"/>
+      <path d="M74 146 Q80 152 86 146" stroke="#16362A" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <ellipse cx="57" cy="147" rx="6" ry="3.5" fill="#F4A69C" opacity="0.7"/><ellipse cx="103" cy="147" rx="6" ry="3.5" fill="#F4A69C" opacity="0.7"/>
+    </svg>`;
+  }
 
-    // ================== ตรรกะปากกา (ต้องตรงกับ Code.gs) ==================
-    function medCfg() { return cfg && patient ? cfg.meds.find(m => m.key === patient.medKey) : null; }
-
-    function clicksFor(m, doseMg, penMg) {
-      const ov = m.overrides ? m.overrides[`${numKey(penMg)}|${numKey(doseMg)}`] : undefined;
-      let clicks;
-      if (ov !== undefined && ov !== null) clicks = Number(ov);
-      else if (Math.abs(doseMg - penMg) < EPS) clicks = m.clicksPerFullDose;
-      else clicks = Math.round((doseMg / penMg) * m.clicksPerFullDose);
-      return Math.min(m.clicksPerFullDose, Math.max(1, clicks));
+  // แถบยา 4 โดส: เขียว = ใช้ไปแล้ว, เหลือง = รอบนี้
+  function doseBar(used, add = 0, big = false) {
+    let h = `<div class="doses ${big ? "big" : ""}" aria-hidden="true">`;
+    for (let i = 0; i < 4; i++) {
+      const u = Math.max(0, Math.min(1, used - i));
+      const a = Math.max(0, Math.min(1 - u, used + add - i - u));
+      h += `<div class="dose-cap"><i style="width:${u * 100}%"></i><b style="left:${u * 100}%;width:${a * 100}%"></b></div>`;
     }
-    function instructionText(m, doseMg, penMg) {
-      if (Math.abs(doseMg - penMg) < EPS) return m.fullDoseText.replace("{mg}", fmtMg(penMg));
-      return `หมุน ${clicksFor(m, doseMg, penMg)} คลิก`;
-    }
-    function penOptions(m, penMg) {
-      return m.doses.filter(d => d <= penMg + EPS).sort((a, b) => b - a)
-        .map(d => ({ mg: d, clicks: clicksFor(m, d, penMg), full: Math.abs(d - penMg) < EPS }));
-    }
-    const capacity = m => cfg.dosesPerPen * m.clicksPerFullDose;
-    const isValidPenMg = (m, mg) => m.doses.some(d => Math.abs(d - mg) < EPS);
+    return h + "</div>";
+  }
 
-    function penState(p) {
-      const m = medCfg();
-      if (!p.lastPenNumber || !p.lastDoseNumber) return { status: "fresh" };
-      const penMg = Number(p.penStrength);
-      if (!penMg || !isValidPenMg(m, penMg)) return { status: "mustNew", reason: "ขนาดปากกาเดิมไม่ตรงกับชนิดยาปัจจุบัน ระบบเริ่มด้ามใหม่ให้ค่ะ" };
-      if (p.penSpecialUsed) return { status: "mustNew", reason: `ด้ามที่ ${p.lastPenNumber} ใช้ครั้งพิเศษ (ยาคงเหลือ) ไปแล้ว ระบบเริ่มด้ามใหม่ให้ค่ะ` };
-      const remaining = capacity(m) - (Number(p.penUsedClicks) || 0);
-      const fits = penOptions(m, penMg).filter(o => o.clicks <= remaining);
-      return fits.length ? { status: "continue", penMg, remaining } : { status: "full", penMg };
+  // จำนวนเข็มทั้งหมด และการฉีดตรงนัดติดต่อกัน
+  function injStats() {
+    const pend = getPending().filter(p => p.kind === "injection").map(p => ({ date: p.payload.actualDate, interval: p.payload.intervalDays }));
+    const all = (historyCache || []).map(e => ({ date: e.date, interval: e.interval || 7 })).concat(pend).filter(e => e.date)
+      .sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
+    let streak = all.length ? 1 : 0;
+    for (let i = all.length - 1; i > 0; i--) {
+      if (diffDays(all[i].date, all[i - 1].date) <= (all[i - 1].interval || 7) + 1) streak++; else break;
     }
+    return { total: all.length, streak };
+  }
 
-    function defaultPenMg(m) {
-      for (const c of [patient.penStrength, patient.currentDose].map(Number)) if (c && isValidPenMg(m, c)) return c;
-      return m.doses[0];
-    }
+  // ================== หน้าหลัก ==================
+  function renderHome() {
+    if (!patient) return;
+    const h = new Date().getHours();
+    const greet = h < 12 ? "สวัสดีตอนเช้า" : h < 17 ? "สวัสดีตอนบ่าย" : "สวัสดีตอนเย็น";
+    $("homeDate").innerText = `${thaiDow(localIso())}ที่ ${thaiDate(localIso())}`;
+    $("homeHello").innerText = `${greet} คุณ${firstName(patient.name)}`;
+    renderNotice();
 
-    function buildDraft(forceNew) {
-      const st = penState(patient);
-      const base = {
-        penNumber: patient.lastPenNumber, doseNumber: patient.lastDoseNumber + 1, penMg: st.penMg,
-        usedClicks: Number(patient.penUsedClicks) || 0, isNewPen: false, isSpecial: false
-      };
-      if (!forceNew && st.status === "continue") return Object.assign(base, { mode: "continue" });
-      if (!forceNew && st.status === "full") return Object.assign(base, { mode: "full" });
-      return {
-        mode: "new", penNumber: (patient.lastPenNumber || 0) + 1, doseNumber: 1, penMg: defaultPenMg(medCfg()),
-        usedClicks: 0, isNewPen: true, isSpecial: false,
-        canReturn: st.status === "continue" || st.status === "full",
-        reason: forceNew ? "" : (st.reason || "")
-      };
-    }
+    const st = historyCache ? injStats() : null;
+    const n = st ? st.total : 0;
+    $("garden").innerHTML = `
+      <div>${plantSVG(n, { sway: true })}</div>
+      <div style="padding-bottom: 10px;">
+        <div class="muted">ต้นปังของคุณ</div>
+        <div class="count">${st ? st.total : "–"} <small>เข็ม</small></div>
+        <div class="muted small">${!st ? "กำลังโหลด..." : n === 0 ? "บันทึกเข็มแรก แล้วต้นปังจะเริ่มงอก" : n < BLOOM_AT ? `อีก ${BLOOM_AT - n} เข็ม ต้นปังจะออกดอก 🌼` : "ต้นปังออกดอกแล้ว เก่งมาก!"}</div>
+        ${st && st.streak >= 2 ? `<div class="streak">🔥 ฉีดตรงนัดติดกัน ${st.streak} ครั้ง</div>` : ""}
+      </div>`;
 
-    function applyRecord(p, rec) {
-      const q = Object.assign({}, p);
-      if (rec.penNumber > (q.lastPenNumber || 0)) {
-        Object.assign(q, { lastPenNumber: rec.penNumber, lastDoseNumber: rec.doseNumber,
-          penUsedClicks: rec.isSpecial ? 0 : rec.clicks, penSpecialUsed: !!rec.isSpecial, penStrength: rec.penStrengthMg });
-      } else if (rec.penNumber === q.lastPenNumber) {
-        q.lastDoseNumber = Math.max(q.lastDoseNumber || 0, rec.doseNumber);
-        if (rec.isSpecial) q.penSpecialUsed = true;
-        else q.penUsedClicks = (Number(q.penUsedClicks) || 0) + rec.clicks;
-        q.penStrength = rec.penStrengthMg;
-      }
-      if (!q.lastInjectedDate || rec.actualDate >= q.lastInjectedDate) {
-        Object.assign(q, { lastInjectedDate: rec.actualDate, lastInjectedSite: rec.site,
-          intervalDays: rec.intervalDays, currentDose: rec.doseMg });
-      }
-      q.nextDueDate = q.lastInjectedDate ? addDaysIso(q.lastInjectedDate, q.intervalDays || 7) : "";
-      return q;
-    }
-    function reapplyPending(serverPatient) {
-      return getPending().filter(r => r.kind === "injection").reduce((acc, r) => applyRecord(acc, r.payload), serverPatient);
-    }
-
-    // ================== Render: หน้าหลัก ==================
-    function renderMain() {
-      showSection("Main");
-      $("dispName").innerText = patient.name || "-";
-      $("dispHn").innerText = patient.hn && patient.hn !== "-" ? `HN ${patient.hn}` : "HN -";
-      const doc = $("dispDoctor");
-      doc.style.display = patient.doctor ? "inline-block" : "none";
-      doc.innerText = patient.doctor ? `แพทย์: ${patient.doctor}` : "";
-      $("dispMed").innerText = `💊 ${patient.medication || "-"}` + (patient.currentDose ? ` · ${fmtMg(patient.currentDose)}` : "");
-
-      renderDue();
-      renderNotice();
-
-      if (!medCfg()) {
-        showError("ไม่พบข้อมูลชนิดยา", "กรุณาติดต่อเจ้าหน้าที่ศูนย์ดูแลและควบคุมน้ำหนักค่ะ");
-        return;
-      }
-      resetRecordForm();
-      if (currentTab === "body") renderBody();
-    }
-
-    function renderDue() {
-      const banner = $("dueBanner"), text = $("dueText"), icon = $("dueIcon");
-      if (!patient.lastInjectedDate) {
-        banner.className = "banner normal"; icon.innerText = "ℹ️";
-        text.innerText = "ยินดีต้อนรับค่ะ เมื่อฉีดยาแล้ว กดบันทึกด้านล่างได้เลย";
-        return;
-      }
-      const nextDue = addDaysIso(patient.lastInjectedDate, patient.intervalDays || 7);
-      const d = diffDays(localIso(), nextDue);
+    const due = $("dueCard"), interval = patient.intervalDays || 7;
+    const btn = (cls, txt) => `<button class="btn ${cls}" style="grid-column: 1 / -1;" onclick="startInjectWizard()">${txt}</button>`;
+    if (!patient.lastInjectedDate) {
+      due.className = "card due";
+      due.innerHTML = `${ring(0, 1, "🌱")}<div><div class="due-title">พร้อมเริ่มเข็มแรกแล้ว</div><div class="muted small">ฉีดเสร็จแล้วกดบันทึกได้เลยค่ะ</div></div>${btn("btn-main", "💉 บันทึกการฉีดยา")}`;
+    } else {
+      const next = addDaysIso(patient.lastInjectedDate, interval);
+      const d = diffDays(localIso(), next);
       if (d === 0) {
-        banner.className = "banner today"; icon.innerText = "🔔";
-        text.innerHTML = `<div><strong>วันนี้ครบกำหนดฉีดยา</strong> ฉีดแล้วอย่าลืมบันทึกนะคะ</div>`;
+        due.className = "card due today";
+        due.innerHTML = `${ring(1, 1, "💉", "#E8A817")}<div><div class="due-title">วันนี้ถึงคิวฉีดแล้ว</div><div class="muted small">ฉีดเสร็จแล้วอย่าลืมบันทึกนะคะ</div></div>${btn("btn-sun", "💉 บันทึกการฉีดวันนี้")}`;
       } else if (d > 0) {
-        banner.className = "banner overdue"; icon.innerText = "⚠️";
-        text.innerHTML = `<div><strong>เลยกำหนดนัดมา ${d} วัน</strong> (นัด ${escapeHtml(thaiDate(nextDue))})<br>หากยังไม่ได้ฉีด กรุณาสอบถามเจ้าหน้าที่ก่อนฉีดค่ะ</div>`;
+        due.className = "card due over";
+        due.innerHTML = `${ring(1, 1, "⏰", "#E0614F")}<div><div class="due-title">เลยนัดมา ${d} วัน</div><div class="muted small">นัดเดิม ${thaiDate(next)} หากยังไม่ได้ฉีด กรุณาสอบถามเจ้าหน้าที่ก่อนฉีดค่ะ</div></div>${btn("btn-main", "💉 บันทึกการฉีดยา")}`;
       } else {
-        banner.className = "banner normal"; icon.innerText = "✅";
-        text.innerText = `รอบถัดไป: ${thaiDate(nextDue)} (อีก ${-d} วัน)`;
+        due.className = "card due";
+        due.innerHTML = `${ring(interval + d, interval, String(-d))}<div><div class="due-title">อีก ${-d} วันถึงคิวฉีด</div><div class="muted small">${thaiDow(next)}ที่ ${thaiDate(next)}</div></div>${btn("btn-soft", "💉 บันทึกการฉีดยา")}`;
       }
     }
 
-    function renderNotice(offlineMessage) {
-      const banner = $("noticeBanner"), count = getPending().length;
-      if (count > 0) {
-        banner.style.display = "flex";
-        $("noticeText").innerHTML = `⏳ มี <strong>${count} รายการ</strong> ที่เก็บไว้ในเครื่องและยังไม่ได้ส่งเข้าระบบ กรุณาอย่าบันทึกซ้ำนะคะ`;
-      } else if (offlineMessage) {
-        banner.style.display = "flex";
-        $("noticeText").innerText = offlineMessage;
-      } else {
-        banner.style.display = "none";
-      }
+    const m = medCfg(), ps = m ? penState(patient) : { status: "fresh" };
+    let penHtml;
+    if (!m || ps.status === "fresh") penHtml = `<div class="lbl">ปากกา</div><div class="val">ด้ามแรก</div><div class="muted small">เริ่มนับเมื่อบันทึกเข็มแรก</div>`;
+    else {
+      const used = (Number(patient.penUsedClicks) || 0) / m.clicksPerFullDose;
+      const changeNow = ps.status === "full" || ps.status === "mustNew";
+      penHtml = `<div class="lbl">ปากกาด้ามที่ ${patient.lastPenNumber}</div><div class="val">${changeNow ? "ครบแล้ว" : `${fmt1(Math.max(0, cfg.dosesPerPen - used))} <small>โดสเหลือ</small>`}</div>${doseBar(used)}
+        <div class="muted small">${changeNow ? "รอบหน้าเริ่มด้ามใหม่" : `ด้าม ${fmtMg(patient.penStrength)}`}</div>`;
     }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
-      ["record", "body", "history"].forEach(t => { $("tab-" + t).style.display = t === tab ? "block" : "none"; });
-      if (tab === "history") loadHistory();
-      if (tab === "body") loadBody();
+    const ws = bodyEntries().filter(e => e.weight), lw = ws[ws.length - 1], fw = ws[0];
+    let wHtml = `<div class="lbl">น้ำหนัก</div>`;
+    if (!lw) wHtml += `<div class="val">–</div><div class="muted small">แตะเพื่อบันทึก ⚖️</div>`;
+    else {
+      const diff = lw.weight - fw.weight;
+      wHtml += `<div class="val">${fmt1(lw.weight)} <small>กก.</small></div><div class="muted small">${ws.length > 1 ? (diff < -0.05 ? `ลดไปแล้ว ${fmt1(-diff)} กก. 🎉` : diff > 0.05 ? `+${fmt1(diff)} กก. จากครั้งแรก` : "เท่ากับครั้งแรก") : "แตะเพื่อบันทึกเพิ่ม"}</div>`;
     }
+    $("miniGrid").innerHTML = `<button class="mini" onclick="goTab('history')">${penHtml}</button><button class="mini" onclick="startBodyWizard()">${wHtml}</button>`;
 
-    // ================== แท็บบันทึกการฉีด ==================
-    function resetRecordForm() {
-      draft = buildDraft(false);
-      renderPen();
-      renderPenStrength();
-      renderDoseOptions();
-      setDateMode("today");
-      const iv = String(patient.intervalDays || 7);
-      const sel = $("recInterval");
-      if ([...sel.options].some(o => o.value === iv)) sel.value = iv;
-      else { sel.value = "custom"; $("recCustomDays").value = iv; }
-      onIntervalChange();
-      selectSite(suggestSite());
-      renderSideChips();
+    if (!historyCache) loadHistory(true);
+    if (!bodyCache) loadBody(true);
+  }
+
+  function ring(v, max, label, color = "#2E9A5B") {
+    const r = 30, c = 2 * Math.PI * r, p = max ? Math.max(0, Math.min(1, v / max)) : 0;
+    const num = /^\d+$/.test(label);
+    return `<svg viewBox="0 0 74 74" width="74" height="74" aria-hidden="true"><circle cx="37" cy="37" r="${r}" fill="none" stroke="#E2EFE6" stroke-width="8"/>
+      <circle cx="37" cy="37" r="${r}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${c * p} ${c}" transform="rotate(-90 37 37)"/>
+      <text x="37" y="${num ? 45 : 46}" text-anchor="middle" font-family="Mitr, sans-serif" font-size="${num ? 24 : 24}" fill="#16362A">${label}</text></svg>`;
+  }
+
+  function renderNotice(msg) {
+    const c = getPending().length;
+    if (c > 0) { $("notice").style.display = "block"; $("noticeText").innerHTML = `⏳ มี <b>${c} รายการ</b> เก็บไว้ในเครื่อง ยังไม่ได้ส่งเข้าระบบ กรุณาอย่าบันทึกซ้ำนะคะ`; }
+    else if (msg) { $("notice").style.display = "block"; $("noticeText").innerText = msg; }
+    else $("notice").style.display = "none";
+  }
+
+  // ================== Wizard (กรอกทีละขั้น) ==================
+  const WZ = { c: null, i: 0, busy: false };
+  function startWizard(c) {
+    WZ.c = c; WZ.i = 0; WZ.busy = false; c.state = c.state || {};
+    showScreen("scrWizard");
+    $("wzCloseBtn").style.visibility = c.noClose ? "hidden" : "visible";
+    renderStep(1);
+  }
+  function renderStep(dir) {
+    const c = WZ.c, s = c.steps[WZ.i];
+    $("wzTitle").innerText = c.title;
+    $("wzBar").innerHTML = c.steps.map((_, i) => `<span class="${i <= WZ.i ? "on" : ""}"></span>`).join("");
+    $("wzBody").innerHTML = `<div class="wz-content ${dir < 0 ? "back" : ""}"><div class="wz-q">${s.q}</div>${s.sub ? `<div class="wz-sub">${s.sub}</div>` : `<div class="wz-gap"></div>`}<div id="wzStep"></div></div>`;
+    s.render($("wzStep"), c.state);
+    wzRefresh();
+    window.scrollTo(0, 0);
+  }
+  function wzRefresh() {
+    const c = WZ.c, s = c.steps[WZ.i], last = WZ.i === c.steps.length - 1;
+    const ok = s.valid ? s.valid(c.state) : true;
+    const b = $("wzNext");
+    b.disabled = !ok || WZ.busy;
+    if (!WZ.busy) b.innerText = (typeof s.next === "function" ? s.next(c.state) : s.next) || (last ? "บันทึก" : "ถัดไป");
+  }
+  function rerenderStep() { const c = WZ.c; c.steps[WZ.i].render($("wzStep"), c.state); wzRefresh(); }
+  async function wzNext() {
+    const c = WZ.c, s = c.steps[WZ.i];
+    if (WZ.busy || (s.valid && !s.valid(c.state))) return;
+    if (s.beforeNext && (await s.beforeNext(c.state)) === false) return;
+    if (WZ.i === c.steps.length - 1) {
+      WZ.busy = true; $("wzNext").disabled = true; $("wzNext").innerText = "กำลังบันทึก...";
+      try { await c.onFinish(c.state); } finally { WZ.busy = false; if (isActive("scrWizard")) wzRefresh(); }
+      return;
     }
+    WZ.i++; renderStep(1);
+  }
+  function wzBack() { if (WZ.busy) return; if (WZ.i === 0) return wzClose(); WZ.i--; renderStep(-1); }
+  function wzGo(i) { WZ.i = i; renderStep(-1); }
+  async function wzClose() {
+    if (WZ.busy || WZ.c.noClose) return;
+    if (WZ.i > 0 && !(await confirmModal("ออกจากการบันทึก?", "ข้อมูลที่กรอกไว้รอบนี้จะไม่ถูกบันทึก", "ออก", "🚪"))) return;
+    goTab(currentTab);
+  }
+  function press(el, sel, btn) { el.querySelectorAll(sel).forEach(b => b.setAttribute("aria-pressed", "false")); btn.setAttribute("aria-pressed", "true"); }
 
-    // แนะนำตำแหน่งถัดไปแบบวนตามเข็มนาฬิกา
-    function suggestSite() {
-      const order = ["หน้าท้องบนขวา", "หน้าท้องบนซ้าย", "หน้าท้องล่างซ้าย", "หน้าท้องล่างขวา"];
-      const i = order.indexOf((patient.lastInjectedSite || "").trim());
-      return i === -1 ? order[0] : order[(i + 1) % order.length];
-    }
+  // ================== Wizard: บันทึกการฉีด ==================
+  function startInjectWizard() {
+    if (!medCfg()) { showModal("ไม่พบข้อมูลชนิดยา", "กรุณาติดต่อเจ้าหน้าที่ศูนย์ฯ ค่ะ", "⚠️"); return; }
+    const iv = String(patient.intervalDays || 7), std = ["7", "10", "14"].includes(iv);
+    const state = {
+      draft: buildDraft(false), doseMg: null, dateMode: "today", date: localIso(),
+      interval: std ? iv : "custom", customDays: std ? "" : iv,
+      site: suggestSite(), sides: new Set([cfg.sideEffects.findIndex(s => s.none)])
+    };
+    startWizard({ title: "บันทึกการฉีดยา", state, steps: [STEP_PEN, STEP_DOSE, STEP_WHEN, STEP_SITE, STEP_SIDE, STEP_SUM], onFinish: submitInjection });
+  }
+  function suggestSite() { const i = SITES.indexOf((patient.lastInjectedSite || "").trim()); return i === -1 ? SITES[0] : SITES[(i + 1) % SITES.length]; }
+  function intervalOf(st) { return st.interval === "custom" ? parseInt(st.customDays, 10) : parseInt(st.interval, 10); }
+  function dateFloor(st) {
+    const floor = addDaysIso(localIso(), -(cfg.maxBackdateDays || 180));
+    return (!st.draft.isNewPen && patient.lastInjectedDate && patient.lastInjectedDate > floor) ? patient.lastInjectedDate : floor;
+  }
 
-    function renderPen() {
-      const m = medCfg(), cap = capacity(m), d = draft;
-      const awaiting = d.mode === "full" && !d.isSpecial;
-      $("penTitle").innerText = `🖋️ ปากกาด้ามที่ ${d.penNumber}${d.isNewPen ? " (ด้ามใหม่)" : ""}`;
-
-      const act = $("penAction");
-      if (d.mode === "continue") act.innerHTML = `<button type="button" class="btn-small" onclick="startNewPen()">🔄 เริ่มด้ามใหม่</button>`;
-      else if (d.mode === "new" && d.canReturn) act.innerHTML = `<button type="button" class="btn-small" onclick="returnToPen()">↩️ กลับไปด้ามที่ ${patient.lastPenNumber}</button>`;
-      else act.innerHTML = "";
-
-      const used = d.usedClicks;
-      $("penBar").style.width = Math.min(100, (used / cap) * 100) + "%";
-      $("penBar").className = "pen-progress-bar" + (used >= cap ? " full" : "");
-      $("penText").innerText = `ใช้ไปแล้ว ${fmt1(used / m.clicksPerFullDose)} จาก ${cfg.dosesPerPen} โดสเต็ม` + (d.penMg ? ` (ด้าม ${fmtMg(d.penMg)})` : "");
-
-      let html = "";
-      for (let i = 1; i <= d.doseNumber; i++) {
-        if (i < d.doseNumber) html += `<div class="dose-num-btn done">✓ ครั้งที่ ${i}</div>`;
-        else if (awaiting) html += `<div class="dose-num-btn waiting">ครั้งที่ ${i} ?</div>`;
-        else if (d.isSpecial) html += `<div class="dose-num-btn special active">ครั้งที่ ${i} ⭐</div>`;
-        else html += `<div class="dose-num-btn active">ครั้งที่ ${i}</div>`;
-      }
-      $("doseGrid").innerHTML = html;
-
-      const hint = $("penHint"), choice = $("penChoice");
-      choice.innerHTML = "";
-      if (awaiting) {
-        hint.innerText = "";
-        choice.innerHTML = `
-          <div class="choice-card">
-            <strong>ด้ามที่ ${d.penNumber} ใช้ครบ ${cfg.dosesPerPen} โดสเต็มแล้ว</strong><br>รอบนี้ฉีดจากปากกาด้ามไหนคะ?
-            <div class="choice-btns">
-              <button type="button" class="btn-choice" onclick="startNewPen(true)">🔄 เริ่มปากกาด้ามใหม่ (ด้ามที่ ${d.penNumber + 1} ครั้งที่ 1)</button>
-              <button type="button" class="btn-choice special" onclick="chooseSpecial()">⭐ ครั้งพิเศษ: ยาคงเหลือในด้ามที่ ${d.penNumber} (ฉีดโดยพยาบาลที่ รพ.)</button>
-            </div>
+  const STEP_PEN = {
+    q: "ฉีดจากปากกาด้ามไหนคะ?",
+    sub: "ระบบนับลำดับด้ามและครั้งที่ให้อัตโนมัติ",
+    render(el, st) {
+      const d = st.draft, m = medCfg();
+      if (d.mode === "full" && !d.isSpecial) {
+        el.innerHTML = `<div class="box-info">ด้ามที่ ${d.penNumber} ใช้ครบ ${cfg.dosesPerPen} โดสเต็มแล้ว 🎉 รอบนี้ฉีดจากปากกาแบบไหนคะ</div>
+          <div class="opts">
+            <button type="button" class="opt" id="optNew"><span class="emoji">🖊️</span><span><div class="t">เริ่มปากกาด้ามใหม่</div><div class="s">ด้ามที่ ${d.penNumber + 1} ครั้งที่ 1</div></span></button>
+            <button type="button" class="opt special" id="optSp"><span class="emoji" style="background: var(--sun-soft);">⭐</span><span><div class="t">ครั้งพิเศษ (ยาคงเหลือ)</div><div class="s">ยาที่เหลือในด้ามที่ ${d.penNumber} ฉีดโดยพยาบาลที่ รพ.</div></span></button>
           </div>`;
-      } else if (d.isSpecial) {
-        hint.innerText = `บันทึกเป็นครั้งพิเศษของด้ามที่ ${d.penNumber}`;
-        choice.innerHTML = `
-          <div class="warn-box"><strong>⚠️ ครั้งพิเศษ (ยาคงเหลือในแท่ง)</strong><br>
-          ต้องได้รับอนุญาตจากแพทย์ และ<strong>ให้พยาบาลเป็นผู้ดูดยาและฉีดที่โรงพยาบาลเท่านั้น</strong>ค่ะ</div>
-          <button type="button" class="btn-link" onclick="cancelSpecial()">เปลี่ยนตัวเลือก</button>`;
-      } else if (d.mode === "new") {
-        hint.innerText = d.reason || `เริ่มด้ามที่ ${d.penNumber} ครั้งที่ 1 กรุณาเลือกขนาดปากกาตามหน้ากล่องด้านล่าง`;
-      } else {
-        hint.innerText = `ระบบกำหนดเป็น ด้ามที่ ${d.penNumber} ครั้งที่ ${d.doseNumber}`;
-      }
-    }
-
-    function renderPenStrength() {
-      const m = medCfg(), sel = $("penStrengthSelect");
-      sel.innerHTML = m.doses.map(mg =>
-        `<option value="${numKey(mg)}" ${draft.penMg && Math.abs(mg - draft.penMg) < EPS ? "selected" : ""}>ปากกาด้าม ${fmtMg(mg)}</option>`).join("");
-      sel.disabled = !draft.isNewPen;
-      $("penStrengthHint").innerText = draft.isNewPen ? "" : "ใช้ปากกาด้ามเดิม หากเปลี่ยนขนาดปากกา กรุณากด 'เริ่มด้ามใหม่'";
-    }
-
-    function onPenStrengthChange() {
-      draft.penMg = Number($("penStrengthSelect").value);
-      renderPen();
-      renderDoseOptions();
-    }
-
-    function renderDoseOptions() {
-      const m = medCfg(), sel = $("recDose");
-      if (draft.mode === "full" && !draft.isSpecial) {
-        sel.innerHTML = `<option value="">-- เลือกด้ามใหม่หรือครั้งพิเศษก่อน --</option>`;
-        sel.disabled = true;
-        updateClickPill();
+        el.querySelector("#optNew").onclick = () => { st.draft = buildDraft(true); st.doseMg = null; rerenderStep(); };
+        el.querySelector("#optSp").onclick = () => { d.isSpecial = true; st.doseMg = null; rerenderStep(); };
         return;
       }
-      sel.disabled = false;
-      let list = penOptions(m, draft.penMg);
-      if (!draft.isNewPen && !draft.isSpecial) list = list.filter(o => o.clicks <= capacity(m) - draft.usedClicks);
-      const pref = Number(patient.currentDose);
-      const hasPref = list.some(o => Math.abs(o.mg - pref) < EPS);
-      sel.innerHTML = list.map(o => `<option value="${numKey(o.mg)}" ${hasPref && Math.abs(o.mg - pref) < EPS ? "selected" : ""}>${o.full ? "ฉีดเต็มโดส" : "แบ่งฉีด"} ${fmtMg(o.mg)}</option>`).join("");
-      updateClickPill();
-    }
-
-    function updateClickPill() {
-      const m = medCfg(), doseMg = Number($("recDose").value), wrap = $("clickWrap");
-      if (!doseMg || !draft.penMg) { wrap.style.display = "none"; return; }
-      wrap.style.display = "block";
-      $("clickText").innerText = `🔘 ${instructionText(m, doseMg, draft.penMg)}`;
-      if (draft.isSpecial) {
-        $("afterDoseHint").innerText = "หลังครั้งพิเศษนี้ รอบถัดไปจะเริ่มปากกาด้ามใหม่";
+      const used = d.usedClicks / m.clicksPerFullDose;
+      let h = `<div class="pen-card">
+          <div class="row between"><div><div class="muted">${d.isNewPen ? "ปากกาด้ามใหม่" : "ปากกาที่ใช้อยู่"}</div><div class="pen-num">ด้ามที่ ${d.penNumber}</div></div>
+          <span class="chip-round ${d.isSpecial ? "special" : ""}">ครั้งที่ ${d.doseNumber}${d.isSpecial ? " ⭐" : ""}</span></div>
+          ${d.isNewPen ? "" : `${doseBar(used, 0, true)}<div class="muted small">ใช้ไปแล้ว ${fmt1(used)} จาก ${cfg.dosesPerPen} โดสเต็ม · ด้าม ${fmtMg(d.penMg)}</div>`}
+        </div>`;
+      if (d.reason) h += `<div class="box-info">${esc(d.reason)}</div>`;
+      if (d.isSpecial) {
+        h += `<div class="box-warn"><b>⚠️ ครั้งพิเศษ (ยาคงเหลือในแท่ง)</b><br>ต้องได้รับอนุญาตจากแพทย์ และให้พยาบาลเป็นผู้ดูดยาและฉีดที่โรงพยาบาลเท่านั้นค่ะ</div>
+          <button type="button" class="link" id="lnkBack">เปลี่ยนตัวเลือก</button>`;
+      } else if (d.isNewPen) {
+        h += `<div class="field"><label>ขนาดปากกาตามหน้ากล่อง</label><div class="opts three">${m.doses.map(mg =>
+          `<button type="button" class="opt center" data-mg="${mg}" aria-pressed="${!!d.penMg && Math.abs(d.penMg - mg) < EPS}"><span class="t">${numKey(mg)}</span><span class="s">mg</span></button>`).join("")}</div></div>`;
+        if (d.canReturn) h += `<button type="button" class="link" id="lnkReturn">กลับไปใช้ด้ามที่ ${patient.lastPenNumber}</button>`;
       } else {
-        const left = capacity(m) - draft.usedClicks - clicksFor(m, doseMg, draft.penMg);
-        $("afterDoseHint").innerText = `หลังฉีดรอบนี้ ด้ามนี้จะเหลือ ${fmt1(Math.max(0, left) / m.clicksPerFullDose)} โดสเต็ม`;
+        h += `<div class="box-info">✅ ถ้ายังใช้ปากกาแท่งเดิม กดถัดไปได้เลยค่ะ</div><button type="button" class="link" id="lnkNew">เปลี่ยนเป็นปากกาด้ามใหม่</button>`;
       }
-    }
+      el.innerHTML = h;
+      el.querySelectorAll("[data-mg]").forEach(b => b.onclick = () => { d.penMg = Number(b.dataset.mg); st.doseMg = null; press(el, "[data-mg]", b); wzRefresh(); });
+      const on = (id, fn) => { const x = el.querySelector(id); if (x) x.onclick = fn; };
+      on("#lnkBack", () => { st.draft = buildDraft(false); st.doseMg = null; rerenderStep(); });
+      on("#lnkReturn", () => { st.draft = buildDraft(false); st.doseMg = null; rerenderStep(); });
+      on("#lnkNew", async () => {
+        if (await confirmModal("เริ่มปากกาด้ามใหม่?", `ระบบจะนับเป็นด้ามที่ ${d.penNumber + 1} ครั้งที่ 1\nใช้เมื่อเปลี่ยนเป็นปากกาแท่งใหม่จริงเท่านั้นนะคะ`, "เริ่มด้ามใหม่", "🖊️")) {
+          st.draft = buildDraft(true); st.doseMg = null; rerenderStep();
+        }
+      });
+    },
+    valid: st => !!st.draft.penMg && !(st.draft.mode === "full" && !st.draft.isSpecial)
+  };
 
-    function startNewPen(fromChoice = false) {
-      draft = buildDraft(true);
-      renderPen(); renderPenStrength(); renderDoseOptions(); setupDateLimits();
-      if (!fromChoice) showModal("เริ่มด้ามใหม่", `ตั้งค่าเป็น ปากกาด้ามที่ ${draft.penNumber} (ครั้งที่ 1) แล้วค่ะ\nกรุณาเลือกขนาดปากกาตามหน้ากล่อง`, "🔄");
-    }
-    function returnToPen() { draft = buildDraft(false); renderPen(); renderPenStrength(); renderDoseOptions(); setupDateLimits(); }
-    function chooseSpecial() { draft.isSpecial = true; renderPen(); renderDoseOptions(); }
-    function cancelSpecial() { draft = buildDraft(false); renderPen(); renderDoseOptions(); }
-
-    function setupDateLimits() {
-      const el = $("recDate"), hint = $("dateHint");
-      el.max = localIso();
-      const floor = addDaysIso(localIso(), -(cfg.maxBackdateDays || 180));
-      if (draft && !draft.isNewPen && patient.lastInjectedDate) {
-        el.min = patient.lastInjectedDate > floor ? patient.lastInjectedDate : floor;
-        hint.innerText = `* เลือกได้ตั้งแต่ ${thaiDate(el.min)} ถึงวันนี้`;
-      } else {
-        el.min = floor;
-        hint.innerText = "* บันทึกย้อนหลังได้ถึงวันนี้";
+  const STEP_DOSE = {
+    q: "รอบนี้ฉีดขนาดเท่าไหร่คะ?",
+    sub: "เลือกตามที่แพทย์สั่ง ระบบจะบอกวิธีหมุนปากกาให้",
+    render(el, st) {
+      const d = st.draft, m = medCfg();
+      let list = penOptions(m, d.penMg);
+      if (!d.isNewPen && !d.isSpecial) list = list.filter(o => o.clicks <= capacity(m) - d.usedClicks);
+      if (st.doseMg === null || !list.some(o => Math.abs(o.mg - st.doseMg) < EPS)) {
+        const hit = list.find(o => Math.abs(o.mg - Number(patient.currentDose)) < EPS);
+        st.doseMg = hit ? hit.mg : (list.length === 1 ? list[0].mg : null);
       }
-    }
-    function validateInjectionDate() {
-      const el = $("recDate"), today = localIso();
-      if (el.value > today) {
-        showModal("วันที่ไม่ถูกต้อง", "ไม่สามารถบันทึกวันที่ล่วงหน้าได้ค่ะ", "⚠️");
-        el.value = today;
-      } else if (el.min && el.value && el.value < el.min) {
-        showModal("วันที่ไม่ถูกต้อง", `เลือกได้ตั้งแต่ ${thaiDate(el.min)} เป็นต้นไปค่ะ`, "⚠️");
-        el.value = today;
-      }
-    }
-    function setDateMode(mode) {
-      $("btnDateToday").classList.toggle("active", mode === "today");
-      $("btnDateOther").classList.toggle("active", mode !== "today");
-      $("otherDateWrap").style.display = mode === "today" ? "none" : "block";
-      setupDateLimits();
-      if (mode === "today") $("recDate").value = localIso();
-    }
-    function onIntervalChange() {
-      $("customDaysWrap").style.display = $("recInterval").value === "custom" ? "block" : "none";
-    }
+      el.innerHTML = `<div class="opts">${list.map(o => `
+          <button type="button" class="opt" data-dose="${o.mg}" aria-pressed="${st.doseMg !== null && Math.abs(st.doseMg - o.mg) < EPS}">
+            <span><div class="t">${fmtMg(o.mg)}</div><div class="s">${o.full ? "ฉีดเต็มโดส" : "แบ่งฉีด"}</div></span>
+            <span class="pill">${esc(instructionText(m, o.mg, d.penMg))}</span></button>`).join("")}</div><div id="doseAfter"></div>`;
+      const after = () => {
+        const box = el.querySelector("#doseAfter");
+        if (st.doseMg === null) { box.innerHTML = ""; return; }
+        if (d.isSpecial) { box.innerHTML = `<div class="box-warn">หลังครั้งพิเศษนี้ รอบถัดไปจะเริ่มปากกาด้ามใหม่</div>`; return; }
+        const used = d.usedClicks / m.clicksPerFullDose, add = clicksFor(m, st.doseMg, d.penMg) / m.clicksPerFullDose;
+        box.innerHTML = `<div class="card" style="margin-top: 14px;"><div class="muted small">หลังฉีดรอบนี้</div>${doseBar(used, add, true)}
+          <div class="small">ด้ามนี้จะเหลือ <b>${fmt1(Math.max(0, cfg.dosesPerPen - used - add))}</b> โดสเต็ม <span class="muted">(สีเหลือง = รอบนี้)</span></div></div>`;
+      };
+      el.querySelectorAll("[data-dose]").forEach(b => b.onclick = () => { st.doseMg = Number(b.dataset.dose); press(el, "[data-dose]", b); after(); wzRefresh(); });
+      after();
+    },
+    valid: st => st.doseMg !== null
+  };
 
-    function selectSite(site) {
-      selectedSite = site;
-      document.querySelectorAll(".quad-box").forEach(b => b.classList.toggle("active", b.dataset.site === site));
-      $("siteText").innerText = `จุดที่เลือก: ${site}`;
-      $("siteRepeatWarn").style.display = (patient && (patient.lastInjectedSite || "").trim() === site) ? "block" : "none";
+  const STEP_WHEN = {
+    q: "ฉีดวันไหน และอีกกี่วันฉีดครั้งต่อไปคะ?",
+    render(el, st) {
+      const today = localIso();
+      el.innerHTML = `
+        <div class="opts two">
+          <button type="button" class="opt center" data-dm="today" aria-pressed="${st.dateMode === "today"}"><span class="t">ฉีดวันนี้</span><span class="s">${thaiShort(today)}</span></button>
+          <button type="button" class="opt center" data-dm="other" aria-pressed="${st.dateMode === "other"}"><span class="t">วันอื่น</span><span class="s">บันทึกย้อนหลัง</span></button>
+        </div>
+        <div class="field" id="dateWrap" style="margin-top: 12px; display: ${st.dateMode === "other" ? "block" : "none"};">
+          <label for="wDate">วันที่ฉีดจริง</label><input class="input" type="date" id="wDate" value="${st.date}" min="${dateFloor(st)}" max="${today}">
+        </div>
+        <div class="field" style="margin-top: 18px;"><label>ระยะห่างถึงเข็มถัดไป (ตามแพทย์สั่ง)</label>
+          <div class="opts four">${["7", "10", "14", "custom"].map(v =>
+            `<button type="button" class="opt center" data-iv="${v}" aria-pressed="${st.interval === v}"><span class="t">${v === "custom" ? "อื่นๆ" : v}</span><span class="s">${v === "custom" ? "ระบุเอง" : "วัน"}</span></button>`).join("")}</div>
+        </div>
+        <div class="field" id="customWrap" style="display: ${st.interval === "custom" ? "block" : "none"};">
+          <input class="input" type="number" id="wCustom" min="1" max="60" inputmode="numeric" placeholder="จำนวนวัน 1-60" value="${esc(st.customDays)}" aria-label="จำนวนวัน">
+        </div>
+        <div id="nextPreview"></div>`;
+      const preview = () => {
+        const iv = intervalOf(st), ok = st.date && iv >= 1 && iv <= 60;
+        el.querySelector("#nextPreview").innerHTML = ok ? `<div class="box-info">🗓️ นัดครั้งถัดไป: <b>${thaiDow(addDaysIso(st.date, iv))}ที่ ${thaiDate(addDaysIso(st.date, iv))}</b></div>` : "";
+      };
+      el.querySelectorAll("[data-dm]").forEach(b => b.onclick = () => {
+        st.dateMode = b.dataset.dm; press(el, "[data-dm]", b);
+        el.querySelector("#dateWrap").style.display = st.dateMode === "other" ? "block" : "none";
+        if (st.dateMode === "today") { st.date = today; el.querySelector("#wDate").value = today; }
+        preview(); wzRefresh();
+      });
+      el.querySelector("#wDate").onchange = e => { st.date = e.target.value; preview(); wzRefresh(); };
+      el.querySelectorAll("[data-iv]").forEach(b => b.onclick = () => {
+        st.interval = b.dataset.iv; press(el, "[data-iv]", b);
+        el.querySelector("#customWrap").style.display = st.interval === "custom" ? "block" : "none";
+        preview(); wzRefresh();
+      });
+      el.querySelector("#wCustom").oninput = e => { st.customDays = e.target.value; preview(); wzRefresh(); };
+      preview();
+    },
+    valid(st) { const iv = intervalOf(st); return !!st.date && st.date <= localIso() && st.date >= dateFloor(st) && iv >= 1 && iv <= 60; },
+    async beforeNext(st) {
+      if (!patient.lastInjectedDate) return true;
+      const gap = diffDays(st.date, patient.lastInjectedDate);
+      if (Math.abs(gap) >= 4) return true;
+      return await confirmModal("ตรวจสอบก่อนไปต่อ",
+        `มีการบันทึกการฉีดล่าสุดเมื่อ ${thaiDate(patient.lastInjectedDate)}${gap === 0 ? " (วันเดียวกัน)" : ` (ห่าง ${Math.abs(gap)} วัน)`}\n\nยืนยันว่าเป็นการฉีดยาเข็มใหม่ ไม่ใช่การบันทึกซ้ำใช่ไหมคะ?`, "ใช่ เป็นเข็มใหม่");
     }
+  };
 
-    function renderSideChips() {
-      selectedSides = new Set([cfg.sideEffects.findIndex(s => s.none)]);
-      $("sideChips").innerHTML = cfg.sideEffects.map((s, i) =>
-        `<button type="button" class="chip ${s.redFlag ? "red" : ""}" data-i="${i}" aria-pressed="false" onclick="toggleSide(${i})">${s.redFlag ? "⚠️ " : ""}${escapeHtml(s.label)}</button>`).join("");
-      $("redContact").innerText = cfg.hospitalContact ? `(${cfg.hospitalContact})` : "";
-      syncSideChips();
-    }
-    function toggleSide(i) {
-      const s = cfg.sideEffects[i];
+  const STEP_SITE = {
+    q: "ฉีดตรงไหนของหน้าท้องคะ?",
+    sub: "สลับตำแหน่งทุกครั้ง ช่วยลดก้อนไขมันใต้ผิวหนัง",
+    render(el, st) {
+      const sug = suggestSite(), last = (patient.lastInjectedSite || "").trim();
+      const q = [["หน้าท้องบนขวา", 38, 30, "บนขวา"], ["หน้าท้องบนซ้าย", 146, 30, "บนซ้าย"], ["หน้าท้องล่างขวา", 38, 118, "ล่างขวา"], ["หน้าท้องล่างซ้าย", 146, 118, "ล่างซ้าย"]];
+      el.innerHTML = `<div class="belly"><svg viewBox="0 0 280 226" width="100%" style="max-width: 300px;" role="group" aria-label="เลือกตำแหน่งฉีด">
+          <path d="M 30,24 C 65,14 215,14 250,24 C 266,84 266,148 250,204 C 215,218 65,218 30,204 C 14,148 14,84 30,24 Z" fill="#FBF3EC" stroke="#EADBCD" stroke-width="2"/>
+          ${q.map(([s, x, y, l]) => `<g data-pick="${s}" style="cursor: pointer;" role="button" aria-label="${s}"><rect class="quad ${st.site === s ? "on" : ""}" data-site="${s}" x="${x}" y="${y}" width="96" height="78" rx="18"/>
+            <text class="qlabel" x="${x + 48}" y="${y + 40}" text-anchor="middle">${l}</text>
+            ${s === sug ? `<text x="${x + 48}" y="${y + 62}" text-anchor="middle" font-size="12" fill="#0B5C36" font-family="Prompt, sans-serif">✨ แนะนำ</text>` : ""}
+            ${s === last ? `<text x="${x + 48}" y="${y + 62}" text-anchor="middle" font-size="12" fill="#8A5A00" font-family="Prompt, sans-serif">ครั้งก่อน</text>` : ""}</g>`).join("")}
+          <circle cx="140" cy="113" r="8" fill="#D9B79A"/><circle cx="140" cy="113" r="3" fill="#A07A5C"/>
+        </svg><div class="h2" style="color: var(--forest); margin-top: 6px;" id="siteName">${st.site}</div></div><div id="siteWarn"></div>`;
+      const warn = () => el.querySelector("#siteWarn").innerHTML = st.site === last ? `<div class="box-warn">ตำแหน่งนี้ฉีดไปเมื่อครั้งก่อน แนะนำสลับไปตำแหน่งอื่นค่ะ</div>` : "";
+      el.querySelectorAll("[data-pick]").forEach(g => g.addEventListener("click", () => {
+        st.site = g.dataset.pick;
+        el.querySelectorAll(".quad").forEach(r => r.classList.toggle("on", r.dataset.site === st.site));
+        el.querySelector("#siteName").innerText = st.site; warn(); wzRefresh();
+      }));
+      warn();
+    },
+    valid: st => !!st.site
+  };
+
+  const hasRed = st => [...st.sides].some(i => cfg.sideEffects[i] && cfg.sideEffects[i].redFlag);
+  const sideText = st => [...st.sides].map(i => cfg.sideEffects[i].label).join(", ");
+  const STEP_SIDE = {
+    q: "รอบนี้มีอาการข้างเคียงไหมคะ?",
+    sub: "เลือกได้หลายข้อ ข้อมูลนี้ช่วยให้ทีมดูแลคุณได้ดีขึ้น",
+    render(el, st) {
+      el.innerHTML = `<div class="chips">${cfg.sideEffects.map((s, i) =>
+        `<button type="button" class="chip ${s.redFlag ? "red" : ""}" data-i="${i}" aria-pressed="${st.sides.has(i)}">${s.redFlag ? "⚠️ " : ""}${esc(s.label)}</button>`).join("")}</div><div id="redBox"></div>`;
       const noneIdx = cfg.sideEffects.findIndex(x => x.none);
-      if (s.none) selectedSides = new Set([i]);
-      else {
-        selectedSides.delete(noneIdx);
-        if (selectedSides.has(i)) selectedSides.delete(i); else selectedSides.add(i);
-        if (!selectedSides.size) selectedSides.add(noneIdx);
-      }
-      syncSideChips();
-    }
-    function syncSideChips() {
-      document.querySelectorAll("#sideChips .chip").forEach(c => c.setAttribute("aria-pressed", selectedSides.has(Number(c.dataset.i)) ? "true" : "false"));
-      $("redFlagWarn").style.display = hasRedFlag() ? "block" : "none";
-    }
-    const hasRedFlag = () => [...selectedSides].some(i => cfg.sideEffects[i] && cfg.sideEffects[i].redFlag);
-
-    // ================== เริ่มต้นระบบ ==================
-    async function initApp() {
-      showSection("Loading");
-      if (DEBUG) {
-        $("debugBadge").style.display = "block";
-        uid = lsGet("smu_test_uid") || ("U_TEST_" + Math.floor(100000 + Math.random() * 900000));
-        lsSet("smu_test_uid", uid);
-      } else {
-        try {
-          await withTimeout(liff.init({ liffId: LIFF_ID }), 12000);
-          if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
-          const profile = await withTimeout(liff.getProfile(), 10000);
-          uid = profile.userId;
-        } catch (e) {
-          console.warn("LIFF:", e);
-          showError("เชื่อมต่อ LINE ไม่สำเร็จ", "กรุณาปิดหน้านี้แล้วเปิดใหม่ผ่านเมนูใน LINE ของศูนย์ฯ ค่ะ");
-          return;
-        }
-      }
-
-      const cached = loadCache();
-      if (cached) {
-        cfg = cached.cfg;
-        patient = reapplyPending(cached.patient);
-        renderMain();
-      } else {
-        $("loadingText").innerText = "กำลังโหลดข้อมูล...";
-      }
-      await syncWithServer();
-    }
-
-    async function syncWithServer() {
-      const result = await flushPending();
-      if (result.unauthorized) {
-        showError("ยืนยันตัวตนไม่สำเร็จ", "กรุณาปิดหน้านี้แล้วเปิดใหม่ผ่าน LINE ค่ะ");
-        return;
-      }
-      try {
-        const r = await api("bootstrap", {}, 30000);
-        cfg = r.config;
-        if (r.patient && r.patient.found) {
-          patient = reapplyPending(r.patient);
-          saveCache();
-          if (!sending) renderMain();
-        } else {
-          patient = null;
-          renderRegister();
-        }
-      } catch (err) {
-        if (err.code === "unauthorized") { showError("ยืนยันตัวตนไม่สำเร็จ", "กรุณาปิดหน้านี้แล้วเปิดใหม่ผ่าน LINE ค่ะ"); return; }
-        if (patient) renderNotice("📡 เชื่อมต่อระบบไม่ได้ ขณะนี้แสดงข้อมูลล่าสุดในเครื่อง");
-        else showError("เชื่อมต่อระบบไม่สำเร็จ", "กรุณาตรวจสอบสัญญาณอินเทอร์เน็ตแล้วลองใหม่อีกครั้งค่ะ");
-      }
-      if (result.dropped > 0) {
-        showModal("มีรายการที่ส่งไม่ได้", `มี ${result.dropped} รายการที่ระบบไม่สามารถบันทึกได้ (ข้อมูลไม่ถูกต้อง)\nกรุณาบันทึกใหม่ หรือติดต่อเจ้าหน้าที่ค่ะ`, "⚠️");
-      }
-    }
-
-    async function flushPending() {
-      const out = { dropped: 0, unauthorized: false };
-      for (const item of getPending()) {
-        try {
-          await api(item.kind === "injection" ? "recordInjection" : "recordBody", item.payload);
-          removePending(item.requestId);
-          historyCache = null; bodyCache = null;
-        } catch (err) {
-          if (isPermanent(err)) { removePending(item.requestId); out.dropped++; }
-          else { if (err.code === "unauthorized") out.unauthorized = true; break; }
-        }
-      }
-      return out;
-    }
-
-    async function retrySync() {
-      const btn = $("noticeBtn");
-      btn.disabled = true; btn.innerText = "กำลังส่ง...";
-      await syncWithServer();
-      btn.disabled = false; btn.innerText = "📤 ส่งอีกครั้ง";
-      if (patient) renderNotice();
-      if (currentTab === "body") loadBody(true);
-    }
-
-    // ================== ลงทะเบียน ==================
-    function renderRegister() {
-      showSection("Register");
-      $("regMed").innerHTML = `<option value="" disabled selected>-- เลือกชนิดปากกา --</option>` +
-        cfg.meds.map(m => `<option value="${escapeHtml(m.label)}">${escapeHtml(m.label)}</option>`).join("");
-    }
-
-    $("formRegister").addEventListener("submit", async e => {
-      e.preventDefault();
-      const name = $("regName").value.trim(), phone = $("regPhone").value.trim(), med = $("regMed").value;
-      if (!$("regHN").value.trim() || !name || !phone || !med) {
-        showModal("ข้อมูลไม่ครบ", "กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบค่ะ", "⚠️");
-        return;
-      }
-      const btn = $("btnRegister");
-      btn.disabled = true; btn.innerText = "กำลังบันทึก...";
-      try {
-        const r = await api("register", {
-          hn: $("regHN").value.trim(), name, phone, medication: med,
-          heightCm: $("regHeight").value, weightKg: $("regWeight").value, waistCm: $("regWaist").value
-        });
-        patient = r.patient;
-        saveCache();
-        await showModal("ลงทะเบียนสำเร็จ", "เริ่มบันทึกการฉีดยาและน้ำหนักได้เลยค่ะ", "🎉");
-        renderMain();
-      } catch (err) {
-        showModal("ลงทะเบียนไม่สำเร็จ", err.name === "AbortError" ? "ระบบตอบสนองช้า กรุณาลองใหม่อีกครั้งค่ะ" : (err.message || "กรุณาลองใหม่อีกครั้งค่ะ"), "❌");
-      } finally {
-        btn.disabled = false; btn.innerText = "ยืนยันการลงทะเบียน";
-      }
-    });
-
-    // ================== บันทึกการฉีด ==================
-    $("formRecord").addEventListener("submit", async e => {
-      e.preventDefault();
-      if (sending) return;
-      const m = medCfg();
-
-      if (draft.mode === "full" && !draft.isSpecial) {
-        showModal("กรุณาเลือกปากกา", "ด้ามปัจจุบันใช้ครบแล้ว กรุณาเลือก 'เริ่มปากกาด้ามใหม่' หรือ 'ครั้งพิเศษ' ก่อนค่ะ", "🖋️");
-        return;
-      }
-      const actualDate = $("recDate").value;
-      if (!actualDate || actualDate > localIso()) { showModal("วันที่ไม่ถูกต้อง", "กรุณาเลือกวันที่ฉีดยาจริงค่ะ", "⚠️"); return; }
-      const doseMg = Number($("recDose").value);
-      if (!doseMg || !draft.penMg) { showModal("ข้อมูลไม่ครบ", "กรุณาเลือกขนาดปากกาและขนาดยาค่ะ", "⚠️"); return; }
-
-      let intervalDays = parseInt($("recInterval").value, 10);
-      if ($("recInterval").value === "custom") {
-        intervalDays = parseInt($("recCustomDays").value, 10);
-        if (!(intervalDays >= 1 && intervalDays <= 60)) { showModal("ระยะห่างไม่ถูกต้อง", "กรุณาระบุจำนวนวัน 1 ถึง 60 วันค่ะ", "⚠️"); return; }
-      }
-
-      // กันบันทึกซ้ำ: ฉีดห่างจากเข็มล่าสุดน้อยกว่า 4 วัน
-      if (patient.lastInjectedDate) {
-        const gap = diffDays(actualDate, patient.lastInjectedDate);
-        if (Math.abs(gap) < 4) {
-          const ok = await confirmModal("ตรวจสอบก่อนบันทึก",
-            `มีการบันทึกการฉีดล่าสุดเมื่อ ${thaiDate(patient.lastInjectedDate)}` +
-            (gap === 0 ? " (วันเดียวกัน)" : ` (ห่าง ${Math.abs(gap)} วัน)`) +
-            `\n\nยืนยันว่าเป็นการฉีดยาเข็มใหม่ ไม่ใช่การบันทึกซ้ำใช่ไหมคะ?`, "ใช่ เป็นเข็มใหม่", "🧐");
-          if (!ok) return;
-        }
-      }
-
-      const sideLabels = [...selectedSides].map(i => cfg.sideEffects[i].label);
-      const redFlag = hasRedFlag();
-      const rec = {
-        requestId: newRequestId(),
-        penNumber: draft.penNumber, doseNumber: draft.doseNumber,
-        penStrengthMg: draft.penMg, doseMg, clicks: clicksFor(m, doseMg, draft.penMg),
-        isSpecial: !!draft.isSpecial, actualDate, intervalDays,
-        site: selectedSite, sideEffects: sideLabels
+      const sync = () => {
+        el.querySelectorAll("[data-i]").forEach(c => c.setAttribute("aria-pressed", st.sides.has(Number(c.dataset.i))));
+        el.querySelector("#redBox").innerHTML = hasRed(st) ? `<div class="box-red"><b>⚠️ อาการที่ต้องเฝ้าระวัง</b><br>กรุณาติดต่อโรงพยาบาลโดยเร็ว${cfg.hospitalContact ? ` (${esc(cfg.hospitalContact)})` : ""}<br>หากอาการรุนแรง เช่น หายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที</div>` : "";
       };
-      const nextDueText = `${thaiDate(addDaysIso(actualDate, intervalDays))} (รอบ ${intervalDays} วัน)`;
-      const label = `ด้ามที่ ${rec.penNumber} ครั้งที่ ${rec.doseNumber}${rec.isSpecial ? " ⭐ (ครั้งพิเศษ)" : ""}`;
-
-      // เก็บลงเครื่องก่อน เพื่อไม่ให้ข้อมูลหายถ้าสัญญาณหลุด
-      const before = patient;
-      setPending([...getPending(), { kind: "injection", requestId: rec.requestId, payload: rec }]);
-      patient = applyRecord(patient, rec);
-      saveCache();
-      historyCache = null;
-
-      sending = true;
-      const btn = $("btnRecord");
-      btn.disabled = true; btn.innerText = "กำลังส่งข้อมูลเข้าระบบ...";
-      const finish = () => { sending = false; btn.disabled = false; btn.innerText = "บันทึกการฉีดยา"; renderMain(); };
-      const redFlagModal = () => redFlag ? showModal("อาการที่ต้องเฝ้าระวัง",
-        `กรุณาติดต่อโรงพยาบาลโดยเร็ว${cfg.hospitalContact ? "\n" + cfg.hospitalContact : ""}\n\nหากอาการรุนแรง เช่น หายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที`, "🚑") : Promise.resolve();
-
-      try {
-        const r = await api("recordInjection", rec);
-        removePending(rec.requestId);
-        if (r.patient && r.patient.found) { patient = reapplyPending(r.patient); saveCache(); }
-        finish();
-        await showModal("บันทึกเรียบร้อยค่ะ", `บันทึก${label} สำเร็จแล้ว\n🗓️ รอบฉีดครั้งถัดไป: ${nextDueText}`, "💉");
-        await redFlagModal();
-      } catch (err) {
-        if (isPermanent(err)) {
-          removePending(rec.requestId);
-          patient = before; saveCache();
-          finish();
-          showModal("บันทึกไม่สำเร็จ", err.message || "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบแล้วลองใหม่ค่ะ", "❌");
-        } else {
-          finish();
-          await showModal("ยังส่งเข้าระบบไม่สำเร็จ",
-            `เก็บ${label} ไว้ในเครื่องแล้ว ระบบจะส่งให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไป หรือกด "ส่งอีกครั้ง" ด้านบน\n\nกรุณาอย่าบันทึกซ้ำนะคะ\n🗓️ รอบฉีดครั้งถัดไป: ${nextDueText}`, "⏳");
-          await redFlagModal();
-        }
-      }
-    });
-
-    // ================== น้ำหนัก ==================
-    async function loadBody(force) {
-      $("bodyDate").max = localIso();
-      if (!$("bodyDate").value) $("bodyDate").value = localIso();
-      if (bodyCache && !force) { renderBody(); return; }
-      renderBody();
-      try {
-        const r = await api("body");
-        bodyCache = r.entries || [];
-        renderBody();
-      } catch (err) {
-        if (!bodyCache) $("bodyList").innerHTML = `<div class="muted" style="padding: 10px 0;">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่ค่ะ</div>`;
-      }
-    }
-
-    function bodyEntries() {
-      const server = bodyCache || [];
-      const ids = new Set(server.map(e => e.id));
-      const pending = getPending().filter(p => p.kind === "body" && !ids.has(p.requestId))
-        .map(p => ({ id: p.requestId, date: p.payload.date, weight: Number(p.payload.weightKg) || null,
-          waist: Number(p.payload.waistCm) || null, ts: Date.now(), pending: true }));
-      return server.concat(pending).sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : a.ts - b.ts);
-    }
-
-    function renderBody() {
-      const list = bodyEntries();
-      const weights = list.filter(e => e.weight);
-      const waists = list.filter(e => e.waist);
-      const latest = weights[weights.length - 1], first = weights[0];
-      const tiles = [];
-
-      tiles.push(latest
-        ? `<div class="tile"><div class="tile-label">น้ำหนักล่าสุด</div><div class="tile-value">${fmt1(latest.weight)} <small>กก.</small></div><div class="tile-sub">${thaiShort(latest.date)}</div></div>`
-        : `<div class="tile"><div class="tile-label">น้ำหนักล่าสุด</div><div class="tile-value">-</div><div class="tile-sub">ยังไม่มีข้อมูล</div></div>`);
-      if (latest && first && latest !== first) {
-        const diff = latest.weight - first.weight, pct = diff / first.weight * 100;
-        const arrow = diff < 0 ? "▼" : diff > 0 ? "▲" : "•";
-        tiles.push(`<div class="tile"><div class="tile-label">เปลี่ยนแปลงจากครั้งแรก</div><div class="tile-value">${arrow} ${fmt1(Math.abs(diff))} <small>กก.</small></div><div class="tile-sub">${diff <= 0 ? "ลดลง" : "เพิ่มขึ้น"} ${fmt1(Math.abs(pct))}% ตั้งแต่ ${thaiShort(first.date)}</div></div>`);
-      } else {
-        tiles.push(`<div class="tile"><div class="tile-label">เปลี่ยนแปลงจากครั้งแรก</div><div class="tile-value">-</div><div class="tile-sub">บันทึก 2 ครั้งขึ้นไปเพื่อดูผล</div></div>`);
-      }
-      if (latest && patient.heightCm) {
-        const bmi = latest.weight / Math.pow(patient.heightCm / 100, 2);
-        tiles.push(`<div class="tile"><div class="tile-label">BMI</div><div class="tile-value">${fmt1(bmi)}</div><div class="tile-sub">ส่วนสูง ${fmt1(patient.heightCm)} ซม.</div></div>`);
-      } else {
-        tiles.push(`<div class="tile"><div class="tile-label">BMI</div><div class="tile-value">-</div><div class="tile-sub">${patient.heightCm ? "ยังไม่มีน้ำหนัก" : "ระบุส่วนสูงใน ⚙️ ตั้งค่า"}</div></div>`);
-      }
-      const lw = waists[waists.length - 1];
-      tiles.push(`<div class="tile"><div class="tile-label">รอบเอวล่าสุด</div><div class="tile-value">${lw ? fmt1(lw.waist) + " <small>ซม.</small>" : "-"}</div><div class="tile-sub">${lw ? thaiShort(lw.date) : "ยังไม่มีข้อมูล"}</div></div>`);
-      $("bodyTiles").innerHTML = tiles.join("");
-
-      const metricList = chartMetric === "weight" ? weights : waists;
-      $("chartTitle").innerText = chartMetric === "weight" ? "น้ำหนัก (กก.)" : "รอบเอว (ซม.)";
-      renderLineChart($("bodyChart"), metricList.map(e => ({ date: e.date, value: e[chartMetric] })),
-        { unit: chartMetric === "weight" ? "กก." : "ซม.", label: chartMetric === "weight" ? "น้ำหนัก" : "รอบเอว" });
-
-      const rows = list.slice().reverse().slice(0, 60);
-      $("bodyList").innerHTML = rows.length ? rows.map(e => `
-        <div class="list-row">
-          <div>${escapeHtml(thaiDate(e.date))} ${e.pending ? '<span class="tag-pending">รอส่ง</span>' : ""}</div>
-          <div style="text-align: right;">${e.weight ? `<strong>${fmt1(e.weight)}</strong> กก.` : ""}${e.weight && e.waist ? " · " : ""}${e.waist ? `เอว ${fmt1(e.waist)} ซม.` : ""}</div>
-        </div>`).join("") : `<div class="muted" style="padding: 10px 0;">ยังไม่มีรายการค่ะ</div>`;
-    }
-
-    function setChartMetric(metric) {
-      chartMetric = metric;
-      $("chartBtnW").classList.toggle("active", metric === "weight");
-      $("chartBtnWaist").classList.toggle("active", metric === "waist");
-      renderBody();
-    }
-
-    $("formBody").addEventListener("submit", async e => {
-      e.preventDefault();
-      const date = $("bodyDate").value;
-      const w = $("bodyWeight").value.trim(), waist = $("bodyWaist").value.trim();
-      if (!date || date > localIso()) { showModal("วันที่ไม่ถูกต้อง", "กรุณาเลือกวันที่ที่ชั่งน้ำหนักค่ะ", "⚠️"); return; }
-      if (!w && !waist) { showModal("ข้อมูลไม่ครบ", "กรุณากรอกน้ำหนักหรือรอบเอวอย่างน้อย 1 ช่องค่ะ", "⚠️"); return; }
-      if (w && !(Number(w) >= 20 && Number(w) <= 300)) { showModal("น้ำหนักไม่ถูกต้อง", "กรุณากรอกน้ำหนักเป็นกิโลกรัม (20-300)", "⚠️"); return; }
-      if (waist && !(Number(waist) >= 30 && Number(waist) <= 250)) { showModal("รอบเอวไม่ถูกต้อง", "กรุณากรอกรอบเอวเป็นเซนติเมตร (30-250)", "⚠️"); return; }
-
-      // เตือนเมื่อน้ำหนักต่างจากครั้งก่อนมาก (อาจพิมพ์ผิด)
-      const weights = bodyEntries().filter(x => x.weight);
-      const prev = weights[weights.length - 1];
-      if (w && prev && Math.abs(Number(w) - prev.weight) >= 5) {
-        const ok = await confirmModal("ตรวจสอบตัวเลข", `น้ำหนัก ${fmt1(Number(w))} กก. ต่างจากครั้งก่อน (${fmt1(prev.weight)} กก.) ค่อนข้างมาก\nยืนยันว่าถูกต้องใช่ไหมคะ?`, "ถูกต้อง บันทึก", "🧐");
-        if (!ok) return;
-      }
-
-      const requestId = newRequestId();
-      const payload = { requestId, date, weightKg: w, waistCm: waist };
-      setPending([...getPending(), { kind: "body", requestId, payload }]);
-      renderBody();
-
-      const btn = $("btnBody");
-      btn.disabled = true; btn.innerText = "กำลังบันทึก...";
-      try {
-        const r = await api("recordBody", payload);
-        removePending(requestId);
-        bodyCache = r.entries || bodyCache;
-        $("bodyWeight").value = ""; $("bodyWaist").value = "";
-        renderBody(); renderNotice();
-        showModal("บันทึกเรียบร้อยค่ะ", "บันทึกน้ำหนัก/รอบเอวแล้ว", "⚖️");
-      } catch (err) {
-        if (isPermanent(err)) {
-          removePending(requestId);
-          renderBody();
-          showModal("บันทึกไม่สำเร็จ", err.message || "กรุณาตรวจสอบข้อมูลค่ะ", "❌");
-        } else {
-          $("bodyWeight").value = ""; $("bodyWaist").value = "";
-          renderBody(); renderNotice();
-          showModal("ยังส่งเข้าระบบไม่สำเร็จ", "เก็บข้อมูลไว้ในเครื่องแล้ว ระบบจะส่งให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไปค่ะ", "⏳");
-        }
-      } finally {
-        btn.disabled = false; btn.innerText = "บันทึก";
-      }
-    });
-
-    // ================== กราฟเส้น (1 ชุดข้อมูล) ==================
-    function niceStep(raw) {
-      const pow = Math.pow(10, Math.floor(Math.log10(raw)));
-      for (const m of [1, 2, 2.5, 5, 10]) if (m * pow >= raw) return m * pow;
-      return 10 * pow;
-    }
-
-    function renderLineChart(el, points, opt) {
-      el.innerHTML = "";
-      if (!points.length) { el.innerHTML = `<div class="chart-empty">ยังไม่มีข้อมูล${opt.label}</div>`; return; }
-      const W = Math.max(220, el.clientWidth || 320), H = 190;
-      const pad = { l: 38, r: 14, t: 14, b: 26 };
-      const xsRaw = points.map(p => isoUtc(p.date));
-      let x0 = Math.min(...xsRaw), x1 = Math.max(...xsRaw);
-      if (x0 === x1) { x0 -= 3 * 864e5; x1 += 3 * 864e5; }
-      const vals = points.map(p => p.value);
-      const vmin = Math.min(...vals), vmax = Math.max(...vals);
-      const step = niceStep(Math.max(vmax - vmin, 2) / 4);
-      let y0 = Math.floor((vmin - step * 0.5) / step) * step;
-      let y1 = Math.ceil((vmax + step * 0.5) / step) * step;
-      if (y1 - y0 < step * 2) y1 = y0 + step * 2;
-
-      const sx = v => pad.l + (v - x0) / (x1 - x0) * (W - pad.l - pad.r);
-      const sy = v => pad.t + (1 - (v - y0) / (y1 - y0)) * (H - pad.t - pad.b);
-      const NS = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(NS, "svg");
-      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      svg.setAttribute("width", W);
-      svg.setAttribute("height", H);
-      svg.style.width = "100%";
-      svg.style.height = "auto";
-      svg.style.display = "block";
-      svg.setAttribute("role", "img");
-      svg.setAttribute("aria-label", `กราฟ${opt.label} ${points.length} ครั้ง ล่าสุด ${points[points.length - 1].value} ${opt.unit}`);
-
-      let html = "";
-      const decimals = step < 1 ? 1 : 0;
-      for (let v = y0; v <= y1 + 1e-9; v += step) {
-        const y = sy(v);
-        html += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
-        html += `<text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#64748b">${v.toFixed(decimals)}</text>`;
-      }
-      const labelIdx = new Set([0, points.length - 1]);
-      if (points.length >= 3 && W > 340) labelIdx.add(Math.floor((points.length - 1) / 2));
-      [...labelIdx].forEach(i => {
-        const x = sx(xsRaw[i]);
-        const anchor = i === 0 ? "start" : i === points.length - 1 ? "end" : "middle";
-        html += `<text x="${Math.min(Math.max(x, pad.l), W - pad.r)}" y="${H - 8}" text-anchor="${anchor}" font-size="10" fill="#64748b">${thaiShort(points[i].date)}</text>`;
+      el.querySelectorAll("[data-i]").forEach(c => c.onclick = () => {
+        const i = Number(c.dataset.i);
+        if (cfg.sideEffects[i].none) st.sides = new Set([i]);
+        else { st.sides.delete(noneIdx); st.sides.has(i) ? st.sides.delete(i) : st.sides.add(i); if (!st.sides.size) st.sides.add(noneIdx); }
+        sync(); wzRefresh();
       });
-      const d = points.map((p, i) => `${i ? "L" : "M"}${sx(xsRaw[i]).toFixed(1)},${sy(p.value).toFixed(1)}`).join(" ");
-      html += `<path d="${d}" fill="none" stroke="#0b5c36" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-      html += `<line id="cGuide" x1="0" x2="0" y1="${pad.t}" y2="${H - pad.b}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/>`;
-      points.forEach((p, i) => {
-        html += `<circle cx="${sx(xsRaw[i])}" cy="${sy(p.value)}" r="4" fill="#0b5c36" stroke="#fff" stroke-width="2"/>`;
-      });
-      html += `<circle id="cHi" r="6" fill="#0b5c36" stroke="#fff" stroke-width="2" visibility="hidden"/>`;
-      html += `<rect x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent" id="cHit"/>`;
-      svg.innerHTML = html;
-      el.appendChild(svg);
+      sync();
+    },
+    valid: st => st.sides.size > 0
+  };
 
-      const tip = document.createElement("div");
-      tip.className = "chart-tip";
-      el.appendChild(tip);
-
-      const hit = svg.querySelector("#cHit"), guide = svg.querySelector("#cGuide"), hi = svg.querySelector("#cHi");
-      const show = ev => {
-        const rect = svg.getBoundingClientRect();
-        const mx = (ev.clientX - rect.left) * (W / rect.width);
-        let best = 0, bd = Infinity;
-        xsRaw.forEach((x, i) => { const dd = Math.abs(sx(x) - mx); if (dd < bd) { bd = dd; best = i; } });
-        const px = sx(xsRaw[best]), py = sy(points[best].value);
-        guide.setAttribute("x1", px); guide.setAttribute("x2", px); guide.setAttribute("visibility", "visible");
-        hi.setAttribute("cx", px); hi.setAttribute("cy", py); hi.setAttribute("visibility", "visible");
-        tip.innerText = `${thaiDate(points[best].date)} · ${fmt1(points[best].value)} ${opt.unit}`;
-        tip.style.display = "block";
-        const scale = rect.width / W;
-        tip.style.left = Math.min(Math.max(px * scale, 70), rect.width - 70) + "px";
-        tip.style.top = py * scale + "px";
-      };
-      const hide = () => { tip.style.display = "none"; guide.setAttribute("visibility", "hidden"); hi.setAttribute("visibility", "hidden"); };
-      hit.addEventListener("pointermove", show);
-      hit.addEventListener("pointerdown", show);
-      hit.addEventListener("pointerleave", hide);
+  const STEP_SUM = {
+    q: "ตรวจสอบก่อนบันทึกนะคะ",
+    sub: "แตะ \"แก้ไข\" เพื่อกลับไปเปลี่ยนข้อมูลได้",
+    next: "ยืนยันบันทึก ✓",
+    render(el, st) {
+      const d = st.draft, m = medCfg(), iv = intervalOf(st);
+      const rows = [
+        ["🖊️", "ปากกา", `ด้ามที่ ${d.penNumber} · ครั้งที่ ${d.doseNumber}${d.isSpecial ? " ⭐ ครั้งพิเศษ" : ""}<br><span class="muted small">ด้าม ${fmtMg(d.penMg)}</span>`, 0],
+        ["💉", "ขนาดยา", `${fmtMg(st.doseMg)}<br><span class="muted small">${esc(instructionText(m, st.doseMg, d.penMg))}</span>`, 1],
+        ["🗓️", "วันที่ฉีด", `${thaiDow(st.date)}ที่ ${thaiDate(st.date)}<br><span class="muted small">นัดถัดไป ${thaiDate(addDaysIso(st.date, iv))} (ทุก ${iv} วัน)</span>`, 2],
+        ["📍", "ตำแหน่ง", esc(st.site), 3],
+        ["🩺", "อาการ", esc(sideText(st)), 4]
+      ];
+      el.innerHTML = `<div class="card">${rows.map(([ic, k, v, i]) => `<div class="sum-row"><div class="sum-ic">${ic}</div><div class="grow"><div class="k">${k}</div><div class="v">${v}</div></div><button type="button" class="edit" onclick="wzGo(${i})">แก้ไข</button></div>`).join("")}</div>
+        ${hasRed(st) ? `<div class="box-red">คุณเลือกอาการที่ต้องเฝ้าระวัง หลังบันทึกกรุณาติดต่อโรงพยาบาลโดยเร็วค่ะ</div>` : ""}`;
     }
+  };
 
-    let resizeTimer = null;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { if (currentTab === "body" && patient) renderBody(); }, 200);
+  async function submitInjection(st) {
+    const m = medCfg(), d = st.draft, iv = intervalOf(st);
+    const rec = {
+      requestId: newRequestId(), penNumber: d.penNumber, doseNumber: d.doseNumber, penStrengthMg: d.penMg, doseMg: st.doseMg,
+      clicks: clicksFor(m, st.doseMg, d.penMg), isSpecial: !!d.isSpecial, actualDate: st.date, intervalDays: iv,
+      site: st.site, sideEffects: [...st.sides].map(i => cfg.sideEffects[i].label)
+    };
+    const before = patient;
+    setPending([...getPending(), { kind: "injection", requestId: rec.requestId, payload: rec }]);
+    patient = applyRecord(patient, rec); saveCache();
+    sending = true;
+    let pendingOnly = false;
+    try {
+      const r = await api("recordInjection", rec);
+      removePending(rec.requestId);
+      if (r.patient && r.patient.found) { patient = reapplyPending(r.patient); saveCache(); }
+      try { historyCache = (await api("history")).injections || []; } catch (e) { historyCache = (historyCache || []).concat([{ date: rec.actualDate, interval: iv }]); }
+    } catch (err) {
+      if (isPermanent(err)) {
+        removePending(rec.requestId); patient = before; saveCache(); sending = false;
+        await showModal("บันทึกไม่สำเร็จ", err.message || "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบแล้วลองใหม่ค่ะ", "❌");
+        return;
+      }
+      pendingOnly = true;
+    }
+    sending = false;
+    showInjectDone(rec, pendingOnly, hasRed(st));
+  }
+
+  function showInjectDone(rec, pendingOnly, red) {
+    const st = injStats(), n = Math.max(st.total, 1);
+    const next = addDaysIso(rec.actualDate, rec.intervalDays);
+    const msg = n === 1 ? "เข็มแรกของคุณ ต้นปังเริ่มงอกแล้ว 🌱"
+      : n === BLOOM_AT ? `ครบ ${BLOOM_AT} เข็ม ต้นปังออกดอกแล้ว 🌼`
+      : st.streak >= 2 ? `ฉีดตรงนัดติดกัน ${st.streak} ครั้ง เก่งมากค่ะ`
+      : "ต้นปังงอกใบใหม่แล้ว ดูแลตัวเองดีมากค่ะ";
+    $("doneBody").innerHTML = `
+      ${red ? `<div class="box-red" style="text-align: left;"><b>🚑 อาการที่ต้องเฝ้าระวัง</b><br>กรุณาติดต่อโรงพยาบาลโดยเร็ว${cfg.hospitalContact ? `<br>${esc(cfg.hospitalContact)}` : ""}<br>หากหายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที</div>` : ""}
+      <div class="plant-wrap">${plantSVG(n, { grow: true })}</div>
+      <h1 class="h1">${pendingOnly ? "เก็บไว้ในเครื่องแล้ว" : "บันทึกแล้ว!"}</h1>
+      <p class="lead">${pendingOnly ? "ยังส่งเข้าระบบไม่ได้ ระบบจะส่งให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไป กรุณาอย่าบันทึกซ้ำนะคะ" : msg}</p>
+      <div><span class="stat-pill"><span class="muted small">ด้าม / ครั้งที่</span><b>${rec.penNumber} / ${rec.doseNumber}${rec.isSpecial ? " ⭐" : ""}</b></span>
+      <span class="stat-pill"><span class="muted small">นัดครั้งถัดไป</span><b>${thaiShort(next)}</b></span></div>`;
+    showScreen("scrDone");
+  }
+
+  // ================== Wizard: น้ำหนัก ==================
+  function startBodyWizard() {
+    const all = bodyEntries();
+    const lw = all.filter(e => e.weight).pop(), lwa = all.filter(e => e.waist).pop();
+    const state = { date: localIso(), weight: lw ? String(lw.weight) : "", waist: lwa ? String(lwa.waist) : "", skipWaist: false, prev: lw || null };
+    startWizard({ title: "บันทึกน้ำหนัก", state, steps: [STEP_WEIGHT, STEP_WAIST], onFinish: submitBody });
+  }
+  function stepper(el, st, key, step, min, max, unit) {
+    el.innerHTML = `<div class="stepper"><button type="button" data-d="-1" aria-label="ลด">−</button>
+      <input type="number" inputmode="decimal" id="stepIn" value="${esc(st[key])}" min="${min}" max="${max}" step="${step}" placeholder="0.0" aria-label="${unit}">
+      <button type="button" data-d="1" aria-label="เพิ่ม">+</button></div><div class="unit">${unit}</div>`;
+    const inp = el.querySelector("#stepIn");
+    inp.oninput = () => { st[key] = inp.value; wzRefresh(); };
+    el.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
+      const v = (Number(inp.value) || (key === "weight" ? 60 : 80)) + Number(b.dataset.d) * step;
+      inp.value = String(Math.round(v * 10) / 10); st[key] = inp.value; wzRefresh();
     });
+  }
+  const STEP_WEIGHT = {
+    q: "วันนี้น้ำหนักเท่าไหร่คะ?",
+    sub: "แนะนำชั่งตอนเช้า หลังเข้าห้องน้ำ ก่อนทานอาหาร",
+    render(el, st) {
+      el.innerHTML = `<div id="wStep"></div>
+        ${st.prev ? `<p class="muted" style="text-align: center; margin: 6px 0 0;">ครั้งก่อน ${fmt1(st.prev.weight)} กก. (${thaiShort(st.prev.date)})</p>` : ""}
+        <div class="field" style="margin-top: 18px;"><label for="bDate">วันที่ชั่ง</label><input class="input" type="date" id="bDate" value="${st.date}" max="${localIso()}"></div>`;
+      stepper(el.querySelector("#wStep"), st, "weight", 0.1, 20, 300, "กิโลกรัม");
+      el.querySelector("#bDate").onchange = e => { st.date = e.target.value; wzRefresh(); };
+    },
+    valid: st => Number(st.weight) >= 20 && Number(st.weight) <= 300 && !!st.date && st.date <= localIso(),
+    async beforeNext(st) {
+      if (st.prev && Math.abs(Number(st.weight) - st.prev.weight) >= 5) {
+        return await confirmModal("ตรวจสอบตัวเลข", `${fmt1(Number(st.weight))} กก. ต่างจากครั้งก่อน (${fmt1(st.prev.weight)} กก.) ค่อนข้างมาก\nยืนยันว่าถูกต้องใช่ไหมคะ?`, "ถูกต้อง");
+      }
+      return true;
+    }
+  };
+  const STEP_WAIST = {
+    q: "รอบเอววัดได้เท่าไหร่คะ?",
+    sub: "วัดผ่านสะดือ ขณะหายใจออกตามปกติ ถ้าไม่ได้วัดก็ข้ามได้ค่ะ",
+    next: st => st.skipWaist ? "บันทึก (ไม่ใส่รอบเอว)" : "บันทึก",
+    render(el, st) {
+      el.innerHTML = `<div id="waStep" style="opacity: ${st.skipWaist ? 0.35 : 1}; pointer-events: ${st.skipWaist ? "none" : "auto"};"></div>
+        <div style="text-align: center; margin-top: 16px;"><button type="button" class="chip" id="skipW" aria-pressed="${st.skipWaist}">ไม่ได้วัดรอบเอววันนี้</button></div>`;
+      stepper(el.querySelector("#waStep"), st, "waist", 0.5, 30, 250, "เซนติเมตร");
+      el.querySelector("#skipW").onclick = () => { st.skipWaist = !st.skipWaist; rerenderStep(); };
+    },
+    valid: st => st.skipWaist || (Number(st.waist) >= 30 && Number(st.waist) <= 250)
+  };
 
-    // ================== ประวัติ ==================
-    async function loadHistory() {
-      const box = $("historyList");
-      if (historyCache) { renderHistory(historyCache); return; }
-      box.innerHTML = `<div style="text-align: center; color: #94a3b8; padding: 20px;">กำลังโหลดประวัติ...</div>`;
+  async function submitBody(st) {
+    const requestId = newRequestId();
+    const payload = { requestId, date: st.date, weightKg: st.weight, waistCm: st.skipWaist ? "" : st.waist };
+    const firstBefore = bodyEntries().filter(e => e.weight)[0];
+    setPending([...getPending(), { kind: "body", requestId, payload }]);
+    let pendingOnly = false;
+    try {
+      const r = await api("recordBody", payload);
+      removePending(requestId);
+      bodyCache = r.entries || bodyCache;
+    } catch (err) {
+      if (isPermanent(err)) { removePending(requestId); await showModal("บันทึกไม่สำเร็จ", err.message || "กรุณาตรวจสอบข้อมูลค่ะ", "❌"); return; }
+      pendingOnly = true;
+    }
+    const w = Number(st.weight), prev = st.prev;
+    let line = "บันทึกน้ำหนักครั้งแรกแล้ว จุดเริ่มต้นที่ดีค่ะ";
+    if (prev) {
+      const d = w - prev.weight;
+      line = d < -0.05 ? `ลดลง ${fmt1(-d)} กก. จากครั้งก่อน เยี่ยมมากค่ะ` : d > 0.05 ? `เพิ่มขึ้น ${fmt1(d)} กก. ไม่เป็นไรนะคะ ค่อยๆ ไปด้วยกัน` : "เท่ากับครั้งก่อน รักษาไว้ได้ดีมากค่ะ";
+    }
+    let milestone = "";
+    if (firstBefore && w < firstBefore.weight) {
+      const pct = (firstBefore.weight - w) / firstBefore.weight * 100;
+      const prevPct = prev ? (firstBefore.weight - prev.weight) / firstBefore.weight * 100 : 0;
+      const hit = [10, 5].find(t => pct >= t && prevPct < t);
+      if (hit) milestone = `<div class="box-info" style="background: var(--sun-soft); color: #7A5200;">🏅 น้ำหนักลดลงครบ ${hit}% จากครั้งแรกแล้ว!</div>`;
+    }
+    const total = firstBefore ? firstBefore.weight - w : 0;
+    $("doneBody").innerHTML = `
+      <div class="plant-wrap" style="width: 170px;">${plantSVG(injStats().total, { sway: true })}</div>
+      <h1 class="h1">${pendingOnly ? "เก็บไว้ในเครื่องแล้ว" : "บันทึกแล้ว!"}</h1>
+      <p class="lead">${pendingOnly ? "ระบบจะส่งเข้าระบบให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไปค่ะ" : line}</p>
+      ${milestone}
+      <div><span class="stat-pill"><span class="muted small">น้ำหนักวันนี้</span><b>${fmt1(w)} กก.</b></span>
+      ${total > 0.05 ? `<span class="stat-pill"><span class="muted small">ลดไปแล้วทั้งหมด</span><b>${fmt1(total)} กก.</b></span>` : ""}</div>`;
+    showScreen("scrDone");
+  }
+
+  // ================== Wizard: ลงทะเบียน ==================
+  function startRegister() {
+    const state = { hn: "", name: "", phone: "", med: "", height: "", weight: "", waist: "" };
+    const inRange = (v, a, b) => !v || (Number(v) >= a && Number(v) <= b);
+    startWizard({
+      title: "เริ่มต้นใช้งาน", state, noClose: true, onFinish: submitRegister,
+      steps: [
+        { q: "สวัสดีค่ะ 🌱", next: "เริ่มต้นเลย",
+          render(el) {
+            el.innerHTML = `<div style="width: 190px; margin: 0 auto;">${plantSVG(0, { sway: true })}</div>
+              <div class="card" style="line-height: 1.75;">นี่คือ <b>ต้นปัง</b> เพื่อนร่วมทางของคุณ<br>ทุกครั้งที่บันทึกการฉีดยา ต้นปังจะงอกใบใหม่ 🍃<br>ครบ ${BLOOM_AT} เข็มจะออกดอกให้ชม 🌼<br><span class="muted small">ลงทะเบียนครั้งเดียว ใช้เวลาไม่ถึง 1 นาที</span></div>`;
+          } },
+        { q: "ขอทราบชื่อของคุณค่ะ",
+          render(el, st) {
+            el.innerHTML = `<div class="field"><label for="rName">ชื่อ - นามสกุล</label><input class="input" id="rName" autocomplete="name" placeholder="เช่น สมใจ ใจดี" value="${esc(st.name)}"></div>
+              <div class="field"><label for="rHN">เลขประจำตัวผู้ป่วย (HN)</label><input class="input" id="rHN" autocomplete="off" placeholder="เช่น 67-001234" value="${esc(st.hn)}"></div>`;
+            el.querySelector("#rName").oninput = e => { st.name = e.target.value; wzRefresh(); };
+            el.querySelector("#rHN").oninput = e => { st.hn = e.target.value; wzRefresh(); };
+          },
+          valid: st => st.name.trim().length >= 2 && st.hn.trim().length >= 1 },
+        { q: "เบอร์โทรศัพท์ที่ติดต่อได้", sub: "ทีมดูแลจะใช้ติดต่อเมื่อจำเป็นเท่านั้นค่ะ",
+          render(el, st) {
+            el.innerHTML = `<div class="field"><input class="input" id="rPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="เช่น 0812345678" value="${esc(st.phone)}" aria-label="เบอร์โทรศัพท์"></div>`;
+            el.querySelector("#rPhone").oninput = e => { st.phone = e.target.value; wzRefresh(); };
+          },
+          valid: st => st.phone.replace(/[^\d]/g, "").length >= 9 },
+        { q: "ใช้ปากกายาตัวไหนอยู่คะ?",
+          render(el, st) {
+            el.innerHTML = `<div class="opts">${cfg.meds.map(m => `<button type="button" class="opt" data-med="${esc(m.label)}" aria-pressed="${st.med === m.label}">
+                <span class="emoji">🖊️</span><span><div class="t">${esc(m.label.replace(/\s*\(.*\)/, ""))}</div><div class="s">${esc((m.label.match(/\((.*)\)/) || [])[1] || "")}</div></span></button>`).join("")}</div>`;
+            el.querySelectorAll("[data-med]").forEach(b => b.onclick = () => { st.med = b.dataset.med; press(el, "[data-med]", b); wzRefresh(); });
+          },
+          valid: st => !!st.med },
+        { q: "ข้อมูลร่างกายวันเริ่มต้น", sub: "ไม่บังคับ แต่ช่วยให้เห็นความเปลี่ยนแปลงตั้งแต่วันแรกค่ะ",
+          next: st => (st.weight || st.height || st.waist) ? "เสร็จสิ้น" : "ข้ามและเสร็จสิ้น",
+          render(el, st) {
+            el.innerHTML = [["height", "ส่วนสูง (ซม.)", "160"], ["weight", "น้ำหนัก (กก.)", "75.5"], ["waist", "รอบเอว (ซม.)", "90"]].map(([k, l, ph]) =>
+              `<div class="field"><label for="r_${k}">${l}</label><input class="input" id="r_${k}" type="number" inputmode="decimal" placeholder="${ph}" value="${esc(st[k])}"></div>`).join("");
+            ["height", "weight", "waist"].forEach(k => el.querySelector("#r_" + k).oninput = e => { st[k] = e.target.value; wzRefresh(); });
+          },
+          valid: st => inRange(st.height, 100, 250) && inRange(st.weight, 20, 300) && inRange(st.waist, 30, 250) }
+      ]
+    });
+  }
+  async function submitRegister(st) {
+    try {
+      const r = await api("register", { hn: st.hn.trim(), name: st.name.trim(), phone: st.phone.trim(), medication: st.med, heightCm: st.height, weightKg: st.weight, waistCm: st.waist });
+      patient = r.patient; saveCache();
+      historyCache = []; bodyCache = null;
+      $("doneBody").innerHTML = `<div class="plant-wrap">${plantSVG(0, { sway: true })}</div><h1 class="h1">ยินดีต้อนรับค่ะ คุณ${esc(firstName(patient.name))}</h1>
+        <p class="lead">ต้นปังพร้อมเติบโตไปกับคุณแล้ว<br>ฉีดยาเสร็จเมื่อไหร่ กดบันทึกได้เลยนะคะ</p>`;
+      showScreen("scrDone");
+    } catch (err) {
+      await showModal("ลงทะเบียนไม่สำเร็จ", err.name === "AbortError" ? "ระบบตอบสนองช้า กรุณาลองใหม่อีกครั้งค่ะ" : (err.message || "กรุณาลองใหม่อีกครั้งค่ะ"), "❌");
+    }
+  }
+
+  // ================== แท็บน้ำหนัก ==================
+  async function loadBody(silent) {
+    if (bodyLoading) return;
+    bodyLoading = true;
+    try {
+      bodyCache = (await api("body")).entries || [];
+      if (isActive("scrBody")) renderBody();
+      if (isActive("scrHome")) renderHome();
+    } catch (e) {
+      if (!silent && !bodyCache) $("bodyList").innerHTML = `<div class="muted" style="padding: 10px 0;">โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้งค่ะ</div>`;
+      if (!bodyCache) bodyCache = [];
+    } finally { bodyLoading = false; }
+  }
+  function bodyEntries() {
+    const server = bodyCache || [], ids = new Set(server.map(e => e.id));
+    const pend = getPending().filter(p => p.kind === "body" && !ids.has(p.requestId))
+      .map(p => ({ id: p.requestId, date: p.payload.date, weight: Number(p.payload.weightKg) || null, waist: Number(p.payload.waistCm) || null, ts: Date.now(), pending: true }));
+    return server.concat(pend).sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : a.ts - b.ts);
+  }
+  function renderBody() {
+    if (!patient) return;
+    const list = bodyEntries(), ws = list.filter(e => e.weight), was = list.filter(e => e.waist);
+    const lw = ws[ws.length - 1], fw = ws[0], lwa = was[was.length - 1];
+    const tile = (l, v, s) => `<div class="mini"><div class="lbl">${l}</div><div class="val">${v}</div><div class="muted small">${s}</div></div>`;
+    const diff = lw && fw ? lw.weight - fw.weight : 0;
+    $("bodyTiles").innerHTML =
+      tile("น้ำหนักล่าสุด", lw ? `${fmt1(lw.weight)} <small>กก.</small>` : "–", lw ? thaiShort(lw.date) : "ยังไม่มีข้อมูล") +
+      tile("เปลี่ยนแปลงทั้งหมด", ws.length > 1 ? `${diff <= 0 ? "▼" : "▲"} ${fmt1(Math.abs(diff))} <small>กก.</small>` : "–", ws.length > 1 ? `${fmt1(Math.abs(diff / fw.weight * 100))}% ตั้งแต่ ${thaiShort(fw.date)}` : "บันทึก 2 ครั้งขึ้นไป") +
+      tile("BMI", lw && patient.heightCm ? fmt1(lw.weight / Math.pow(patient.heightCm / 100, 2)) : "–", patient.heightCm ? `ส่วนสูง ${fmt1(patient.heightCm)} ซม.` : "ใส่ส่วนสูงที่เมนู ฉัน") +
+      tile("รอบเอวล่าสุด", lwa ? `${fmt1(lwa.waist)} <small>ซม.</small>` : "–", lwa ? thaiShort(lwa.date) : "ยังไม่มีข้อมูล");
+    const pts = (metric === "weight" ? ws : was).map(e => ({ date: e.date, value: e[metric] }));
+    $("chartTitle").innerText = metric === "weight" ? "น้ำหนัก (กก.)" : "รอบเอว (ซม.)";
+    renderLineChart($("bodyChart"), pts, { unit: metric === "weight" ? "กก." : "ซม.", label: metric === "weight" ? "น้ำหนัก" : "รอบเอว" });
+    const rows = list.slice().reverse().slice(0, 60);
+    $("bodyList").innerHTML = rows.length ? rows.map(e => `<div class="li"><div>${thaiDate(e.date)} ${e.pending ? '<span class="tag-pend">รอส่ง</span>' : ""}</div>
+      <div style="text-align: right;">${e.weight ? `<b>${fmt1(e.weight)}</b> กก.` : ""}${e.weight && e.waist ? " · " : ""}${e.waist ? `เอว ${fmt1(e.waist)} ซม.` : ""}</div></div>`).join("")
+      : `<div class="muted" style="padding: 10px 0;">ยังไม่มีรายการ เริ่มบันทึกครั้งแรกได้เลยค่ะ</div>`;
+  }
+  function setMetric(m) { metric = m; $("segW").classList.toggle("on", m === "weight"); $("segWa").classList.toggle("on", m === "waist"); renderBody(); }
+
+  // ================== แท็บประวัติ ==================
+  async function loadHistory(silent) {
+    if (histLoading) return;
+    histLoading = true;
+    try {
+      historyCache = (await api("history")).injections || [];
+      if (isActive("scrHistory")) renderHistory();
+      if (isActive("scrHome")) renderHome();
+    } catch (e) {
+      if (!silent && !historyCache) $("historyList").innerHTML = `<div class="card muted" style="text-align: center;">โหลดประวัติไม่สำเร็จ ลองใหม่อีกครั้งค่ะ</div>`;
+    } finally { histLoading = false; }
+  }
+  function renderHistory() {
+    if (!historyCache) { $("historyList").innerHTML = `<div class="card muted" style="text-align: center;">กำลังโหลดประวัติ...</div>`; return; }
+    const list = historyCache;
+    const pc = getPending().filter(p => p.kind === "injection").length;
+    const note = pc ? `<div class="notice" style="display: block;">⏳ มี ${pc} รายการรอส่งเข้าระบบ จะแสดงที่นี่หลังส่งสำเร็จ</div>` : "";
+    if (!list.length) { $("historyList").innerHTML = note + `<div class="card" style="text-align: center;"><div style="width: 120px; margin: 0 auto;">${plantSVG(0)}</div><div class="muted">ยังไม่มีประวัติ บันทึกเข็มแรกได้จากหน้าหลักค่ะ</div></div>`; return; }
+    const pens = {};
+    list.forEach(it => (pens[it.penNumber] = pens[it.penNumber] || []).push(it));
+    const keys = Object.keys(pens).map(Number).sort((a, b) => b - a);
+    $("historyList").innerHTML = note + keys.map((k, idx) => {
+      const items = pens[k].sort((a, b) => a.doseNumber - b.doseNumber || (a.date > b.date ? 1 : -1));
+      const s = items.find(i => i.penStrength);
+      return `<div class="pen-group"><button type="button" class="pen-head" onclick="togglePen(${k})">
+          <span><span class="h2">🖊️ ด้ามที่ ${k}</span> <span class="muted small">${s ? fmtMg(s.penStrength) + " · " : ""}${items.length} ครั้ง</span></span>
+          <span id="pa${k}" class="muted">${idx === 0 ? "▲" : "▼"}</span></button>
+        <div class="pen-body ${idx === 0 ? "open" : ""}" id="pg${k}">${items.map(d => `
+          <div class="hi ${d.special ? "special" : ""}"><div class="row between"><b>ครั้งที่ ${Number(d.doseNumber)}${d.special ? " ⭐ พิเศษ" : ""}</b><span class="muted small">${d.date ? thaiDate(d.date) : "-"}</span></div>
+            <div class="small">💉 ${d.dose ? fmtMg(d.dose) : "-"} ${d.clicks ? `<span class="muted">(${Number(d.clicks)} คลิก)</span>` : ""} · 📍 ${esc(d.site || "-")}</div>
+            <div class="small muted">อาการ: ${esc(d.sideEffects)}</div>${d.redFlag ? `<div class="hi-red">⚠️ ${esc(d.redFlag)}</div>` : ""}</div>`).join("")}</div></div>`;
+    }).join("");
+  }
+  function togglePen(k) { const o = $("pg" + k).classList.toggle("open"); $("pa" + k).innerText = o ? "▲" : "▼"; }
+
+  // ================== แท็บฉัน ==================
+  function renderMe() {
+    $("meCard").innerHTML = `<div class="row"><div style="width: 70px; flex: none;">${plantSVG(injStats().total)}</div>
+      <div class="grow"><div class="h2">${esc(patient.name)}</div><div class="muted small">HN ${esc(patient.hn || "-")}</div>
+      <div class="small" style="margin-top: 4px;">💊 ${esc(patient.medication)}${patient.currentDose ? ` · ${fmtMg(patient.currentDose)}` : ""}</div>
+      ${patient.doctor ? `<div class="muted small">แพทย์: ${esc(patient.doctor)}</div>` : ""}</div></div>`;
+    $("setNotify").checked = patient.notify !== false;
+    $("setPhone").value = patient.phone || "";
+    $("setHeight").value = patient.heightCm || "";
+  }
+  $("btnSaveSettings").addEventListener("click", async () => {
+    const b = $("btnSaveSettings"); b.disabled = true; b.innerText = "กำลังบันทึก...";
+    try {
+      const r = await api("updateSettings", { notify: $("setNotify").checked, phone: $("setPhone").value.trim(), heightCm: $("setHeight").value });
+      patient = reapplyPending(r.patient); saveCache(); renderMe();
+      showModal("บันทึกเรียบร้อยค่ะ", "อัปเดตการตั้งค่าแล้ว", "⚙️");
+    } catch (err) { showModal("บันทึกไม่สำเร็จ", err.code ? err.message : "เชื่อมต่อไม่ได้ กรุณาลองใหม่ค่ะ", "❌"); }
+    finally { b.disabled = false; b.innerText = "บันทึกการตั้งค่า"; }
+  });
+
+  // ================== กราฟเส้น ==================
+  function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= raw) return m * p; return 10 * p; }
+  function renderLineChart(el, points, opt) {
+    el.innerHTML = "";
+    if (!points.length) { el.innerHTML = `<div class="chart-empty">ยังไม่มีข้อมูล${opt.label}</div>`; return; }
+    const W = Math.max(220, el.clientWidth || 320), H = 190, pad = { l: 38, r: 14, t: 14, b: 26 };
+    const xs = points.map(p => isoUtc(p.date));
+    let x0 = Math.min(...xs), x1 = Math.max(...xs); if (x0 === x1) { x0 -= 3 * 864e5; x1 += 3 * 864e5; }
+    const vals = points.map(p => p.value), vmin = Math.min(...vals), vmax = Math.max(...vals);
+    const step = niceStep(Math.max(vmax - vmin, 2) / 4);
+    let y0 = Math.floor((vmin - step * 0.5) / step) * step, y1 = Math.ceil((vmax + step * 0.5) / step) * step;
+    if (y1 - y0 < step * 2) y1 = y0 + step * 2;
+    const sx = v => pad.l + (v - x0) / (x1 - x0) * (W - pad.l - pad.r), sy = v => pad.t + (1 - (v - y0) / (y1 - y0)) * (H - pad.t - pad.b);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("width", W); svg.setAttribute("height", H);
+    svg.style.width = "100%"; svg.style.height = "auto"; svg.style.display = "block";
+    svg.setAttribute("role", "img"); svg.setAttribute("aria-label", `กราฟ${opt.label} ${points.length} ครั้ง ล่าสุด ${points[points.length - 1].value} ${opt.unit}`);
+    let h = ""; const dec = step < 1 ? 1 : 0;
+    for (let v = y0; v <= y1 + 1e-9; v += step) { const y = sy(v); h += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}" stroke="#E2EFE6"/><text x="${pad.l - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#6F887C">${v.toFixed(dec)}</text>`; }
+    const li = new Set([0, points.length - 1]); if (points.length >= 3 && W > 340) li.add(Math.floor((points.length - 1) / 2));
+    [...li].forEach(i => { const a = i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"; h += `<text x="${Math.min(Math.max(sx(xs[i]), pad.l), W - pad.r)}" y="${H - 8}" text-anchor="${a}" font-size="10" fill="#6F887C">${thaiShort(points[i].date)}</text>`; });
+    const path = points.map((p, i) => `${i ? "L" : "M"}${sx(xs[i]).toFixed(1)},${sy(p.value).toFixed(1)}`).join(" ");
+    h += `<path d="${path} L${sx(xs[xs.length - 1]).toFixed(1)},${H - pad.b} L${sx(xs[0]).toFixed(1)},${H - pad.b} Z" fill="rgba(46,154,91,0.08)"/>`;
+    h += `<path d="${path}" fill="none" stroke="#2E9A5B" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    h += `<line class="g" y1="${pad.t}" y2="${H - pad.b}" stroke="#9DB8A9" stroke-dasharray="3 3" visibility="hidden"/>`;
+    points.forEach((p, i) => { h += `<circle cx="${sx(xs[i])}" cy="${sy(p.value)}" r="4" fill="#2E9A5B" stroke="#fff" stroke-width="2"/>`; });
+    h += `<circle class="h" r="6" fill="#0B5C36" stroke="#fff" stroke-width="2" visibility="hidden"/><rect class="hit" x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent"/>`;
+    svg.innerHTML = h; el.appendChild(svg);
+    const tip = document.createElement("div"); tip.className = "chart-tip"; el.appendChild(tip);
+    const g = svg.querySelector(".g"), hi = svg.querySelector(".h");
+    const show = ev => {
+      const r = svg.getBoundingClientRect(), mx = (ev.clientX - r.left) * (W / r.width);
+      let best = 0, bd = Infinity; xs.forEach((x, i) => { const d = Math.abs(sx(x) - mx); if (d < bd) { bd = d; best = i; } });
+      const px = sx(xs[best]), py = sy(points[best].value), sc = r.width / W;
+      g.setAttribute("x1", px); g.setAttribute("x2", px); g.setAttribute("visibility", "visible");
+      hi.setAttribute("cx", px); hi.setAttribute("cy", py); hi.setAttribute("visibility", "visible");
+      tip.innerText = `${thaiDate(points[best].date)} · ${fmt1(points[best].value)} ${opt.unit}`; tip.style.display = "block";
+      tip.style.left = Math.min(Math.max(px * sc, 70), r.width - 70) + "px"; tip.style.top = py * sc + "px";
+    };
+    const hide = () => { tip.style.display = "none"; g.setAttribute("visibility", "hidden"); hi.setAttribute("visibility", "hidden"); };
+    const hit = svg.querySelector(".hit"); hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", hide);
+  }
+  let rsz = null;
+  window.addEventListener("resize", () => { clearTimeout(rsz); rsz = setTimeout(() => { if (isActive("scrBody")) renderBody(); }, 200); });
+
+  // ================== เริ่มต้น / ซิงก์ ==================
+  async function initApp() {
+    $("loadingPlant").innerHTML = plantSVG(3, { sway: true });
+    if (DEBUG) {
+      $("debugBadge").style.display = "block";
+      uid = lsGet("smu_test_uid") || ("U_TEST_" + Math.floor(100000 + Math.random() * 900000));
+      lsSet("smu_test_uid", uid);
+    } else {
       try {
-        const r = await api("history");
-        historyCache = r.injections || [];
-        renderHistory(historyCache);
+        await withTimeout(liff.init({ liffId: LIFF_ID }), 12000);
+        if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+        uid = (await withTimeout(liff.getProfile(), 10000)).userId;
+      } catch (e) { console.warn("LIFF:", e); showError("เชื่อมต่อ LINE ไม่สำเร็จ", "กรุณาปิดหน้านี้แล้วเปิดใหม่ผ่านเมนูใน LINE ของศูนย์ฯ ค่ะ"); return; }
+    }
+    const cached = loadCache();
+    if (cached) { cfg = cached.cfg; patient = reapplyPending(cached.patient); goTab("home"); }
+    await syncWithServer();
+  }
+
+  async function syncWithServer() {
+    const res = await flushPending();
+    if (res.unauthorized) { showError("ยืนยันตัวตนไม่สำเร็จ", "กรุณาปิดหน้านี้แล้วเปิดใหม่ผ่าน LINE ค่ะ"); return; }
+    try {
+      const r = await api("bootstrap", {}, 30000);
+      cfg = r.config;
+      if (r.patient && r.patient.found) {
+        patient = reapplyPending(r.patient); saveCache();
+        if (!sending && !isActive("scrWizard") && !isActive("scrDone")) goTab(currentTab);
+      } else { patient = null; startRegister(); }
+    } catch (err) {
+      if (err.code === "unauthorized") { showError("ยืนยันตัวตนไม่สำเร็จ", "กรุณาปิดหน้านี้แล้วเปิดใหม่ผ่าน LINE ค่ะ"); return; }
+      if (patient) renderNotice("📡 เชื่อมต่อระบบไม่ได้ ขณะนี้แสดงข้อมูลล่าสุดในเครื่อง");
+      else showError("เชื่อมต่อระบบไม่สำเร็จ", "กรุณาตรวจสอบสัญญาณอินเทอร์เน็ตแล้วลองใหม่อีกครั้งค่ะ");
+    }
+    if (res.dropped > 0) showModal("มีรายการที่ส่งไม่ได้", `มี ${res.dropped} รายการที่ระบบบันทึกไม่ได้ (ข้อมูลไม่ถูกต้อง)\nกรุณาบันทึกใหม่ หรือติดต่อเจ้าหน้าที่ค่ะ`, "⚠️");
+  }
+
+  async function flushPending() {
+    const out = { dropped: 0, unauthorized: false };
+    for (const it of getPending()) {
+      try {
+        await api(it.kind === "injection" ? "recordInjection" : "recordBody", it.payload);
+        removePending(it.requestId); historyCache = null; bodyCache = null;
       } catch (err) {
-        box.innerHTML = `<div style="color: #b91c1c; text-align: center; font-size: 0.8rem; padding: 16px;">โหลดประวัติไม่สำเร็จ กรุณาลองใหม่อีกครั้งค่ะ</div>`;
+        if (isPermanent(err)) { removePending(it.requestId); out.dropped++; }
+        else { if (err.code === "unauthorized") out.unauthorized = true; break; }
       }
     }
+    return out;
+  }
 
-    function renderHistory(list) {
-      const box = $("historyList");
-      const pendingCount = getPending().filter(p => p.kind === "injection").length;
-      const note = pendingCount ? `<div class="hint" style="text-align: center; margin-bottom: 10px;">⏳ มี ${pendingCount} รายการที่รอส่งเข้าระบบ จะแสดงที่นี่หลังส่งสำเร็จ</div>` : "";
-      if (!list.length) { box.innerHTML = note + `<div style="text-align: center; color: #94a3b8; padding: 24px;">ยังไม่มีประวัติการฉีดยาค่ะ</div>`; return; }
+  async function retrySync() {
+    const b = $("noticeBtn"); b.disabled = true; b.innerText = "กำลังส่ง...";
+    await syncWithServer();
+    b.disabled = false; b.innerText = "📤 ส่งอีกครั้ง";
+    if (patient) { renderNotice(); if (isActive("scrHome")) renderHome(); }
+  }
 
-      const pens = {};
-      list.forEach(it => { (pens[it.penNumber] = pens[it.penNumber] || []).push(it); });
-      const keys = Object.keys(pens).map(Number).sort((a, b) => b - a);
-
-      box.innerHTML = note + keys.map((k, idx) => {
-        const items = pens[k].sort((a, b) => a.doseNumber - b.doseNumber || (a.date > b.date ? 1 : -1));
-        const strength = items.find(i => i.penStrength);
-        return `
-          <div class="pen-group">
-            <button type="button" class="pen-group-header" onclick="togglePen(${k})">
-              <span style="font-size: 0.92rem; font-weight: 600; color: #0f172a;">🖋️ ปากกาด้ามที่ ${k}
-                <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">${strength ? "(" + fmtMg(strength.penStrength) + ") " : ""}${items.length} ครั้ง</span></span>
-              <span id="penArrow${k}" style="font-size: 0.85rem; color: #64748b;">${idx === 0 ? "▲" : "▼"}</span>
-            </button>
-            <div id="penGroup${k}" class="pen-group-content ${idx === 0 ? "open" : ""}">
-              ${items.map(d => `
-                <div class="h-item ${d.special ? "special" : ""}">
-                  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px;">
-                    <strong style="color: ${d.special ? "#b45309" : "var(--primary)"}; font-size: 0.9rem;">ครั้งที่ ${Number(d.doseNumber)}${d.special ? " ⭐ พิเศษ" : ""}</strong>
-                    <span class="muted">${d.date ? escapeHtml(thaiDate(d.date)) : "-"}</span>
-                  </div>
-                  <div style="font-size: 0.83rem; color: #1e293b; margin-bottom: 2px;">💉 ${d.dose ? escapeHtml(fmtMg(d.dose)) : "-"}
-                    ${d.clicks ? `<span class="muted">(${Number(d.clicks)} คลิก)</span>` : ""}</div>
-                  <div style="font-size: 0.78rem; color: #475569;">📍 ${escapeHtml(d.site || "-")} • อาการ: ${escapeHtml(d.sideEffects)}</div>
-                  ${d.redFlag ? `<div class="h-red">⚠️ อาการเฝ้าระวัง: ${escapeHtml(d.redFlag)}</div>` : ""}
-                </div>`).join("")}
-            </div>
-          </div>`;
-      }).join("");
-    }
-
-    function togglePen(k) {
-      const open = $("penGroup" + k).classList.toggle("open");
-      $("penArrow" + k).innerText = open ? "▲" : "▼";
-    }
-
-    // ================== ตั้งค่า ==================
-    function openSettings() {
-      $("setNotify").checked = patient.notify !== false;
-      $("setPhone").value = patient.phone || "";
-      $("setHeight").value = patient.heightCm || "";
-      $("settingsModal").style.display = "flex";
-    }
-    function closeSettings() { $("settingsModal").style.display = "none"; }
-
-    $("btnSaveSettings").addEventListener("click", async () => {
-      const btn = $("btnSaveSettings");
-      btn.disabled = true; btn.innerText = "กำลังบันทึก...";
-      try {
-        const r = await api("updateSettings", {
-          notify: $("setNotify").checked, phone: $("setPhone").value.trim(), heightCm: $("setHeight").value
-        });
-        patient = reapplyPending(r.patient);
-        saveCache();
-        closeSettings();
-        renderMain();
-        showModal("บันทึกเรียบร้อยค่ะ", "อัปเดตการตั้งค่าแล้ว", "⚙️");
-      } catch (err) {
-        showModal("บันทึกไม่สำเร็จ", err.code ? err.message : "เชื่อมต่อไม่ได้ กรุณาลองใหม่ค่ะ", "❌");
-      } finally {
-        btn.disabled = false; btn.innerText = "บันทึก";
-      }
-    });
-
-    window.addEventListener("DOMContentLoaded", initApp);
-  </script>
+  window.addEventListener("DOMContentLoaded", initApp);
+</script>
 </body>
 </html>
