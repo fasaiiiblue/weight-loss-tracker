@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#EAF6EE">
-  <title>ยาเป๊ะ หุ่นปัง</title>
+  <title>Shape me up Center</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
@@ -64,8 +64,22 @@
       background: linear-gradient(160deg, #FFFFFF 0%, #F1FAF4 100%); }
     .garden .count { font-family: var(--head); font-size: 2.3rem; font-weight: 600; color: var(--forest); line-height: 1; }
     .garden .count small { font-size: 1rem; font-weight: 500; }
-    .streak { display: inline-flex; align-items: center; gap: 6px; background: var(--sun-soft); color: #7A5200; border-radius: 99px;
-      padding: 4px 11px; font-size: 0.8rem; font-weight: 500; margin-top: 8px; }
+    .garden > .plant-col { align-self: end; }
+    .say { grid-column: 1 / -1; position: relative; background: #fff; border: 1.5px solid #CFEBD9; border-radius: 18px;
+      padding: 10px 14px 9px; margin-bottom: 8px; font-size: 0.93rem; line-height: 1.6; color: var(--ink); text-align: left; width: 100%;
+      box-shadow: 0 4px 12px rgba(46, 154, 91, 0.08); font-family: inherit; }
+    .say::after { content: ""; position: absolute; left: 54px; bottom: -9px; width: 16px; height: 16px; background: #fff;
+      border-right: 1.5px solid #CFEBD9; border-bottom: 1.5px solid #CFEBD9; transform: rotate(45deg); border-bottom-right-radius: 4px; }
+    .say .who { font-size: 0.76rem; color: var(--forest); font-weight: 500; display: block; margin-bottom: 1px; }
+    .say .more { font-size: 0.72rem; color: var(--muted); }
+    .say.fade { animation: sayIn .35s ease; }
+    @keyframes sayIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .name-btn { background: none; border: none; padding: 2px 0; font: inherit; color: var(--muted); display: inline-flex; gap: 4px; align-items: center; text-align: left; }
+    .name-btn b { color: var(--forest); font-weight: 500; }
+    .name-btn .pen { font-size: 0.8rem; background: var(--mint); border-radius: 999px; padding: 1px 7px; color: var(--forest); }
+    .modal-input { margin: 4px 0 14px; }
+    .med-line { grid-column: 1 / -1; background: var(--mint); color: var(--forest); border-radius: 14px; padding: 8px 12px;
+      font-size: 0.88rem; font-weight: 500; margin-top: 4px; }
     .due { display: grid; grid-template-columns: 74px 1fr; gap: 14px; align-items: center; }
     .due.today { background: linear-gradient(150deg, #FFF8E3 0%, #FFFFFF 70%); }
     .due.over { background: linear-gradient(150deg, var(--red-bg) 0%, #FFFFFF 70%); }
@@ -223,7 +237,7 @@
     @keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
 
     @media (prefers-reduced-motion: reduce) {
-      .wz-content, .pop, .bloom, .spark, .sway, .modal { animation: none !important; }
+      .wz-content, .pop, .bloom, .spark, .sway, .modal, .say.fade { animation: none !important; }
     }
     @media (max-width: 360px) {
       .garden { grid-template-columns: 108px 1fr; }
@@ -239,7 +253,7 @@
     <div class="loader">
       <div>
         <div style="width: 150px; margin: 0 auto;" id="loadingPlant"></div>
-        <div class="h2" style="margin-top: 8px;">ยาเป๊ะ หุ่นปัง</div>
+        <div class="h2" style="margin-top: 8px;">Shape me up Center</div>
         <div class="muted">กำลังเตรียมข้อมูลของคุณ...</div>
       </div>
     </div>
@@ -367,7 +381,10 @@
   const EPS = 1e-9;
   const PERMANENT = ["invalid", "not_registered", "invalid_action"];
   const SITES = ["หน้าท้องบนขวา", "หน้าท้องบนซ้าย", "หน้าท้องล่างซ้าย", "หน้าท้องล่างขวา"];
-  const MASCOT = "น้องปังๆ";
+  const DEFAULT_PLANT = "น้องปังปัง";
+  const PLANT_MAX = 20;
+  // ชื่อน้องต้นไม้ที่ผู้ป่วยตั้งเอง (ถ้าไม่ตั้ง = น้องปังปัง)
+  function mascot() { const n = patient && String(patient.plantName || "").trim(); return n || DEFAULT_PLANT; }
 
   let uid = "", cfg = null, patient = null;
   let historyCache = null, bodyCache = null;
@@ -474,7 +491,7 @@
     const m = medCfg();
     if (!p.lastPenNumber || !p.lastDoseNumber) return { status: "fresh" };
     const penMg = Number(p.penStrength);
-    if (!penMg || !isValidPenMg(m, penMg)) return { status: "mustNew", reason: "ขนาดปากกาเดิมไม่ตรงกับยาปัจจุบัน จึงเริ่มด้ามใหม่ให้ค่ะ" };
+    if (!penMg || !isValidPenMg(m, penMg)) return { status: "mustNew", reason: "เปลี่ยนชนิดยาแล้ว จึงเริ่มนับปากกาด้ามใหม่ให้ค่ะ" };
     if (p.penSpecialUsed) return { status: "mustNew", reason: `ด้ามที่ ${p.lastPenNumber} ใช้ครั้งพิเศษไปแล้ว จึงเริ่มด้ามใหม่ให้ค่ะ` };
     const remaining = capacity(m) - (Number(p.penUsedClicks) || 0);
     const fits = penOptions(m, penMg).filter(o => o.clicks <= remaining);
@@ -526,16 +543,23 @@
     return scheduleNext(patient.anchorDate || patient.lastInjectedDate, patient.intervalDays || 7, date, iv);
   }
   function dueDate() { return patient.nextDueDate || (patient.lastInjectedDate ? addDaysIso(patient.lastInjectedDate, patient.intervalDays || 7) : ""); }
-  // จำนวนปากกาที่ใช้ครบแล้ว = จำนวนดอกของน้องปังๆ
+  // จำนวนปากกาที่ใช้ครบแล้ว = จำนวนดอกของน้องปังปัง
   function completedPens(p = patient) {
-    if (!p || !p.lastPenNumber || !medCfg()) return 0;
-    const st = penState(p);
-    return (p.lastPenNumber - 1) + (st.status === "full" || p.penSpecialUsed ? 1 : 0);
+    if (!p || !p.lastPenNumber || !cfg) return 0;
+    return (p.lastPenNumber - 1) + (p.penSpecialUsed || penIsFull(p) ? 1 : 0);
+  }
+  // ด้ามล่าสุดใช้ครบหรือยัง (ดูจากยาของด้ามนั้นเอง รองรับกรณีเปลี่ยนชนิดยา)
+  function penIsFull(p) {
+    const mg = Number(p.penStrength);
+    const m = cfg.meds.find(x => isValidPenMg(x, mg));
+    if (!m) return false;
+    const remaining = capacity(m) - (Number(p.penUsedClicks) || 0);
+    return !penOptions(m, mg).some(o => o.clicks <= remaining);
   }
 
   function reapplyPending(sp) { return getPending().filter(r => r.kind === "injection").reduce((a, r) => applyRecord(a, r.payload), sp); }
 
-  // ================== น้องปังๆ (มาสคอต) ==================
+  // ================== น้องปังปัง (มาสคอต) ==================
   // n = จำนวนเข็มที่บันทึก (ใบงอกเพิ่มทีละใบ), flowers = จำนวนปากกาที่ใช้ครบ (1 ด้าม = 1 ดอก)
   function plantSVG(n, flowers = 0, opts = {}) {
     const grow = !!opts.grow, newFlower = !!opts.newFlower, sway = !!opts.sway;
@@ -573,7 +597,9 @@
     }
     const sparks = (grow || newFlower) ? `<g fill="#FFC845"><path class="spark" d="M30 50 l3 -8 3 8 8 3 -8 3 -3 8 -3 -8 -8 -3z"/><path class="spark" style="animation-delay:.75s" d="M128 36 l2 -6 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2z"/><circle class="spark" style="animation-delay:.6s" cx="124" cy="78" r="4"/></g>` : "";
     const badge = flowers > 8 ? `<g transform="translate(118 128)"><rect x="-20" y="-12" width="40" height="22" rx="11" fill="#FFF3D1"/><text x="0" y="4" text-anchor="middle" font-size="12" font-family="Mitr, sans-serif" fill="#7A5200">🌼${flowers}</text></g>` : "";
-    return `<svg viewBox="0 0 160 170" width="100%" role="img" aria-label="${MASCOT} ${n} ใบ ${flowers} ดอก">${sparks}
+    // ขยายกรอบด้านบนตามความสูงต้น เพื่อไม่ให้ดอกบนยอดหลุดกรอบการ์ด
+    const vbTop = stemH === 0 ? 0 : Math.min(0, Math.floor(top - 6 - 22));
+    return `<svg viewBox="0 ${vbTop} 160 ${170 - vbTop}" width="100%" style="display:block;overflow:hidden" role="img" aria-label="${esc(mascot())} ${n} ใบ ${flowers} ดอก">${sparks}
       <g class="${sway ? "sway" : ""}">${g}</g>
       <ellipse cx="80" cy="113" rx="40" ry="7" fill="#7A5638"/>
       <path d="M38 112 H122 L112 162 Q111 167 106 167 H54 Q49 167 48 162 Z" fill="#F4D7A4"/>
@@ -600,11 +626,108 @@
     const pend = getPending().filter(p => p.kind === "injection").map(p => ({ date: p.payload.actualDate, interval: p.payload.intervalDays }));
     const all = (historyCache || []).map(e => ({ date: e.date, interval: e.interval || 7 })).concat(pend).filter(e => e.date)
       .sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
-    let streak = all.length ? 1 : 0;
-    for (let i = all.length - 1; i > 0; i--) {
-      if (diffDays(all[i].date, all[i - 1].date) <= (all[i - 1].interval || 7) + 3) streak++; else break;
+    return { total: all.length };
+  }
+
+  // ================== คำพูดจากน้องต้นไม้ (เปลี่ยนทุกวัน) ==================
+  const QUOTES = [
+    "ทุกก้าวเล็ก ๆ ที่คุณทำวันนี้ คือปุ๋ยชั้นดีของวันพรุ่งนี้นะ 🌱",
+    "ไม่ต้องสมบูรณ์แบบ แค่ไม่ยอมแพ้ก็เก่งมากแล้ว",
+    "ตัวเลขบนตาชั่งไม่ได้บอกทุกอย่าง ความตั้งใจของคุณสำคัญกว่านะ",
+    "วันไหนเหนื่อย พักได้นะ แต่อย่าเพิ่งเลิก",
+    "ต้นไม้ไม่ได้โตในวันเดียว คุณก็เหมือนกัน ค่อย ๆ ไปด้วยกันนะ",
+    "ภูมิใจในตัวเองบ้างนะ คุณมาไกลกว่าที่คิดแล้ว",
+    "ถ้าเมื่อวานพลาดไปบ้าง วันนี้เริ่มใหม่ได้เสมอ",
+    "ใจดีกับตัวเอง เหมือนที่คุณใจดีกับคนที่คุณรักนะ",
+    "การดูแลตัวเองไม่ใช่ความเห็นแก่ตัว แต่คือการรักตัวเอง 💚",
+    "ร่างกายของคุณพยายามอยู่ทุกวัน ลองขอบคุณมันสักหน่อยนะ",
+    "เทียบกับตัวเองเมื่อวานก็พอ ไม่ต้องเทียบกับใคร",
+    "เรื่องดี ๆ เล็ก ๆ ที่ทำทุกวัน ชนะความพยายามหนัก ๆ แค่ครั้งเดียว",
+    "กินช้า ๆ เคี้ยวให้ละเอียด ให้ร่างกายได้บอกว่าอิ่มแล้วนะ",
+    "มื้อนี้ลองเติมผักอีกนิดไหม ฉันชอบสีเขียวเป็นพิเศษ 🥦",
+    "ดื่มน้ำเปล่าให้พอนะ ฉันเองก็ต้องการน้ำทุกวันเหมือนกัน 💧",
+    "มีโปรตีนดี ๆ ในทุกมื้อ ช่วยให้อิ่มนานขึ้นนะ 🥚",
+    "อิ่มแล้วหยุดได้นะ ไม่จำเป็นต้องทานจนหมดจาน",
+    "ขนมไม่ใช่ศัตรู ทานแต่พอดี แล้วไม่ต้องรู้สึกผิดนะ",
+    "วันนี้ลองเปลี่ยนน้ำหวานเป็นน้ำเปล่าหรือชาไม่หวานสักแก้วดูไหม",
+    "ทานทีละน้อย ช้า ๆ จะช่วยให้สบายท้องขึ้นนะ",
+    "ก่อนหยิบของกิน ลองถามใจดูก่อนว่าหิวจริง หรือแค่เบื่อ",
+    "เตรียมของว่างดี ๆ ไว้ใกล้ตัว เช่น ผลไม้หรือถั่ว ช่วยได้เยอะเลย",
+    "ลองทานข้าวโดยไม่ดูจอ จะรู้รสชาติและรู้ตัวตอนอิ่มได้ดีขึ้น",
+    "ไม่ต้องอด แค่เลือกให้ดีขึ้นทีละมื้อก็พอ",
+    "เลือกอาหารให้ตัวเอง เหมือนเลือกปุ๋ยให้ต้นไม้ ร่างกายจะตอบแทนคุณเอง",
+    "ลุกขึ้นยืดเส้นยืดสายสักหน่อยไหม ฉันก็ชอบเอนไปมาตามลม 🍃",
+    "เดินเพิ่มอีกนิดวันนี้ ขึ้นบันไดแทนลิฟต์ก็นับนะ",
+    "นอนให้พอนะ ร่างกายได้พักฟื้นตอนหลับ 😴",
+    "แดดอ่อน ๆ ยามเช้ากับการเดินสั้น ๆ ช่วยให้ทั้งวันสดใส ☀️",
+    "เครียดแล้วอยากกิน? หายใจลึก ๆ ช้า ๆ สักสามครั้งก่อนนะ",
+    "ขยับร่างกายแบบที่คุณสนุก จะทำได้นานกว่าแบบที่ฝืน",
+    "ออกกำลังเสริมกล้ามเนื้อบ้าง ร่างกายจะแข็งแรงขึ้นนะ 💪",
+    "วางโทรศัพท์ก่อนนอนสักหน่อย จะได้หลับสบายขึ้น",
+    "นั่งนาน ๆ แล้ว ลุกเดินสักนิด ให้ร่างกายได้ขยับนะ",
+    "ลองเดินเล่นหลังมื้อเย็นสักสิบนาที สบายท้องและสบายใจ",
+    "เป้าหมายใหญ่ เริ่มจากเป้าหมายเล็ก ๆ ที่ทำได้ในวันนี้",
+    "จดบันทึกสม่ำเสมอ แล้วคุณจะเห็นว่าเดินมาไกลแค่ไหน 📒",
+    "ทางอาจไม่ตรงเสมอ แต่ถ้าไม่หยุดเดิน ยังไงก็ไปถึง",
+    "นึกถึงเหตุผลที่คุณเริ่มต้น แล้วเดินต่ออีกวันนะ",
+    "ความสม่ำเสมอ สำคัญกว่าความเร็ว",
+    "อีกไม่นาน คุณจะขอบคุณตัวเองในวันนี้",
+    "น้ำหนักนิ่งบ้างเป็นเรื่องธรรมดา อย่าเพิ่งท้อนะ",
+    "ฉลองความสำเร็จเล็ก ๆ ด้วยนะ เช่น เสื้อตัวเดิมที่ใส่สบายขึ้น 🎉",
+    "ฉีดยาตรงนัด บันทึกสม่ำเสมอ แล้วฉันจะโตไปพร้อมคุณ 🌼",
+    "มีคำถามเรื่องยาหรืออาการ ถามทีมดูแลได้เสมอนะ คุณไม่ได้เดินคนเดียว",
+    "ทุกเข็มที่บันทึก คือใบใหม่ที่ฉันได้งอก ขอบคุณที่ดูแลกันนะ 🍃",
+    "สุขภาพที่ดีคือปลายทาง ตัวเลขเป็นแค่เข็มทิศนำทาง",
+    "คุณไม่ได้ช้า คุณแค่เดินในจังหวะของตัวเอง",
+    "ไม่มีวันไหนสายเกินไป สำหรับการเริ่มดูแลตัวเอง",
+    "รอยยิ้มของคุณวันนี้ ทำให้ฉันอยากออกดอกเร็ว ๆ เลย 🌼",
+    "เหนื่อยก็บอกกันได้นะ ฉันอยู่ตรงนี้เสมอ",
+    "ความอดทนวันนี้ คือดอกไม้ที่จะบานในวันข้างหน้า",
+    "ร่างกายต้องใช้เวลาเปลี่ยนแปลง ให้เวลามันหน่อยนะ",
+    "เพิ่มอาหารธรรมชาติอีกนิด ลดอาหารแปรรูปลงสักหน่อย ดีต่อใจและกาย",
+    "เก่งมากที่ยังอยู่ตรงนี้ และยังพยายามอยู่ทุกวัน",
+    "พรุ่งนี้ฉันมีเรื่องใหม่มาเล่าให้ฟังอีกนะ แวะมาหากันบ่อย ๆ 🌱"
+  ];
+  let quoteOffset = 0;
+  // เลือกคำพูดตามวันที่ (ทุกคนเห็นประโยคเดียวกันในวันเดียวกัน แตะเพื่อฟังประโยคถัดไป)
+  function quoteOfDay(offset = 0) {
+    const day = Math.floor(isoUtc(localIso()) / 864e5);
+    const i = (((day * 17 + offset * 17) % QUOTES.length) + QUOTES.length) % QUOTES.length;
+    return QUOTES[i];
+  }
+  function sayHtml() {
+    return `<span class="who">🌱 ${esc(mascot())} บอกว่า…</span>${esc(quoteOfDay(quoteOffset))}<br><span class="more">แตะเพื่อฟังอีกประโยค</span>`;
+  }
+
+  // ================== ตั้งชื่อน้องต้นไม้ ==================
+  function askPlantName(current) {
+    return new Promise(resolve => {
+      const box = document.createElement("div");
+      box.className = "modal-input";
+      box.innerHTML = `<input class="input" id="plantNameIn" maxlength="${PLANT_MAX}" placeholder="${DEFAULT_PLANT}" value="${esc(current)}" aria-label="ชื่อต้นไม้">
+        <div class="muted small" style="margin-top: 6px;">ไม่เกิน ${PLANT_MAX} ตัวอักษร · เว้นว่างไว้ = ${DEFAULT_PLANT}</div>`;
+      $("mBtns").before(box);
+      const done = v => { box.remove(); resolve(v); };
+      showModal("ตั้งชื่อต้นไม้ของคุณ", "อยากเรียกเพื่อนตัวน้อยคนนี้ว่าอะไรดีคะ? 🌱", "🪴", [
+        { label: "บันทึกชื่อ", primary: true, value: "save" }, { label: "ยกเลิก", value: null }
+      ]).then(r => done(r === "save" ? $("plantNameIn").value : null));
+      setTimeout(() => { const i = $("plantNameIn"); if (i) i.focus(); }, 50);
+    });
+  }
+  function normPlantName(v) { return String(v || "").replace(/[<>\\{}|=]/g, "").replace(/\s+/g, " ").trim().slice(0, PLANT_MAX); }
+  async function renamePlant() {
+    const raw = await askPlantName(patient.plantName || "");
+    if (raw === null) return;
+    const name = normPlantName(raw);
+    if (name === (patient.plantName || "")) return;
+    try {
+      const r = await api("updateSettings", { plantName: name });
+      patient = reapplyPending(r.patient); saveCache();
+      if (currentTab === "me" && isActive("scrMe")) renderMe(); else renderHome();
+      showModal(`สวัสดี ${mascot()} 🌱`, name ? `ต่อไปนี้ต้นไม้ของคุณชื่อ "${mascot()}" แล้วค่ะ` : `กลับมาใช้ชื่อ ${DEFAULT_PLANT} แล้วค่ะ`, "🪴");
+    } catch (err) {
+      showModal("ตั้งชื่อไม่สำเร็จ", err.code ? err.message : "เชื่อมต่อไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ", "❌");
     }
-    return { total: all.length, streak };
   }
 
   // ================== หน้าหลัก ==================
@@ -620,13 +743,16 @@
     const n = st ? st.total : 0;
     const fl = completedPens();
     $("garden").innerHTML = `
-      <div>${plantSVG(n, fl, { sway: true })}</div>
+      <button type="button" class="say fade" id="sayBox" aria-live="polite">${sayHtml()}</button>
+      <div class="plant-col">${plantSVG(n, fl, { sway: true })}</div>
       <div style="padding-bottom: 10px;">
-        <div class="muted">${MASCOT}ของคุณ</div>
+        <button type="button" class="name-btn" id="btnPlantName" aria-label="ตั้งชื่อต้นไม้"><span><b>${esc(mascot())}</b>ของคุณ</span><span class="pen">✏️</span></button>
         <div class="count">${st ? st.total : "–"} <small>เข็ม</small></div>
-        <div class="muted small">${!st ? "กำลังโหลด..." : n === 0 ? `บันทึกเข็มแรก แล้ว${MASCOT}จะเริ่มงอก` : fl ? `ออกดอกแล้ว ${fl} ดอก 🌼 (ใช้ปากกาครบ ${fl} ด้าม)` : `ใช้ปากกาครบ 1 ด้าม ${MASCOT}จะออกดอกแรก 🌼`}</div>
-        ${st && st.streak >= 2 ? `<div class="streak">🔥 ฉีดตรงนัดติดกัน ${st.streak} ครั้ง</div>` : ""}
-      </div>`;
+        <div class="muted small">${!st ? "กำลังโหลด..." : n === 0 ? `บันทึกเข็มแรก แล้ว${esc(mascot())}จะเริ่มงอก` : fl ? `ออกดอกแล้ว ${fl} ดอก 🌼 (ใช้ปากกาครบ ${fl} ด้าม)` : `ใช้ปากกาครบ 1 ด้าม ${esc(mascot())}จะออกดอกแรก 🌼`}</div>
+      </div>
+      <div class="med-line">💊 ${esc(patient.medication || "-")}${patient.currentDose ? ` · ${fmtMg(patient.currentDose)}` : ""}</div>`;
+    $("btnPlantName").onclick = renamePlant;
+    $("sayBox").onclick = () => { quoteOffset++; const b = $("sayBox"); b.innerHTML = sayHtml(); b.classList.remove("fade"); void b.offsetWidth; b.classList.add("fade"); };
 
     const due = $("dueCard"), interval = patient.intervalDays || 7;
     const btn = (cls, txt) => `<button class="btn ${cls}" style="grid-column: 1 / -1;" onclick="startInjectWizard()">${txt}</button>`;
@@ -638,13 +764,13 @@
       const d = diffDays(localIso(), next);
       if (d === 0) {
         due.className = "card due today";
-        due.innerHTML = `${ring(1, 1, "💉", "#E8A817")}<div><div class="due-title">วันนี้ถึงคิวฉีดแล้ว</div><div class="muted small">ฉีดเสร็จแล้วอย่าลืมบันทึกนะคะ</div></div>${btn("btn-sun", "💉 บันทึกการฉีดวันนี้")}`;
+        due.innerHTML = `${ring(1, 1, "💉", "#E8A817")}<div><div class="due-title">วันนี้ถึงนัดหมายฉีดยาแล้ว</div><div class="muted small">ฉีดเสร็จแล้วอย่าลืมบันทึกนะคะ</div></div>${btn("btn-sun", "💉 บันทึกการฉีดวันนี้")}`;
       } else if (d > 0) {
         due.className = "card due over";
         due.innerHTML = `${ring(1, 1, "⏰", "#E0614F")}<div><div class="due-title">เลยนัดมา ${d} วัน</div><div class="muted small">นัดเดิม ${thaiDate(next)} หากยังไม่ได้ฉีด กรุณาสอบถามเจ้าหน้าที่ก่อนฉีดค่ะ</div></div>${btn("btn-main", "💉 บันทึกการฉีดยา")}`;
       } else {
         due.className = "card due";
-        due.innerHTML = `${ring(interval + d, interval, String(-d))}<div><div class="due-title">อีก ${-d} วันถึงคิวฉีด</div><div class="muted small">${thaiDow(next)}ที่ ${thaiDate(next)}</div></div>${btn("btn-soft", "💉 บันทึกการฉีดยา")}`;
+        due.innerHTML = `${ring(interval + d, interval, String(-d))}<div><div class="due-title">อีก ${-d} วัน ถึงนัดหมายฉีดยา</div><div class="muted small">${thaiDow(next)}ที่ ${thaiDate(next)}</div></div>${btn("btn-soft", "💉 บันทึกการฉีดยา")}`;
       }
     }
 
@@ -730,6 +856,36 @@
   }
   function press(el, sel, btn) { el.querySelectorAll(sel).forEach(b => b.setAttribute("aria-pressed", "false")); btn.setAttribute("aria-pressed", "true"); }
 
+  // ================== เปลี่ยนชนิดยา ==================
+  function shortMed(label) { return String(label || "").replace(/\s*\(.*\)/, ""); }
+  function medLinkHtml() { return `<button type="button" class="link" id="lnkMed">💊 เปลี่ยนชนิดยา (Mounjaro ⇄ Wegovy)</button>`; }
+  async function changeMedication() {
+    if (getPending().some(p => p.kind === "injection")) {
+      await showModal("ยังมีรายการรอส่ง", "กรุณาส่งรายการที่เก็บไว้ในเครื่องให้เรียบร้อยก่อน แล้วค่อยเปลี่ยนชนิดยานะคะ", "⏳");
+      return false;
+    }
+    const others = cfg.meds.filter(m => m.key !== patient.medKey);
+    const key = await showModal("เปลี่ยนชนิดยา", `ตอนนี้ใช้ ${patient.medication}\nเปลี่ยนเป็นยาตัวไหนคะ? (เปลี่ยนตามที่แพทย์สั่งเท่านั้น)`, "💊",
+      others.map(m => ({ label: m.label, primary: true, value: m.key })).concat([{ label: "ยกเลิก", value: null }]));
+    if (!key) return false;
+    const label = cfg.meds.find(m => m.key === key).label;
+    if (!(await confirmModal("ยืนยันเปลี่ยนชนิดยา", `เปลี่ยนจาก ${patient.medication}\nเป็น ${label}\n\nเข็มถัดไประบบจะเริ่มนับปากกาด้ามใหม่ ครั้งที่ 1`, "ยืนยันเปลี่ยนยา", "💊"))) return false;
+    try {
+      const r = await api("updateSettings", { medKey: key });
+      patient = reapplyPending(r.patient); saveCache();
+      return true;
+    } catch (err) {
+      await showModal("เปลี่ยนไม่สำเร็จ", err.code ? err.message : "เชื่อมต่อไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ", "❌");
+      return false;
+    }
+  }
+  async function wizardChangeMed(st) {
+    if (await changeMedication()) {
+      st.draft = buildDraft(false); st.doseMg = null;
+      rerenderStep();
+    }
+  }
+
   // ================== Wizard: บันทึกการฉีด ==================
   function startInjectWizard() {
     if (!medCfg()) { showModal("ไม่พบข้อมูลชนิดยา", "กรุณาติดต่อเจ้าหน้าที่ศูนย์ฯ ค่ะ", "⚠️"); return; }
@@ -758,14 +914,15 @@
           <div class="opts">
             <button type="button" class="opt" id="optNew"><span class="emoji">🖊️</span><span><div class="t">เริ่มปากกาด้ามใหม่</div><div class="s">ด้ามที่ ${d.penNumber + 1} ครั้งที่ 1</div></span></button>
             <button type="button" class="opt special" id="optSp"><span class="emoji" style="background: var(--sun-soft);">⭐</span><span><div class="t">ครั้งพิเศษ (ยาคงเหลือ)</div><div class="s">ยาที่เหลือในด้ามที่ ${d.penNumber} ฉีดโดยพยาบาลที่ รพ.</div></span></button>
-          </div>`;
+          </div>${medLinkHtml()}`;
+        el.querySelector("#lnkMed").onclick = () => wizardChangeMed(st);
         el.querySelector("#optNew").onclick = () => { st.draft = buildDraft(true); st.doseMg = null; rerenderStep(); };
         el.querySelector("#optSp").onclick = () => { d.isSpecial = true; st.doseMg = null; rerenderStep(); };
         return;
       }
       const used = d.usedClicks / m.clicksPerFullDose;
       let h = `<div class="pen-card">
-          <div class="row between"><div><div class="muted">${d.isNewPen ? "ปากกาด้ามใหม่" : "ปากกาที่ใช้อยู่"}</div><div class="pen-num">ด้ามที่ ${d.penNumber}</div></div>
+          <div class="row between"><div><div class="muted">${d.isNewPen ? "ปากกาด้ามใหม่" : "ปากกาที่ใช้อยู่"} · ${esc(shortMed(patient.medication))}</div><div class="pen-num">ด้ามที่ ${d.penNumber}</div></div>
           <span class="chip-round ${d.isSpecial ? "special" : ""}">ครั้งที่ ${d.doseNumber}${d.isSpecial ? " ⭐" : ""}</span></div>
           ${d.isNewPen ? "" : `${doseBar(used, 0, true)}<div class="muted small">ใช้ไปแล้ว ${fmt1(used)} จาก ${cfg.dosesPerPen} โดสเต็ม · ด้าม ${fmtMg(d.penMg)}</div>`}
         </div>`;
@@ -776,14 +933,16 @@
       } else if (d.isNewPen) {
         h += `<div class="field"><label>ขนาดปากกาตามหน้ากล่อง</label><div class="opts three">${m.doses.map(mg =>
           `<button type="button" class="opt center" data-mg="${mg}" aria-pressed="${!!d.penMg && Math.abs(d.penMg - mg) < EPS}"><span class="t">${numKey(mg)}</span><span class="s">mg</span></button>`).join("")}</div></div>`;
-        if (d.canReturn) h += `<button type="button" class="link" id="lnkReturn">กลับไปใช้ด้ามที่ ${patient.lastPenNumber}</button>`;
+        if (d.canReturn) h += `<button type="button" class="link" id="lnkReturn">กลับไปใช้ด้ามที่ ${patient.lastPenNumber}</button><br>`;
+        h += medLinkHtml();
       } else {
-        h += `<div class="box-info">✅ ถ้ายังใช้ปากกาแท่งเดิม กดถัดไปได้เลยค่ะ</div><button type="button" class="link" id="lnkNew">เปลี่ยนเป็นปากกาด้ามใหม่</button>`;
+        h += `<div class="box-info">✅ ถ้ายังใช้ปากกาแท่งเดิม กดถัดไปได้เลยค่ะ</div><button type="button" class="link" id="lnkNew">เปลี่ยนเป็นปากกาด้ามใหม่</button><br>${medLinkHtml()}`;
       }
       el.innerHTML = h;
       el.querySelectorAll("[data-mg]").forEach(b => b.onclick = () => { d.penMg = Number(b.dataset.mg); st.doseMg = null; press(el, "[data-mg]", b); wzRefresh(); });
       const on = (id, fn) => { const x = el.querySelector(id); if (x) x.onclick = fn; };
       on("#lnkBack", () => { st.draft = buildDraft(false); st.doseMg = null; rerenderStep(); });
+      on("#lnkMed", () => wizardChangeMed(st));
       on("#lnkReturn", () => { st.draft = buildDraft(false); st.doseMg = null; rerenderStep(); });
       on("#lnkNew", async () => {
         if (await confirmModal("เริ่มปากกาด้ามใหม่?", `ระบบจะนับเป็นด้ามที่ ${d.penNumber + 1} ครั้งที่ 1\nใช้เมื่อเปลี่ยนเป็นปากกาแท่งใหม่จริงเท่านั้นนะคะ`, "เริ่มด้ามใหม่", "🖊️")) {
@@ -979,10 +1138,9 @@
     const st = injStats(), n = Math.max(st.total, 1);
     const fl = completedPens(), newFlower = fl > flowersBefore;
     const next = dueDate() || addDaysIso(rec.actualDate, rec.intervalDays);
-    const msg = newFlower ? `ใช้ปากกาครบ ${fl} ด้ามแล้ว ${MASCOT}ออกดอกที่ ${fl} 🌼`
-      : n === 1 ? `เข็มแรกของคุณ ${MASCOT}เริ่มงอกแล้ว 🌱`
-      : st.streak >= 2 ? `ฉีดตรงนัดติดกัน ${st.streak} ครั้ง เก่งมากค่ะ`
-      : `${MASCOT}งอกใบใหม่แล้ว ดูแลตัวเองดีมากค่ะ`;
+    const msg = newFlower ? `ใช้ปากกาครบ ${fl} ด้ามแล้ว ${esc(mascot())}ออกดอกที่ ${fl} 🌼`
+      : n === 1 ? `เข็มแรกของคุณ ${esc(mascot())}เริ่มงอกแล้ว 🌱`
+      : `${esc(mascot())}งอกใบใหม่แล้ว ดูแลตัวเองดีมากค่ะ`;
     $("doneBody").innerHTML = `
       ${red ? `<div class="box-red" style="text-align: left;"><b>🚑 อาการที่ต้องเฝ้าระวัง</b><br>กรุณาติดต่อโรงพยาบาลโดยเร็ว${cfg.hospitalContact ? `<br>${esc(cfg.hospitalContact)}` : ""}<br>หากหายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที</div>` : ""}
       <div class="plant-wrap">${plantSVG(n, fl, { grow: !newFlower, newFlower })}</div>
@@ -1082,7 +1240,7 @@
 
   // ================== Wizard: ลงทะเบียน ==================
   function startRegister() {
-    const state = { hn: "", name: "", phone: "", med: "", height: "", weight: "", waist: "" };
+    const state = { hn: "", name: "", phone: "", med: "", plantName: "", height: "", weight: "", waist: "" };
     const inRange = (v, a, b) => !v || (Number(v) >= a && Number(v) <= b);
     startWizard({
       title: "เริ่มต้นใช้งาน", state, noClose: true, onFinish: submitRegister,
@@ -1090,7 +1248,7 @@
         { q: "สวัสดีค่ะ 🌱", next: "เริ่มต้นเลย",
           render(el) {
             el.innerHTML = `<div style="width: 190px; margin: 0 auto;">${plantSVG(0, 0, { sway: true })}</div>
-              <div class="card" style="line-height: 1.75;">นี่คือ <b>${MASCOT}</b> เพื่อนร่วมทางของคุณ<br>ทุกครั้งที่บันทึกการฉีดยา ${MASCOT}จะงอกใบใหม่ 🍃<br>ใช้ปากกาครบ 1 ด้าม ได้ดอกไม้ 1 ดอก 🌼<br><span class="muted small">ลงทะเบียนครั้งเดียว ใช้เวลาไม่ถึง 1 นาที</span></div>`;
+              <div class="card" style="line-height: 1.75;">นี่คือ <b>${esc(mascot())}</b> เพื่อนร่วมทางของคุณ<br>ทุกครั้งที่บันทึกการฉีดยา ${esc(mascot())}จะงอกใบใหม่ 🍃<br>ใช้ปากกาครบ 1 ด้าม ได้ดอกไม้ 1 ดอก 🌼<br><span class="muted small">ลงทะเบียนครั้งเดียว ใช้เวลาไม่ถึง 1 นาที</span></div>`;
           } },
         { q: "ขอทราบชื่อของคุณค่ะ",
           render(el, st) {
@@ -1113,6 +1271,14 @@
             el.querySelectorAll("[data-med]").forEach(b => b.onclick = () => { st.med = b.dataset.med; press(el, "[data-med]", b); wzRefresh(); });
           },
           valid: st => !!st.med },
+        { q: "ตั้งชื่อเพื่อนต้นไม้ของคุณ 🪴", sub: "ไม่บังคับ ถ้าไม่ตั้ง จะชื่อ “น้องปังปัง” ค่ะ",
+          next: st => st.plantName.trim() ? "ถัดไป" : "ใช้ชื่อน้องปังปัง",
+          render(el, st) {
+            el.innerHTML = `<div style="width: 150px; margin: 0 auto;">${plantSVG(0, 0, { sway: true })}</div>
+              <div class="field"><label for="rPlant">ชื่อต้นไม้</label><input class="input" id="rPlant" maxlength="${PLANT_MAX}" autocomplete="off" placeholder="เช่น ${DEFAULT_PLANT}, น้องใบเตย, เจ้าถั่วงอก" value="${esc(st.plantName)}"></div>
+              <div class="muted small">เปลี่ยนชื่อภายหลังได้เสมอ ที่หน้าหลักหรือเมนู “ฉัน”</div>`;
+            el.querySelector("#rPlant").oninput = e => { st.plantName = e.target.value; wzRefresh(); };
+          } },
         { q: "ข้อมูลร่างกายวันเริ่มต้น", sub: "ไม่บังคับ แต่ช่วยให้เห็นความเปลี่ยนแปลงตั้งแต่วันแรกค่ะ",
           next: st => (st.weight || st.height || st.waist) ? "เสร็จสิ้น" : "ข้ามและเสร็จสิ้น",
           render(el, st) {
@@ -1126,11 +1292,11 @@
   }
   async function submitRegister(st) {
     try {
-      const r = await api("register", { hn: st.hn.trim(), name: st.name.trim(), phone: st.phone.trim(), medication: st.med, heightCm: st.height, weightKg: st.weight, waistCm: st.waist });
+      const r = await api("register", { hn: st.hn.trim(), name: st.name.trim(), phone: st.phone.trim(), medication: st.med, plantName: normPlantName(st.plantName), heightCm: st.height, weightKg: st.weight, waistCm: st.waist });
       patient = r.patient; saveCache();
       historyCache = []; bodyCache = null;
       $("doneBody").innerHTML = `<div class="plant-wrap">${plantSVG(0, 0, { sway: true })}</div><h1 class="h1">ยินดีต้อนรับค่ะ คุณ${esc(firstName(patient.name))}</h1>
-        <p class="lead">${MASCOT}พร้อมเติบโตไปกับคุณแล้ว<br>ฉีดยาเสร็จเมื่อไหร่ กดบันทึกได้เลยนะคะ</p>`;
+        <p class="lead">${esc(mascot())}พร้อมเติบโตไปกับคุณแล้ว<br>ฉีดยาเสร็จเมื่อไหร่ กดบันทึกได้เลยนะคะ</p>`;
       showScreen("scrDone");
     } catch (err) {
       await showModal("ลงทะเบียนไม่สำเร็จ", err.name === "AbortError" ? "ระบบตอบสนองช้า กรุณาลองใหม่อีกครั้งค่ะ" : (err.message || "กรุณาลองใหม่อีกครั้งค่ะ"), "❌");
@@ -1202,7 +1368,7 @@
       const items = pens[k].sort((a, b) => a.doseNumber - b.doseNumber || (a.date > b.date ? 1 : -1));
       const s = items.find(i => i.penStrength);
       return `<div class="pen-group"><button type="button" class="pen-head" onclick="togglePen(${k})">
-          <span><span class="h2">🖊️ ด้ามที่ ${k}</span> <span class="muted small">${s ? fmtMg(s.penStrength) + " · " : ""}${items.length} ครั้ง</span></span>
+          <span><span class="h2">🖊️ ด้ามที่ ${k}</span> <span class="muted small">${esc(shortMed(items[0].medication))}${s ? " " + fmtMg(s.penStrength) : ""} · ${items.length} ครั้ง</span></span>
           <span id="pa${k}" class="muted">${idx === 0 ? "▲" : "▼"}</span></button>
         <div class="pen-body ${idx === 0 ? "open" : ""}" id="pg${k}">${items.map(d => `
           <div class="hi ${d.special ? "special" : ""}"><div class="row between"><b>ครั้งที่ ${Number(d.doseNumber)}${d.special ? " ⭐ พิเศษ" : ""}</b><span class="muted small">${d.date ? thaiDate(d.date) : "-"}</span></div>
@@ -1217,7 +1383,11 @@
     $("meCard").innerHTML = `<div class="row"><div style="width: 70px; flex: none;">${plantSVG(injStats().total, completedPens())}</div>
       <div class="grow"><div class="h2">${esc(patient.name)}</div><div class="muted small">HN ${esc(patient.hn || "-")}</div>
       <div class="small" style="margin-top: 4px;">💊 ${esc(patient.medication)}${patient.currentDose ? ` · ${fmtMg(patient.currentDose)}` : ""}</div>
-      ${patient.doctor ? `<div class="muted small">แพทย์: ${esc(patient.doctor)}</div>` : ""}</div></div>`;
+      ${patient.doctor ? `<div class="muted small">แพทย์: ${esc(patient.doctor)}</div>` : ""}</div></div>
+      <button type="button" class="btn btn-soft" style="margin-top: 12px; min-height: 46px; font-size: 0.95rem;" id="btnChangeMed">💊 เปลี่ยนชนิดยา (Mounjaro ⇄ Wegovy)</button>
+      <button type="button" class="btn btn-ghost" style="margin-top: 10px; min-height: 46px; font-size: 0.95rem;" id="btnPlantNameMe">🪴 ตั้งชื่อต้นไม้ (ตอนนี้: ${esc(mascot())})</button>`;
+    $("btnPlantNameMe").onclick = renamePlant;
+    $("btnChangeMed").onclick = async () => { if (await changeMedication()) { renderMe(); showModal("เปลี่ยนชนิดยาแล้ว", `ตอนนี้ใช้ ${patient.medication}\nเข็มถัดไปจะเริ่มนับปากกาด้ามใหม่ค่ะ`, "💊"); } };
     $("setNotify").checked = patient.notify !== false;
     $("setPhone").value = patient.phone || "";
     $("setHeight").value = patient.heightCm || "";
