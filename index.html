@@ -367,7 +367,7 @@
   const EPS = 1e-9;
   const PERMANENT = ["invalid", "not_registered", "invalid_action"];
   const SITES = ["หน้าท้องบนขวา", "หน้าท้องบนซ้าย", "หน้าท้องล่างซ้าย", "หน้าท้องล่างขวา"];
-  const BLOOM_AT = 8;
+  const MASCOT = "น้องปังๆ";
 
   let uid = "", cfg = null, patient = null;
   let historyCache = null, bodyCache = null;
@@ -505,22 +505,46 @@
       q.penStrength = rec.penStrengthMg;
     }
     if (!q.lastInjectedDate || rec.actualDate >= q.lastInjectedDate) {
-      Object.assign(q, { lastInjectedDate: rec.actualDate, lastInjectedSite: rec.site, intervalDays: rec.intervalDays, currentDose: rec.doseMg });
+      const sch = scheduleNext(q.anchorDate || q.lastInjectedDate, q.intervalDays || 7, rec.actualDate, rec.intervalDays);
+      Object.assign(q, { lastInjectedDate: rec.actualDate, lastInjectedSite: rec.site, intervalDays: rec.intervalDays, currentDose: rec.doseMg,
+        anchorDate: sch.anchor, nextDueDate: sch.next });
     }
-    q.nextDueDate = q.lastInjectedDate ? addDaysIso(q.lastInjectedDate, q.intervalDays || 7) : "";
     return q;
   }
+  // วันนัดถัดไป (ต้องตรงกับ Code.gs): ฉีดคลาดจากนัดเดิมไม่เกิน 3 วัน → กลับมาวันเดิม, คลาดตั้งแต่ 4 วัน → นับใหม่จากวันฉีดจริง
+  function scheduleNext(prevAnchor, prevIv, actual, iv) {
+    if (!prevAnchor) return { anchor: actual, next: addDaysIso(actual, iv), shifted: false, prevDue: "" };
+    const prevDue = addDaysIso(prevAnchor, prevIv || 7);
+    const diff = diffDays(actual, prevDue);
+    const tol = (cfg && cfg.rescheduleToleranceDays !== undefined) ? cfg.rescheduleToleranceDays : 3;
+    if (Math.abs(diff) <= tol) return { anchor: prevDue, next: addDaysIso(prevDue, iv), shifted: false, diff, prevDue };
+    return { anchor: actual, next: addDaysIso(actual, iv), shifted: true, diff, prevDue };
+  }
+  // นัดถัดไปถ้าบันทึกการฉีดวันที่ date (ใช้แสดงในขั้นตอนบันทึก)
+  function previewSchedule(date, iv) {
+    if (patient.lastInjectedDate && date < patient.lastInjectedDate) return { next: patient.nextDueDate, backdated: true };
+    return scheduleNext(patient.anchorDate || patient.lastInjectedDate, patient.intervalDays || 7, date, iv);
+  }
+  function dueDate() { return patient.nextDueDate || (patient.lastInjectedDate ? addDaysIso(patient.lastInjectedDate, patient.intervalDays || 7) : ""); }
+  // จำนวนปากกาที่ใช้ครบแล้ว = จำนวนดอกของน้องปังๆ
+  function completedPens(p = patient) {
+    if (!p || !p.lastPenNumber || !medCfg()) return 0;
+    const st = penState(p);
+    return (p.lastPenNumber - 1) + (st.status === "full" || p.penSpecialUsed ? 1 : 0);
+  }
+
   function reapplyPending(sp) { return getPending().filter(r => r.kind === "injection").reduce((a, r) => applyRecord(a, r.payload), sp); }
 
-  // ================== ต้นปัง (มาสคอต) ==================
-  // n = จำนวนเข็มที่บันทึก: ใบงอกเพิ่มทีละใบ ครบ 8 เข็มออกดอก
-  function plantSVG(n, opts = {}) {
-    const grow = !!opts.grow, sway = !!opts.sway;
+  // ================== น้องปังๆ (มาสคอต) ==================
+  // n = จำนวนเข็มที่บันทึก (ใบงอกเพิ่มทีละใบ), flowers = จำนวนปากกาที่ใช้ครบ (1 ด้าม = 1 ดอก)
+  function plantSVG(n, flowers = 0, opts = {}) {
+    const grow = !!opts.grow, newFlower = !!opts.newFlower, sway = !!opts.sway;
     const leaves = Math.min(n, 12);
-    const stemH = n === 0 ? 0 : 22 + Math.min(n, 12) * 6.5;
+    const stemH = n === 0 && !flowers ? 0 : 22 + Math.max(Math.min(n, 12), Math.min(flowers * 2, 12)) * 6.5;
     const top = 112 - stemH;
+    const flower = (x, y, r, cls) => `<g transform="translate(${x} ${y}) scale(${r})"><g class="${cls}">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="-9" rx="6.5" ry="9" fill="#FFC845" transform="rotate(${a})"/>`).join("")}<circle r="6" fill="#F08A3C"/></g></g>`;
     let g = "";
-    if (n === 0) {
+    if (stemH === 0) {
       g += `<ellipse cx="80" cy="108" rx="7" ry="5" fill="#9C6B43"/><path d="M80 104 q2 -8 7 -10" stroke="#2E9A5B" stroke-width="3" fill="none" stroke-linecap="round"/>`;
     } else {
       g += `<path d="M80 112 C 76 ${112 - stemH * 0.35}, 85 ${112 - stemH * 0.7}, 80 ${top}" stroke="#2E9A5B" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
@@ -533,21 +557,30 @@
         const fill = ["#3FAE6A", "#2E9A5B", "#56C27E"][i % 3];
         g += `<g transform="translate(80 ${y}) rotate(${left ? 200 : -20}) scale(${sc})"><g class="${isNew ? "pop" : ""}"><path d="M0 0 C 8 -11, 26 -11, 32 0 C 26 9, 8 9, 0 0 Z" fill="${fill}"/><path d="M3 0 H 26" stroke="rgba(255,255,255,0.45)" stroke-width="1.4"/></g></g>`;
       }
-      if (n >= BLOOM_AT) {
-        g += `<g transform="translate(80 ${top - 6})"><g class="${grow && n === BLOOM_AT ? "bloom" : ""}">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="-9" rx="6.5" ry="9" fill="#FFC845" transform="rotate(${a})"/>`).join("")}<circle r="6" fill="#F08A3C"/></g></g>`;
+      if (flowers > 0) {
+        // ดอกแรกบนยอด ดอกถัดไปเรียงลงมาสลับซ้าย-ขวา (วาดสูงสุด 8 ดอก)
+        const shown = Math.min(flowers, 8);
+        for (let j = shown - 1; j >= 0; j--) {
+          const cls = newFlower && j === shown - 1 ? "bloom" : "";
+          if (j === 0) { g += flower(80, top - 6, 1, cls); continue; }
+          const y = top + 6 + j * ((stemH - 30) / Math.max(shown, 2));
+          const x = 80 + (j % 2 ? -30 : 30);
+          g += `<path d="M80 ${y + 6} Q ${80 + (x - 80) * 0.5} ${y + 2} ${x} ${y}" stroke="#2E9A5B" stroke-width="2.4" fill="none"/>` + flower(x, y, 0.62, cls);
+        }
       } else {
         g += `<g transform="translate(80 ${top})"><path d="M0 0 C -4 -10, -14 -12, -16 -6 C -12 -2, -5 -1, 0 0 Z" fill="#56C27E"/><path d="M0 0 C 4 -10, 14 -12, 16 -6 C 12 -2, 5 -1, 0 0 Z" fill="#3FAE6A"/></g>`;
       }
     }
-    const sparks = grow ? `<g fill="#FFC845"><path class="spark" d="M30 50 l3 -8 3 8 8 3 -8 3 -3 8 -3 -8 -8 -3z"/><path class="spark" style="animation-delay:.75s" d="M128 36 l2 -6 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2z"/><circle class="spark" style="animation-delay:.6s" cx="124" cy="78" r="4"/></g>` : "";
-    return `<svg viewBox="0 0 160 170" width="100%" role="img" aria-label="ต้นปัง ${n} ใบ">${sparks}
+    const sparks = (grow || newFlower) ? `<g fill="#FFC845"><path class="spark" d="M30 50 l3 -8 3 8 8 3 -8 3 -3 8 -3 -8 -8 -3z"/><path class="spark" style="animation-delay:.75s" d="M128 36 l2 -6 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2z"/><circle class="spark" style="animation-delay:.6s" cx="124" cy="78" r="4"/></g>` : "";
+    const badge = flowers > 8 ? `<g transform="translate(118 128)"><rect x="-20" y="-12" width="40" height="22" rx="11" fill="#FFF3D1"/><text x="0" y="4" text-anchor="middle" font-size="12" font-family="Mitr, sans-serif" fill="#7A5200">🌼${flowers}</text></g>` : "";
+    return `<svg viewBox="0 0 160 170" width="100%" role="img" aria-label="${MASCOT} ${n} ใบ ${flowers} ดอก">${sparks}
       <g class="${sway ? "sway" : ""}">${g}</g>
       <ellipse cx="80" cy="113" rx="40" ry="7" fill="#7A5638"/>
       <path d="M38 112 H122 L112 162 Q111 167 106 167 H54 Q49 167 48 162 Z" fill="#F4D7A4"/>
       <rect x="33" y="104" width="94" height="16" rx="8" fill="#EBC283"/>
       <circle cx="66" cy="138" r="3.6" fill="#16362A"/><circle cx="94" cy="138" r="3.6" fill="#16362A"/>
       <path d="M74 146 Q80 152 86 146" stroke="#16362A" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-      <ellipse cx="57" cy="147" rx="6" ry="3.5" fill="#F4A69C" opacity="0.7"/><ellipse cx="103" cy="147" rx="6" ry="3.5" fill="#F4A69C" opacity="0.7"/>
+      <ellipse cx="57" cy="147" rx="6" ry="3.5" fill="#F4A69C" opacity="0.7"/><ellipse cx="103" cy="147" rx="6" ry="3.5" fill="#F4A69C" opacity="0.7"/>${badge}
     </svg>`;
   }
 
@@ -569,7 +602,7 @@
       .sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0);
     let streak = all.length ? 1 : 0;
     for (let i = all.length - 1; i > 0; i--) {
-      if (diffDays(all[i].date, all[i - 1].date) <= (all[i - 1].interval || 7) + 1) streak++; else break;
+      if (diffDays(all[i].date, all[i - 1].date) <= (all[i - 1].interval || 7) + 3) streak++; else break;
     }
     return { total: all.length, streak };
   }
@@ -585,12 +618,13 @@
 
     const st = historyCache ? injStats() : null;
     const n = st ? st.total : 0;
+    const fl = completedPens();
     $("garden").innerHTML = `
-      <div>${plantSVG(n, { sway: true })}</div>
+      <div>${plantSVG(n, fl, { sway: true })}</div>
       <div style="padding-bottom: 10px;">
-        <div class="muted">ต้นปังของคุณ</div>
+        <div class="muted">${MASCOT}ของคุณ</div>
         <div class="count">${st ? st.total : "–"} <small>เข็ม</small></div>
-        <div class="muted small">${!st ? "กำลังโหลด..." : n === 0 ? "บันทึกเข็มแรก แล้วต้นปังจะเริ่มงอก" : n < BLOOM_AT ? `อีก ${BLOOM_AT - n} เข็ม ต้นปังจะออกดอก 🌼` : "ต้นปังออกดอกแล้ว เก่งมาก!"}</div>
+        <div class="muted small">${!st ? "กำลังโหลด..." : n === 0 ? `บันทึกเข็มแรก แล้ว${MASCOT}จะเริ่มงอก` : fl ? `ออกดอกแล้ว ${fl} ดอก 🌼 (ใช้ปากกาครบ ${fl} ด้าม)` : `ใช้ปากกาครบ 1 ด้าม ${MASCOT}จะออกดอกแรก 🌼`}</div>
         ${st && st.streak >= 2 ? `<div class="streak">🔥 ฉีดตรงนัดติดกัน ${st.streak} ครั้ง</div>` : ""}
       </div>`;
 
@@ -600,7 +634,7 @@
       due.className = "card due";
       due.innerHTML = `${ring(0, 1, "🌱")}<div><div class="due-title">พร้อมเริ่มเข็มแรกแล้ว</div><div class="muted small">ฉีดเสร็จแล้วกดบันทึกได้เลยค่ะ</div></div>${btn("btn-main", "💉 บันทึกการฉีดยา")}`;
     } else {
-      const next = addDaysIso(patient.lastInjectedDate, interval);
+      const next = dueDate();
       const d = diffDays(localIso(), next);
       if (d === 0) {
         due.className = "card due today";
@@ -811,7 +845,13 @@
         <div id="nextPreview"></div>`;
       const preview = () => {
         const iv = intervalOf(st), ok = st.date && iv >= 1 && iv <= 60;
-        el.querySelector("#nextPreview").innerHTML = ok ? `<div class="box-info">🗓️ นัดครั้งถัดไป: <b>${thaiDow(addDaysIso(st.date, iv))}ที่ ${thaiDate(addDaysIso(st.date, iv))}</b></div>` : "";
+        if (!ok) { el.querySelector("#nextPreview").innerHTML = ""; return; }
+        const sc = previewSchedule(st.date, iv);
+        let why = "";
+        if (sc.backdated) why = "บันทึกย้อนหลัง ไม่เปลี่ยนวันนัดปัจจุบัน";
+        else if (sc.prevDue && !sc.shifted && sc.diff) why = `ฉีด${sc.diff > 0 ? "ช้า" : "เร็ว"}กว่านัด ${Math.abs(sc.diff)} วัน ครั้งถัดไปกลับมาฉีด${thaiDow(sc.next)}ตามเดิมนะคะ`;
+        else if (sc.shifted) why = `ฉีดคลาดจากนัดเดิม (${thaiShort(sc.prevDue)}) ${Math.abs(sc.diff)} วัน จึงเริ่มนับรอบใหม่จากวันที่ฉีดครั้งนี้`;
+        el.querySelector("#nextPreview").innerHTML = sc.next ? `<div class="box-info">🗓️ นัดครั้งถัดไป: <b>${thaiDow(sc.next)}ที่ ${thaiDate(sc.next)}</b>${why ? `<br><span class="small">${why}</span>` : ""}</div>` : "";
       };
       el.querySelectorAll("[data-dm]").forEach(b => b.onclick = () => {
         st.dateMode = b.dataset.dm; press(el, "[data-dm]", b);
@@ -896,7 +936,7 @@
       const rows = [
         ["🖊️", "ปากกา", `ด้ามที่ ${d.penNumber} · ครั้งที่ ${d.doseNumber}${d.isSpecial ? " ⭐ ครั้งพิเศษ" : ""}<br><span class="muted small">ด้าม ${fmtMg(d.penMg)}</span>`, 0],
         ["💉", "ขนาดยา", `${fmtMg(st.doseMg)}<br><span class="muted small">${esc(instructionText(m, st.doseMg, d.penMg))}</span>`, 1],
-        ["🗓️", "วันที่ฉีด", `${thaiDow(st.date)}ที่ ${thaiDate(st.date)}<br><span class="muted small">นัดถัดไป ${thaiDate(addDaysIso(st.date, iv))} (ทุก ${iv} วัน)</span>`, 2],
+        ["🗓️", "วันที่ฉีด", `${thaiDow(st.date)}ที่ ${thaiDate(st.date)}<br><span class="muted small">นัดถัดไป ${thaiDate(previewSchedule(st.date, iv).next || addDaysIso(st.date, iv))} (ทุก ${iv} วัน)</span>`, 2],
         ["📍", "ตำแหน่ง", esc(st.site), 3],
         ["🩺", "อาการ", esc(sideText(st)), 4]
       ];
@@ -913,6 +953,7 @@
       site: st.site, sideEffects: [...st.sides].map(i => cfg.sideEffects[i].label)
     };
     const before = patient;
+    const flowersBefore = completedPens(patient);
     setPending([...getPending(), { kind: "injection", requestId: rec.requestId, payload: rec }]);
     patient = applyRecord(patient, rec); saveCache();
     sending = true;
@@ -931,23 +972,24 @@
       pendingOnly = true;
     }
     sending = false;
-    showInjectDone(rec, pendingOnly, hasRed(st));
+    showInjectDone(rec, pendingOnly, hasRed(st), flowersBefore);
   }
 
-  function showInjectDone(rec, pendingOnly, red) {
+  function showInjectDone(rec, pendingOnly, red, flowersBefore) {
     const st = injStats(), n = Math.max(st.total, 1);
-    const next = addDaysIso(rec.actualDate, rec.intervalDays);
-    const msg = n === 1 ? "เข็มแรกของคุณ ต้นปังเริ่มงอกแล้ว 🌱"
-      : n === BLOOM_AT ? `ครบ ${BLOOM_AT} เข็ม ต้นปังออกดอกแล้ว 🌼`
+    const fl = completedPens(), newFlower = fl > flowersBefore;
+    const next = dueDate() || addDaysIso(rec.actualDate, rec.intervalDays);
+    const msg = newFlower ? `ใช้ปากกาครบ ${fl} ด้ามแล้ว ${MASCOT}ออกดอกที่ ${fl} 🌼`
+      : n === 1 ? `เข็มแรกของคุณ ${MASCOT}เริ่มงอกแล้ว 🌱`
       : st.streak >= 2 ? `ฉีดตรงนัดติดกัน ${st.streak} ครั้ง เก่งมากค่ะ`
-      : "ต้นปังงอกใบใหม่แล้ว ดูแลตัวเองดีมากค่ะ";
+      : `${MASCOT}งอกใบใหม่แล้ว ดูแลตัวเองดีมากค่ะ`;
     $("doneBody").innerHTML = `
       ${red ? `<div class="box-red" style="text-align: left;"><b>🚑 อาการที่ต้องเฝ้าระวัง</b><br>กรุณาติดต่อโรงพยาบาลโดยเร็ว${cfg.hospitalContact ? `<br>${esc(cfg.hospitalContact)}` : ""}<br>หากหายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที</div>` : ""}
-      <div class="plant-wrap">${plantSVG(n, { grow: true })}</div>
+      <div class="plant-wrap">${plantSVG(n, fl, { grow: !newFlower, newFlower })}</div>
       <h1 class="h1">${pendingOnly ? "เก็บไว้ในเครื่องแล้ว" : "บันทึกแล้ว!"}</h1>
       <p class="lead">${pendingOnly ? "ยังส่งเข้าระบบไม่ได้ ระบบจะส่งให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไป กรุณาอย่าบันทึกซ้ำนะคะ" : msg}</p>
       <div><span class="stat-pill"><span class="muted small">ด้าม / ครั้งที่</span><b>${rec.penNumber} / ${rec.doseNumber}${rec.isSpecial ? " ⭐" : ""}</b></span>
-      <span class="stat-pill"><span class="muted small">นัดครั้งถัดไป</span><b>${thaiShort(next)}</b></span></div>`;
+      <span class="stat-pill"><span class="muted small">นัดครั้งถัดไป</span><b>${thaiDow(next).replace("วัน", "")} ${thaiShort(next)}</b></span></div>`;
     showScreen("scrDone");
   }
 
@@ -1029,7 +1071,7 @@
     }
     const total = firstBefore ? firstBefore.weight - w : 0;
     $("doneBody").innerHTML = `
-      <div class="plant-wrap" style="width: 170px;">${plantSVG(injStats().total, { sway: true })}</div>
+      <div class="plant-wrap" style="width: 170px;">${plantSVG(injStats().total, completedPens(), { sway: true })}</div>
       <h1 class="h1">${pendingOnly ? "เก็บไว้ในเครื่องแล้ว" : "บันทึกแล้ว!"}</h1>
       <p class="lead">${pendingOnly ? "ระบบจะส่งเข้าระบบให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไปค่ะ" : line}</p>
       ${milestone}
@@ -1047,8 +1089,8 @@
       steps: [
         { q: "สวัสดีค่ะ 🌱", next: "เริ่มต้นเลย",
           render(el) {
-            el.innerHTML = `<div style="width: 190px; margin: 0 auto;">${plantSVG(0, { sway: true })}</div>
-              <div class="card" style="line-height: 1.75;">นี่คือ <b>ต้นปัง</b> เพื่อนร่วมทางของคุณ<br>ทุกครั้งที่บันทึกการฉีดยา ต้นปังจะงอกใบใหม่ 🍃<br>ครบ ${BLOOM_AT} เข็มจะออกดอกให้ชม 🌼<br><span class="muted small">ลงทะเบียนครั้งเดียว ใช้เวลาไม่ถึง 1 นาที</span></div>`;
+            el.innerHTML = `<div style="width: 190px; margin: 0 auto;">${plantSVG(0, 0, { sway: true })}</div>
+              <div class="card" style="line-height: 1.75;">นี่คือ <b>${MASCOT}</b> เพื่อนร่วมทางของคุณ<br>ทุกครั้งที่บันทึกการฉีดยา ${MASCOT}จะงอกใบใหม่ 🍃<br>ใช้ปากกาครบ 1 ด้าม ได้ดอกไม้ 1 ดอก 🌼<br><span class="muted small">ลงทะเบียนครั้งเดียว ใช้เวลาไม่ถึง 1 นาที</span></div>`;
           } },
         { q: "ขอทราบชื่อของคุณค่ะ",
           render(el, st) {
@@ -1087,8 +1129,8 @@
       const r = await api("register", { hn: st.hn.trim(), name: st.name.trim(), phone: st.phone.trim(), medication: st.med, heightCm: st.height, weightKg: st.weight, waistCm: st.waist });
       patient = r.patient; saveCache();
       historyCache = []; bodyCache = null;
-      $("doneBody").innerHTML = `<div class="plant-wrap">${plantSVG(0, { sway: true })}</div><h1 class="h1">ยินดีต้อนรับค่ะ คุณ${esc(firstName(patient.name))}</h1>
-        <p class="lead">ต้นปังพร้อมเติบโตไปกับคุณแล้ว<br>ฉีดยาเสร็จเมื่อไหร่ กดบันทึกได้เลยนะคะ</p>`;
+      $("doneBody").innerHTML = `<div class="plant-wrap">${plantSVG(0, 0, { sway: true })}</div><h1 class="h1">ยินดีต้อนรับค่ะ คุณ${esc(firstName(patient.name))}</h1>
+        <p class="lead">${MASCOT}พร้อมเติบโตไปกับคุณแล้ว<br>ฉีดยาเสร็จเมื่อไหร่ กดบันทึกได้เลยนะคะ</p>`;
       showScreen("scrDone");
     } catch (err) {
       await showModal("ลงทะเบียนไม่สำเร็จ", err.name === "AbortError" ? "ระบบตอบสนองช้า กรุณาลองใหม่อีกครั้งค่ะ" : (err.message || "กรุณาลองใหม่อีกครั้งค่ะ"), "❌");
@@ -1172,7 +1214,7 @@
 
   // ================== แท็บฉัน ==================
   function renderMe() {
-    $("meCard").innerHTML = `<div class="row"><div style="width: 70px; flex: none;">${plantSVG(injStats().total)}</div>
+    $("meCard").innerHTML = `<div class="row"><div style="width: 70px; flex: none;">${plantSVG(injStats().total, completedPens())}</div>
       <div class="grow"><div class="h2">${esc(patient.name)}</div><div class="muted small">HN ${esc(patient.hn || "-")}</div>
       <div class="small" style="margin-top: 4px;">💊 ${esc(patient.medication)}${patient.currentDose ? ` · ${fmtMg(patient.currentDose)}` : ""}</div>
       ${patient.doctor ? `<div class="muted small">แพทย์: ${esc(patient.doctor)}</div>` : ""}</div></div>`;
@@ -1237,7 +1279,7 @@
 
   // ================== เริ่มต้น / ซิงก์ ==================
   async function initApp() {
-    $("loadingPlant").innerHTML = plantSVG(3, { sway: true });
+    $("loadingPlant").innerHTML = plantSVG(3, 1, { sway: true });
     if (DEBUG) {
       $("debugBadge").style.display = "block";
       uid = lsGet("smu_test_uid") || ("U_TEST_" + Math.floor(100000 + Math.random() * 900000));
