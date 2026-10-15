@@ -696,7 +696,7 @@
     return QUOTES[i];
   }
   function sayHtml() {
-    return `<span class="who">🌱 ${esc(mascot())} บอกว่า…</span>${esc(quoteOfDay(quoteOffset))}<br><span class="more">แตะเพื่อฟังอีกประโยค</span>`;
+    return esc(quoteOfDay(quoteOffset));
   }
 
   // ================== ตั้งชื่อน้องต้นไม้ ==================
@@ -743,7 +743,7 @@
     const n = st ? st.total : 0;
     const fl = completedPens();
     $("garden").innerHTML = `
-      <button type="button" class="say fade" id="sayBox" aria-live="polite">${sayHtml()}</button>
+      <button type="button" class="say fade" id="sayBox" aria-live="polite" aria-label="คำพูดจากต้นไม้">${sayHtml()}</button>
       <div class="plant-col">${plantSVG(n, fl, { sway: true })}</div>
       <div style="padding-bottom: 10px;">
         <button type="button" class="name-btn" id="btnPlantName" aria-label="ตั้งชื่อต้นไม้"><span><b>${esc(mascot())}</b>ของคุณ</span><span class="pen">✏️</span></button>
