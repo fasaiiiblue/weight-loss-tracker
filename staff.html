@@ -316,6 +316,7 @@
     function ssSet(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
     function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
     function isoUtc(iso) { const p = iso.split("-").map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+    function isoOfTs(ts) { const d = new Date(ts + 7 * 3600e3); return d.toISOString().slice(0, 10); }
     function thaiDate(iso) { if (!iso) return "-"; const p = iso.split("-").map(Number); return `${p[2]} ${THAI_MONTHS[p[1] - 1]} ${String(p[0] + 543).slice(2)}`; }
     function thaiShort(iso) { const p = iso.split("-").map(Number); return `${p[2]} ${THAI_MONTHS[p[1] - 1]}`; }
     function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString("th-TH", { maximumFractionDigits: 1 }); }
@@ -415,6 +416,7 @@
     // ================== สถานะ ==================
     function statusOf(p) {
       if (p.status === "inactive") return { key: "inactive", label: "ปิดการติดตาม", icon: "⏸", cls: "st-muted" };
+      if (p.status === "completed") return { key: "completed", label: "จบแผนการรักษา", icon: "🎓", cls: "st-info" };
       const d = p.daysFromDue;
       if (d === null || d === undefined) return { key: "new", label: "ยังไม่เริ่มฉีด", icon: "🆕", cls: "st-info" };
       if (d > 0) return { key: "overdue", label: `เลยนัด ${d} วัน`, icon: "⚠️", cls: "st-crit" };
@@ -423,6 +425,27 @@
       return { key: "ok", label: `อีก ${-d} วัน`, icon: "✓", cls: "st-good" };
     }
     const badge = s => `<span class="st ${s.cls}"><span aria-hidden="true">${s.icon}</span>${esc(s.label)}</span>`;
+    function couponBadge(p) {
+      if (!p.coupon) return "";
+      return p.coupon.usedAt ? ` <span class="st st-muted">🎟️ BIA ใช้แล้ว</span>` : ` <span class="st st-good">🎟️ คูปอง BIA ยังไม่ใช้</span>`;
+    }
+    async function redeemCoupon() {
+      const c = detail.patient.coupon;
+      const ok = await modal({ title: "ยืนยันใช้คูปองตรวจ BIA", text: `รหัส ${c.code}\nของ ${detail.patient.name}\n\nตรวจสอบรหัสกับหน้าจอผู้ป่วยแล้ว และให้บริการตรวจ BIA เรียบร้อย`, okLabel: "ใช้คูปองแล้ว" });
+      if (!ok) return;
+      try {
+        const r = await api("staff.redeemCoupon", { uid: detail.uid });
+        detail = r.detail; renderDetail(); toast("บันทึกการใช้คูปองแล้ว"); refreshDashboardQuietly();
+      } catch (err) {
+        if (err.code !== "staff_auth") modal({ title: "ทำรายการไม่สำเร็จ", text: err.message, okLabel: "ตกลง", cancel: false });
+      }
+    }
+    // ข้ามเข็มติดกัน (นับหลังการฉีดครั้งล่าสุด)
+    function skipBadge(p) {
+      if (!p.skipStreak || p.status !== "active") return "";
+      const alert = p.skipStreak >= ((dash && dash.config.skipAlertStreak) || 2);
+      return ` <span class="st ${alert ? "st-crit" : "st-warn"}" title="${esc(p.lastSkip ? p.lastSkip.reason : "")}"><span aria-hidden="true">⏭️</span>ข้าม ${p.skipStreak} นัด${alert ? " · ควรโทรติดตาม" : ""}</span>`;
+    }
 
     // ================== แดชบอร์ด ==================
     async function loadDashboard() {
@@ -442,11 +465,14 @@
     }
 
     const FILTERS = [
-      { key: "active", label: "ติดตามอยู่", test: p => p.status !== "inactive" },
+      { key: "active", label: "ติดตามอยู่", test: p => p.status === "active" },
       { key: "overdue", label: "เลยนัด", test: p => statusOf(p).key === "overdue" },
       { key: "soon", label: "ครบวันนี้/พรุ่งนี้", test: p => statusOf(p).key === "soon" },
-      { key: "red", label: "อาการเฝ้าระวัง (14 วัน)", test: p => p.status !== "inactive" && !!p.redFlag },
+      { key: "red", label: "อาการเฝ้าระวัง (14 วัน)", test: p => p.status === "active" && !!p.redFlag },
+      { key: "skip", label: "ข้ามเข็ม", test: p => p.status === "active" && p.skipStreak > 0 },
       { key: "new", label: "ยังไม่เริ่มฉีด", test: p => statusOf(p).key === "new" },
+      { key: "coupon", label: "คูปอง BIA ยังไม่ใช้", test: p => !!(p.coupon && !p.coupon.usedAt) },
+      { key: "completed", label: "จบแผนการรักษา", test: p => p.status === "completed" },
       { key: "inactive", label: "ปิดการติดตาม", test: p => p.status === "inactive" },
       { key: "all", label: "ทั้งหมด", test: () => true }
     ];
@@ -497,7 +523,7 @@
               <div class="bar"><div class="${usedPct >= 100 ? "full" : ""}" style="width: ${usedPct}%"></div></div>
               <div class="muted">${fmt1(p.penUsedDoses)}/${dash.config.dosesPerPen} โดส · ${fmtMg(p.penStrength)}</div>` : '<span class="muted">-</span>'}</td>
             <td data-l="ฉีดล่าสุด">${thaiDate(p.lastInjectedDate)}<div class="muted">${p.injectionCount} ครั้ง</div></td>
-            <td data-l="นัดถัดไป">${p.nextDueDate ? thaiDate(p.nextDueDate) : "-"}<div style="margin-top: 3px;">${badge(s)}</div></td>
+            <td data-l="นัดถัดไป">${p.nextDueDate ? thaiDate(p.nextDueDate) : "-"}<div style="margin-top: 3px;">${badge(s)}${skipBadge(p)}${couponBadge(p)}</div></td>
             <td data-l="อาการล่าสุด">${esc(p.lastSideEffects || "-")}
               ${p.redFlag ? `<div class="red-note">⚠️ ${esc(p.redFlag.text)} (${thaiDate(p.redFlag.date)})</div>` : ""}</td>
             <td data-l="น้ำหนัก">${p.weightLatest ? `${fmt1(p.weightLatest)} กก.` : "-"}
@@ -543,7 +569,8 @@
       const s = statusOf({ status: p.status, daysFromDue });
       $("dName").innerText = p.name || "-";
       $("dSub").innerText = `HN ${p.hn || "-"} · ${p.phone || "-"} · ลงทะเบียน ${thaiDate(p.registeredAt)}`;
-      $("dStatus").innerHTML = badge(s);
+      $("dStatus").innerHTML = badge(s) + skipBadge(p) + couponBadge(p) + (p.status === "completed" && p.endedAt ? ` <span class="muted">ตั้งแต่ ${thaiDate(p.endedAt)}${p.endReason ? " · " + esc(p.endReason) : ""}</span>` : "")
+        + (p.plantName ? ` <span class="muted">· 🪴 ${esc(p.plantName)}</span>` : "");
 
       const meds = dash.config.meds;
       const inj = detail.injections;
@@ -599,6 +626,31 @@
           </div>
         </div>
 
+        ${p.coupon || p.status === "completed" ? `<div class="panel glass">
+          <h3>🎁 ของขวัญจบแผนการรักษา</h3>
+          ${p.coupon ? `<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div><div style="font-weight: 600;">🎟️ คูปองตรวจ BIA ฟรี 1 ครั้ง · <span style="font-family: monospace; letter-spacing: 1px;">${esc(p.coupon.code)}</span></div>
+                <div class="muted">ออกให้ ${thaiDate(p.coupon.issuedAt)}${p.coupon.usedAt ? ` · ใช้แล้ว ${thaiDate(p.coupon.usedAt)} โดย ${esc(p.coupon.usedBy)}` : " · ยังไม่ได้ใช้"}</div></div>
+              ${p.coupon.usedAt ? "" : `<button class="btn btn-primary btn-sm" onclick="redeemCoupon()">✓ ใช้คูปองแล้ว</button>`}</div>`
+            : `<div class="muted">ใช้ปากกาครบ ${p.completedPens || 0} ด้าม (ได้คูปอง BIA เมื่อครบ ${dash.config.biaMinPens || 3} ด้ามขึ้นไป) · ${p.giftOpened ? "ผู้ป่วยเปิดของขวัญแล้ว (ได้รับคำชม)" : "ผู้ป่วยยังไม่ได้เปิดของขวัญ"}</div>`}
+        </div>` : ""}
+
+        ${(detail.skips || []).length ? `<div class="panel glass">
+          <h3>การข้ามเข็ม (${detail.skips.filter(k => !k.voided).length} รายการ)</h3>
+          <div class="scroll-x">
+            <table class="mini">
+              <thead><tr><th>นัดที่ข้าม</th><th>จำนวน</th><th>เหตุผล</th><th>นัดถัดไป</th><th>บันทึกเมื่อ</th><th></th></tr></thead>
+              <tbody>${detail.skips.map(k => `
+                <tr class="${k.voided ? "voided" : ""}">
+                  <td>${thaiDate(k.due)}</td><td>${k.count} นัด</td>
+                  <td>${esc(k.reason)}${k.note ? `<div class="muted">${esc(k.note)}</div>` : ""}</td>
+                  <td>${thaiDate(k.nextDue)}</td><td>${k.ts ? thaiDate(isoOfTs(k.ts)) : "-"}<div class="muted">${esc(k.by)}</div></td>
+                  <td class="keep">${k.voided ? `<span class="muted" title="${esc(k.voidReason)}">ยกเลิกแล้ว</span>` : `<button class="btn btn-sm btn-danger" onclick="voidEntry('skip','${esc(k.id)}')">ยกเลิก</button>`}</td>
+                </tr>`).join("")}</tbody>
+            </table>
+          </div>
+        </div>` : ""}
+
         <div class="panel glass">
           <h3>น้ำหนัก / รอบเอว (${activeBody.length} รายการ)</h3>
           <div class="scroll-x">
@@ -637,7 +689,8 @@
             <div><label for="eInterval">ระยะห่างการฉีด (วัน)</label><input id="eInterval" type="number" min="1" max="60" value="${p.intervalDays}"></div>
             <div><label for="eHeight">ส่วนสูง (ซม.)</label><input id="eHeight" type="number" min="100" max="250" step="0.1" value="${p.heightCm || ""}"></div>
             <div><label for="eStatus">สถานะการติดตาม</label><select id="eStatus">
-              <option value="active" ${p.status !== "inactive" ? "selected" : ""}>ติดตามอยู่</option>
+              <option value="active" ${p.status === "active" ? "selected" : ""}>ติดตามอยู่</option>
+              <option value="completed" ${p.status === "completed" ? "selected" : ""}>จบแผนการรักษา (ไม่ส่งแจ้งเตือน)</option>
               <option value="inactive" ${p.status === "inactive" ? "selected" : ""}>ปิดการติดตาม (ไม่ส่งแจ้งเตือน)</option></select></div>
           </div>
           <label for="eNote">หมายเหตุ</label>
@@ -689,14 +742,14 @@
 
     async function voidEntry(kind, id) {
       const reason = await modal({
-        title: kind === "injection" ? "ยกเลิกรายการฉีด" : "ยกเลิกรายการน้ำหนัก",
-        text: "รายการจะยังอยู่ในชีตแต่ถูกทำเครื่องหมายยกเลิก" + (kind === "injection" ? "\nระบบจะคำนวณสถานะปากกาของผู้ป่วยใหม่" : ""),
+        title: kind === "injection" ? "ยกเลิกรายการฉีด" : kind === "skip" ? "ยกเลิกรายการข้ามเข็ม" : "ยกเลิกรายการน้ำหนัก",
+        text: "รายการจะยังอยู่ในชีตแต่ถูกทำเครื่องหมายยกเลิก" + (kind === "injection" ? "\nระบบจะคำนวณสถานะปากกาของผู้ป่วยใหม่" : kind === "skip" ? "\nระบบจะคำนวณวันนัดของผู้ป่วยใหม่" : ""),
         input: true, placeholder: "เหตุผล เช่น ผู้ป่วยบันทึกซ้ำ", okLabel: "ยกเลิกรายการ", danger: true
       });
       if (reason === null) return;
       if (!reason) { toast("กรุณาระบุเหตุผล"); return; }
       try {
-        const r = await api(kind === "injection" ? "staff.voidInjection" : "staff.voidBody", { uid: detail.uid, id, reason });
+        const r = await api(kind === "injection" ? "staff.voidInjection" : kind === "skip" ? "staff.voidSkip" : "staff.voidBody", { uid: detail.uid, id, reason });
         detail = r.detail;
         renderDetail();
         toast("ยกเลิกรายการแล้ว");
