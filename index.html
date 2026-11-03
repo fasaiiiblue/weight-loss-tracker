@@ -137,6 +137,13 @@
     .gift-cta { display: block; width: 100%; margin: 4px 0 12px; border: none; border-radius: 18px; padding: 14px; font: 500 1.02rem 'Prompt', sans-serif;
       background: linear-gradient(90deg, #FFE7A3, #FFC845); color: #6B4700; box-shadow: 0 8px 18px rgba(214, 160, 20, 0.28); animation: wiggle 2.4s ease-in-out infinite; }
     @keyframes wiggle { 0%, 80%, 100% { transform: rotate(0); } 84% { transform: rotate(-2deg); } 88% { transform: rotate(2deg); } 92% { transform: rotate(-1deg); } }
+    .sync { display: inline-flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--muted); background: #F1F6F3; border-radius: 99px;
+      padding: 5px 14px; margin: -2px 0 12px; }
+    .sync.ok { color: var(--forest); background: var(--mint); }
+    .sync.wait { color: #8A4B08; background: #FFF1E3; border-radius: 14px; }
+    .sync.err { color: var(--red-tx); background: var(--red-bg); }
+    .dot-spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #B9D8C6; border-top-color: var(--forest); animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
     .confetti i { position: absolute; top: -12px; width: 8px; height: 13px; border-radius: 2px; opacity: 0.9; animation: fall linear forwards; }
     @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
@@ -467,6 +474,7 @@
   let historyCache = null, bodyCache = null, skipCache = null;
   let histLoading = false, bodyLoading = false;
   let currentTab = "home", metric = "weight", sending = false;
+  const inflight = new Set();   // รายการที่กำลังส่งอยู่เบื้องหลัง
 
   // ================== Storage ==================
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -1172,7 +1180,7 @@
   }
 
   function renderNotice(msg) {
-    const c = getPending().length;
+    const c = getPending().filter(p => !inflight.has(p.requestId)).length;
     if (c > 0) { $("notice").style.display = "block"; $("noticeText").innerHTML = `⏳ มี <b>${c} รายการ</b> เก็บไว้ในเครื่อง ยังไม่ได้ส่งเข้าระบบ กรุณาอย่าบันทึกซ้ำนะคะ`; }
     else if (msg) { $("notice").style.display = "block"; $("noticeText").innerText = msg; }
     else $("notice").style.display = "none";
@@ -1563,6 +1571,7 @@
     }
   };
 
+  // บันทึกการฉีด: เก็บในเครื่องและแสดงผลทันที แล้วส่งเข้าระบบเบื้องหลัง (ไม่ต้องรอเซิร์ฟเวอร์)
   async function submitInjection(st) {
     const m = medCfg(), d = st.draft, iv = intervalOf(st);
     const rec = {
@@ -1573,24 +1582,44 @@
     const before = patient;
     const flowersBefore = completedPens(patient);
     setPending([...getPending(), { kind: "injection", requestId: rec.requestId, payload: rec }]);
+    inflight.add(rec.requestId);
     patient = applyRecord(patient, rec); saveCache();
+    showInjectDone(rec, "sending", hasRed(st), flowersBefore);
+    sendInjection(rec, before);
+  }
+
+  async function sendInjection(rec, before) {
     sending = true;
-    let pendingOnly = false;
+    const setSync = (html, cls) => { const el = $("syncState"); if (el) { el.innerHTML = html; el.className = "sync " + (cls || ""); } };
     try {
       const r = await api("recordInjection", rec);
+      inflight.delete(rec.requestId);
       removePending(rec.requestId);
       if (r.patient && r.patient.found) { patient = reapplyPending(r.patient); saveCache(); }
-      try { historyCache = (await api("history")).injections || []; } catch (e) { historyCache = (historyCache || []).concat([{ date: rec.actualDate, interval: iv }]); }
-    } catch (err) {
-      if (isPermanent(err)) {
-        removePending(rec.requestId); patient = before; saveCache(); sending = false;
-        await showModal("บันทึกไม่สำเร็จ", err.message || "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบแล้วลองใหม่ค่ะ", "❌");
-        return;
+      // ใส่รายการลงประวัติในเครื่องทันที แล้วค่อยโหลดของจริงจากระบบเบื้องหลัง
+      if (historyCache && !historyCache.some(e => e.id === rec.requestId)) {
+        historyCache = historyCache.concat([{ id: rec.requestId, ts: Date.now(), date: rec.actualDate, medication: patient.medication,
+          penNumber: rec.penNumber, doseNumber: rec.doseNumber, dose: rec.doseMg, penStrength: rec.penStrengthMg, clicks: rec.clicks,
+          special: rec.isSpecial, site: rec.site, sideEffects: rec.sideEffects.join(", ") || "ไม่ได้ระบุ", redFlag: "", interval: rec.intervalDays }]);
       }
-      pendingOnly = true;
+      setSync("✓ บันทึกเข้าระบบแล้ว", "ok");
+      const nx = $("nextPill"); const next = dueDate();
+      if (nx && next) nx.innerText = `${thaiDow(next).replace("วัน", "")} ${thaiShort(next)}`;
+      setTimeout(() => loadHistory(true), 300);
+    } catch (err) {
+      inflight.delete(rec.requestId);
+      if (isPermanent(err)) {
+        removePending(rec.requestId); patient = reapplyPending(before); saveCache();
+        setSync("✕ บันทึกไม่สำเร็จ", "err");
+        await showModal("บันทึกไม่สำเร็จ", err.message || "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบแล้วลองใหม่ค่ะ", "❌");
+        if (isActive("scrDone")) goTab("home");
+      } else {
+        setSync("📥 เก็บไว้ในเครื่องแล้ว ระบบจะส่งให้อัตโนมัติ (ไม่ต้องบันทึกซ้ำ)", "wait");
+      }
+    } finally {
+      sending = false;
+      if (patient) { renderNotice(); if (isActive("scrHome")) renderHome(); }
     }
-    sending = false;
-    showInjectDone(rec, pendingOnly, hasRed(st), flowersBefore);
   }
 
   function showInjectDone(rec, pendingOnly, red, flowersBefore) {
@@ -1603,10 +1632,11 @@
     $("doneBody").innerHTML = `
       ${red ? `<div class="box-red" style="text-align: left;"><b>🚑 อาการที่ต้องเฝ้าระวัง</b><br>กรุณาติดต่อโรงพยาบาลโดยเร็ว${cfg.hospitalContact ? `<br>${esc(cfg.hospitalContact)}` : ""}<br>หากหายใจลำบาก ให้ไปห้องฉุกเฉินหรือโทร 1669 ทันที</div>` : ""}
       <div class="plant-wrap">${plantSVG(n, fl, { grow: !newFlower, newFlower })}</div>
-      <h1 class="h1">${pendingOnly ? "เก็บไว้ในเครื่องแล้ว" : "บันทึกแล้ว!"}</h1>
-      <p class="lead">${pendingOnly ? "ยังส่งเข้าระบบไม่ได้ ระบบจะส่งให้อัตโนมัติเมื่อเปิดแอปครั้งถัดไป กรุณาอย่าบันทึกซ้ำนะคะ" : msg}</p>
+      <h1 class="h1">บันทึกแล้ว!</h1>
+      <p class="lead">${msg}</p>
+      <div class="sync ${pendingOnly === "sending" ? "" : pendingOnly ? "wait" : "ok"}" id="syncState">${pendingOnly === "sending" ? '<span class="dot-spin" aria-hidden="true"></span> กำลังส่งเข้าระบบ…' : pendingOnly ? "📥 เก็บไว้ในเครื่องแล้ว ระบบจะส่งให้อัตโนมัติ (ไม่ต้องบันทึกซ้ำ)" : "✓ บันทึกเข้าระบบแล้ว"}</div>
       <div><span class="stat-pill"><span class="muted small">ด้าม / ครั้งที่</span><b>${rec.penNumber} / ${rec.doseNumber}${rec.isSpecial ? " ⭐" : ""}</b></span>
-      <span class="stat-pill"><span class="muted small">นัดครั้งถัดไป</span><b>${thaiDow(next).replace("วัน", "")} ${thaiShort(next)}</b></span></div>`;
+      <span class="stat-pill"><span class="muted small">นัดครั้งถัดไป</span><b id="nextPill">${thaiDow(next).replace("วัน", "")} ${thaiShort(next)}</b></span></div>`;
     showScreen("scrDone");
   }
 
@@ -1951,6 +1981,7 @@
   async function flushPending() {
     const out = { dropped: 0, unauthorized: false };
     for (const it of getPending()) {
+      if (inflight.has(it.requestId)) continue;
       try {
         await api(it.kind === "injection" ? "recordInjection" : "recordBody", it.payload);
         removePending(it.requestId); historyCache = null; bodyCache = null;
