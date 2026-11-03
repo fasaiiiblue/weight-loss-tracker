@@ -431,6 +431,7 @@
     }
     // อัปเดตหน้ารายละเอียดเฉพาะเมื่อยังเปิดผู้ป่วยคนเดิมอยู่ (กันกรณีปิดหน้าต่างระหว่างรอระบบ)
     function applyDetail(uid, d) {
+      if (d) detailCache[uid] = d;
       if (detail && detail.uid === uid && d) { detail = d; renderDetail(); }
     }
     async function redeemCoupon() {
@@ -521,7 +522,7 @@
         const usedPct = Math.min(100, (p.penUsedDoses / (dash.config.dosesPerPen || 4)) * 100);
         const wd = wDiff(p);
         return `
-          <tr onclick="openPatient('${esc(p.uid)}')">
+          <tr onclick="openPatient('${esc(p.uid)}')" onmouseenter="prefetchPatient('${esc(p.uid)}')" ontouchstart="prefetchPatient('${esc(p.uid)}')">
             <td><div class="name">${esc(p.name || "-")}</div><div class="muted">HN ${esc(p.hn || "-")} · ${esc(p.phone || "")}</div>
               ${p.doctor ? `<div class="muted">แพทย์: ${esc(p.doctor)}</div>` : ""}</td>
             <td data-l="ยา">${esc((p.medication || "-").replace(/\s*\(.*\)/, ""))}<div class="muted">${p.currentDose ? fmtMg(p.currentDose) : ""} · ทุก ${p.intervalDays} วัน</div></td>
@@ -546,19 +547,68 @@
     }
 
     // ================== รายละเอียด ==================
+    // ---- โหลดรายละเอียดผู้ป่วยแบบเร็ว: แสดงข้อมูลที่มีอยู่แล้วทันที แล้วค่อยเติมข้อมูลเต็มจากระบบ ----
+    const detailCache = {};     // uid -> detail ล่าสุดที่เคยโหลด
+    const detailLoads = {};     // uid -> { p: Promise, at: เวลาเริ่มโหลด }
+    function fetchDetail(uid) {
+      const cur = detailLoads[uid];
+      if (cur && Date.now() - cur.at < 20000) return cur.p;
+      const p = api("staff.patient", { uid }).then(r => { detailCache[uid] = r.detail; return r.detail; })
+        .catch(err => { delete detailLoads[uid]; throw err; });
+      detailLoads[uid] = { p, at: Date.now() };
+      return p;
+    }
+    // เริ่มโหลดล่วงหน้าตอนเอาเมาส์ชี้/แตะแถว
+    function prefetchPatient(uid) { if (!detailCache[uid] && !detailLoads[uid]) fetchDetail(uid).catch(() => {}); }
+
+    // สร้างข้อมูลเบื้องต้นจากรายการในแดชบอร์ด (แสดงได้ทันทีระหว่างรอ)
+    function partialDetail(uid) {
+      const row = (dash && dash.patients.find(x => x.uid === uid)) || null;
+      if (!row) return null;
+      const m = dash.config.meds.find(x => x.key === row.medKey);
+      return {
+        uid, partial: true,
+        patient: Object.assign({}, row, {
+          lastPenNumber: row.penNumber, lastDoseNumber: row.penCount, penSpecialUsed: row.penSpecial,
+          penUsedClicks: m ? Math.round((row.penUsedDoses || 0) * m.clicksPerFullDose) : 0
+        }),
+        injections: [], skips: [], notifications: [],
+        body: [row.weightFirst && row.weightLatest && row.weightFirst !== row.weightLatest ? { id: "f", date: row.registeredAt || "", weight: row.weightFirst } : null,
+          row.weightLatest ? { id: "l", date: row.weightLatestDate, weight: row.weightLatest } : null].filter(Boolean)
+      };
+    }
+
+    function markDetailLoading(on) {
+      if (!$("dStatus")) return;
+      const old = $("dSync"); if (old) old.remove();
+      if (on) $("dStatus").insertAdjacentHTML("beforeend", ` <span class="muted" id="dSync">⏳ กำลังโหลดข้อมูลล่าสุด…</span>`);
+      if (on && detail && detail.partial) {
+        $("dBody").querySelectorAll("tbody").forEach(tb => { tb.innerHTML = `<tr><td colspan="7" class="muted">กำลังโหลด…</td></tr>`; });
+        if ($("dChart")) $("dChart").innerHTML = `<div class="chart-empty">กำลังโหลดกราฟ…</div>`;
+        $("dBody").querySelectorAll("h3").forEach(h => { h.innerText = h.innerText.replace(/\(\d+ (ครั้ง|รายการ)\)/, "(กำลังโหลด…)"); });
+      }
+    }
+
     async function openPatient(uid) {
       $("drawerBg").style.display = "block";
       $("drawer").classList.add("open");
-      $("dName").innerText = "กำลังโหลด...";
-      $("dSub").innerText = "";
-      $("dStatus").innerHTML = "";
-      $("dBody").innerHTML = "";
+      const quick = detailCache[uid] || partialDetail(uid);
+      if (quick) { detail = quick; renderDetail(); markDetailLoading(true); }
+      else {
+        detail = null;
+        $("dName").innerText = "กำลังโหลด..."; $("dSub").innerText = ""; $("dStatus").innerHTML = ""; $("dBody").innerHTML = "";
+      }
       try {
-        const r = await api("staff.patient", { uid });
-        detail = r.detail;
-        renderDetail();
+        const full = await fetchDetail(uid);
+        delete detailLoads[uid];
+        if (!$("drawer").classList.contains("open") || (detail && detail.uid !== uid)) return;   // ปิดหรือเปิดคนอื่นไปแล้ว
+        const keepMsg = $("dMsg") ? $("dMsg").value : "";
+        detail = full; renderDetail();
+        if (keepMsg && $("dMsg")) $("dMsg").value = keepMsg;
       } catch (err) {
-        if (err.code !== "staff_auth") $("dBody").innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+        if (err.code === "staff_auth") return;
+        if (detail && detail.uid === uid) { markDetailLoading(false); toast("โหลดข้อมูลล่าสุดไม่สำเร็จ: " + err.message); }
+        else $("dBody").innerHTML = `<div class="empty">${esc(err.message)}</div>`;
       }
     }
     function closeDrawer() {
